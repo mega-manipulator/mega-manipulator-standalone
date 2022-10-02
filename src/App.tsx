@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import logo from './logo.svg'
 import './App.css'
+import {invoke} from "@tauri-apps/api";
 
 function App() {
   const [count, setCount] = useState(0)
@@ -10,8 +11,11 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>Hello Vite + React!</p>
+        {/* <p>Hello Everyone else</p> */}
         <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
+          <button type="button" onClick={() => {
+            invoke('my_custom_command').then((c) => setCount(c as number));
+          }}>
             count is: {count}
           </button>
         </p>

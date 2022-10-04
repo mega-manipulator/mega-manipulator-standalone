@@ -2,6 +2,8 @@ import {useState} from 'react'
 import logo from './logo.svg'
 import './App.css'
 import {Command} from '@tauri-apps/api/shell'
+import { Button } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -14,11 +16,11 @@ function App() {
         <img src={logo} className="App-logo" alt="logo"/>
         <p>Hello Vite + React!</p>
         <p>
-          <button type="button" onClick={() => setCount(count + 1)}>
+          <Button variant={"success"}  onClick={() => setCount(count + 1)}>
             Count is: {count}
-          </button>
+          </Button>
           <br/>
-          <button type="button" disabled={!isUpdateActive} onClick={async () => {
+          <Button variant={"success"} disabled={!isUpdateActive} onClick={async () => {
             try {
               setIsUpdateActive(false)
               let process = await (new Command('run-brew', ['update'])).execute()
@@ -29,7 +31,7 @@ function App() {
             setIsUpdateActive(true)
           }}>
             Output is: {output}
-          </button>
+          </Button>
         </p>
         <p>
           Edit <code>App.tsx</code> and save to test HMR updates.

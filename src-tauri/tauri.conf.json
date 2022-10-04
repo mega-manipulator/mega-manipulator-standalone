@@ -12,7 +12,16 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "shell": {
+        "all": true,
+        "scope": [
+          {
+            "name": "run-brew",
+            "cmd": "brew",
+            "args": ["update"]
+          }
+        ]
+      }
     },
     "bundle": {
       "active": true,

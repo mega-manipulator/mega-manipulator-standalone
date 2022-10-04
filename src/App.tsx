@@ -1,22 +1,34 @@
-import { useState } from 'react'
+import {useState} from 'react'
 import logo from './logo.svg'
 import './App.css'
-import {invoke} from "@tauri-apps/api";
+import {Command} from '@tauri-apps/api/shell'
 
 function App() {
   const [count, setCount] = useState(0)
+  const [output, setOutput] = useState('')
+  const [isUpdateActive, setIsUpdateActive] = useState(true)
 
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        <img src={logo} className="App-logo" alt="logo"/>
         <p>Hello Vite + React!</p>
-        {/* <p>Hello Everyone else</p> */}
         <p>
-          <button type="button" onClick={() => {
-            invoke('my_custom_command').then((c) => setCount(c as number));
+          <button type="button" onClick={() => setCount(count + 1)}>
+            Count is: {count}
+          </button>
+          <br/>
+          <button type="button" disabled={!isUpdateActive} onClick={async () => {
+            try {
+              setIsUpdateActive(false)
+              let process = await (new Command('run-brew', ['update'])).execute()
+              setOutput(process.stdout)
+            } catch (e) {
+              setOutput(JSON.stringify(e))
+            }
+            setIsUpdateActive(true)
           }}>
-            count is: {count}
+            Output is: {output}
           </button>
         </p>
         <p>

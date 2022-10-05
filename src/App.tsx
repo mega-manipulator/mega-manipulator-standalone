@@ -1,60 +1,42 @@
-import {useState} from 'react'
-import logo from './logo.svg'
 import './App.css'
-import {Command} from '@tauri-apps/api/shell'
-import { Button } from 'react-bootstrap';
+import {ThemeProvider} from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import {Ui} from "./ui/Ui";
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { fab } from '@fortawesome/free-brands-svg-icons'
+import { faCheckSquare, faCoffee } from '@fortawesome/free-solid-svg-icons'
+import {AppProps, Page} from "./ui/types";
+import {useState} from "react";
+
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [output, setOutput] = useState('')
-  const [isUpdateActive, setIsUpdateActive] = useState(true)
+  library.add(fab, fas, faCheckSquare, faCoffee)
+
+  const [page,setPage] = useState(Page.SETTINGS)
+  const [menuShow,setMenuShow] = useState(false)
+  const appProps: AppProps = {
+    page: {
+      get: () => page,
+      set: (page: Page) => setPage(page)
+    },
+    menu: {
+      show: {
+        get: () => menuShow,
+        set: (show: boolean) => setMenuShow(show)
+      }
+    }
+  }
 
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo"/>
-        <p>Hello Vite + React!</p>
-        <p>
-          <Button variant={"success"}  onClick={() => setCount(count + 1)}>
-            Count is: {count}
-          </Button>
-          <br/>
-          <Button variant={"success"} disabled={!isUpdateActive} onClick={async () => {
-            try {
-              setIsUpdateActive(false)
-              let process = await (new Command('run-brew', ['update'])).execute()
-              setOutput(process.stdout)
-            } catch (e) {
-              setOutput(JSON.stringify(e))
-            }
-            setIsUpdateActive(true)
-          }}>
-            Output is: {output}
-          </Button>
-        </p>
-        <p>
-          Edit <code>App.tsx</code> and save to test HMR updates.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          {' | '}
-          <a
-            className="App-link"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-        </p>
+        <ThemeProvider
+          breakpoints={['xxxl', 'xxl', 'xl', 'lg', 'md', 'sm', 'xs', 'xxs']}
+          minBreakpoint="xxs"
+        >
+          <Ui appProps={appProps}/>
+        </ThemeProvider>
       </header>
     </div>
   )

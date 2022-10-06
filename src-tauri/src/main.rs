@@ -3,6 +3,27 @@
     windows_subsystem = "windows"
 )]
 
+#[tauri::command]
+fn store_password(username: String, password: String) -> Result<(), String> {
+    let service = "mega-manipipulator";
+    let entry = keyring::Entry::new(&service, &username);
+
+    match entry.set_password(&password) {
+        Ok(p) => Ok(p),
+        Err(e) => Err(format!("Failed setting password. {:?}", e).into())
+    }
+}
+
+#[tauri::command]
+fn get_password(username: String) -> Result<String, String> {
+    let service = "mega-manipipulator";
+    let entry = keyring::Entry::new(&service, &username);
+    match entry.get_password() {
+        Ok(p) => Ok(p),
+        Err(e) => Err(format!("Failed getting password. {:?}", e).into())
+    }
+}
+
 fn main() {
     let context = tauri::generate_context!();
 
@@ -13,7 +34,7 @@ fn main() {
             tauri::Menu::default()
         })
         // This is where you pass in your commands
-        //.invoke_handler(tauri::generate_handler![my_custom_command])
+        .invoke_handler(tauri::generate_handler![store_password, get_password])
         .run(context)
         .expect("error while running tauri application");
 }

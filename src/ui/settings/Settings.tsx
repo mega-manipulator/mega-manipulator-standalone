@@ -1,16 +1,25 @@
 import logo from "../../logo.svg";
 import {Button} from "react-bootstrap";
 import {Command} from "@tauri-apps/api/shell";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 export const Settings = () => {
   const [count, setCount] = useState(0)
   const [output, setOutput] = useState('')
   const [isUpdateActive, setIsUpdateActive] = useState(true)
 
-  return <>
+  // TODO: Recommend running script in terminal, and restart
+  // sudo launchctl config user path $PATH
+  const [env, setEnv] = useState('')
+  useEffect(() => {
+    new Command(
+      "print-env",
+      "PATH"
+    ).execute()
+      .then((commandResult) => setEnv(commandResult.stdout))
+  })
 
-    <h1>Settings</h1>
+  return <>
     <img src={logo} className="App-logo" alt="logo"/>
     <p>Hello Vite + React!</p>
     <p>
@@ -30,6 +39,11 @@ export const Settings = () => {
       }}>
         Output is: {output}
       </Button>
+    </p>
+    <p>
+      <ul>
+        { env.split( ':').map((it) => <li>{it}</li>) }
+      </ul>
     </p>
     <p>
       Edit <code>App.tsx</code> and save to test HMR updates.

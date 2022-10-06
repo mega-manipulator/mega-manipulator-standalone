@@ -19,6 +19,11 @@
             "name": "run-brew",
             "cmd": "brew",
             "args": ["update"]
+          },
+          {
+            "name": "print-env",
+            "cmd": "printenv",
+            "args": ["PATH"]
           }
         ]
       }

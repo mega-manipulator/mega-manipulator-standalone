@@ -3,7 +3,8 @@
     windows_subsystem = "windows"
 )]
 
-use tauri_plugin_log::{LogTarget, LoggerBuilder};
+use log::LevelFilter;
+use tauri_plugin_log::{LogTarget, LoggerBuilder, RotationStrategy};
 
 #[tauri::command]
 fn store_password(username: String, password: String) -> Result<(), String> {
@@ -32,7 +33,12 @@ fn main() {
     tauri::Builder::default()
         .plugin(
             LoggerBuilder::default()
-                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .level(LevelFilter::Info)
+                .targets([
+                    LogTarget::LogDir,
+                    LogTarget::Stdout,
+                ])
+                .rotation_strategy(RotationStrategy::KeepOne)
                 .build(),
         )
         .menu(if cfg!(target_os = "macos") {

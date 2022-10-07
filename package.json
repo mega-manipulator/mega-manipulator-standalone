@@ -1,5 +1,5 @@
 {
-  "name": "tauri-react-template",
+  "name": "mega-manipulator",
   "private": true,
   "version": "0.1.0",
   "scripts": {
@@ -18,7 +18,8 @@
     "bootstrap": "^5.2.2",
     "react": "^18.2.0",
     "react-bootstrap": "^2.5.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "tauri-plugin-log-api": "github:tauri-apps/tauri-plugin-log#dev"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.0.5",

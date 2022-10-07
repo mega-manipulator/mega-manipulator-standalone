@@ -3,6 +3,8 @@
     windows_subsystem = "windows"
 )]
 
+use tauri_plugin_log::{LogTarget, LoggerBuilder};
+
 #[tauri::command]
 fn store_password(username: String, password: String) -> Result<(), String> {
     let service = "mega-manipipulator";
@@ -10,7 +12,7 @@ fn store_password(username: String, password: String) -> Result<(), String> {
 
     match entry.set_password(&password) {
         Ok(p) => Ok(p),
-        Err(e) => Err(format!("Failed setting password. {:?}", e).into())
+        Err(e) => Err(format!("Failed setting password. {:?}", e).into()),
     }
 }
 
@@ -20,7 +22,7 @@ fn get_password(username: String) -> Result<String, String> {
     let entry = keyring::Entry::new(&service, &username);
     match entry.get_password() {
         Ok(p) => Ok(p),
-        Err(e) => Err(format!("Failed getting password. {:?}", e).into())
+        Err(e) => Err(format!("Failed getting password. {:?}", e).into()),
     }
 }
 
@@ -28,6 +30,11 @@ fn main() {
     let context = tauri::generate_context!();
 
     tauri::Builder::default()
+        .plugin(
+            LoggerBuilder::default()
+                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .build(),
+        )
         .menu(if cfg!(target_os = "macos") {
             tauri::Menu::os_default(&context.package_info().name)
         } else {

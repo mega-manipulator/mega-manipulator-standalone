@@ -7,29 +7,40 @@ import {MegaContext, MegaContextType, MegaSettingsType} from "./hooks/MegaContex
 import {Menu} from "./ui/menu/Menu";
 import {Col, Container, Row} from "react-bootstrap";
 import React, {useState} from "react";
-import {Settings} from "./ui/settings/Settings";
+import {SettingsPage} from "./ui/settings/SettingsPage";
+import {trace} from "tauri-plugin-log-api";
 
 function App() {
   library.add(fab, fas, faCheckSquare, faCoffee)
-  const [settings, setSettings] = useState<MegaSettingsType>({theme: 'dark'})
+  const [settings, setSettings] = useState<MegaSettingsType>({
+    version: '1',
+    theme: 'dark',
+    searchHosts: {},
+    codeHosts: {
+      "github.com": {
+        type: 'GITHUB',
+      }
+    },
+  })
   const [pageHead, setPageHead] = useState('Settings')
-  const [page, setPage] = useState(<Settings/>)
+  const [page, setPage] = useState(<SettingsPage/>)
 
   const defaultValue: MegaContextType = {
-    settings: {get: settings, set: setSettings},
-    pageHead: {get: pageHead, set: setPageHead},
-    page: {get: page, set: setPage},
+    settings: {value: settings, set: setSettings},
+    pageHead: pageHead,
+    page: page,
+    navigatePage: (pageHead: string, page: JSX.Element) => {
+      trace(`Going to ${pageHead}`)
+      setPageHead(pageHead);
+      setPage(page);
+    },
   }
 
   return <MegaContext.Provider value={defaultValue}>
-    <div className="dark bg-dark text-dark navbar-dark">
+    <div className={``}>
       <Menu/>
-      <Container
-        fluid={false}
-        style={{
-          position: "absolute",
-          top: "70px",
-        }}>
+      <hr/>
+      <Container>
         <Row>
           <Col md={12}>
             {page}

@@ -2,8 +2,9 @@ import {Container, Nav, Navbar, Offcanvas} from "react-bootstrap";
 import React from "react";
 import {MegaContext} from "../../hooks/MegaContext";
 import {info} from 'tauri-plugin-log-api'
-import {Settings} from "../settings/Settings";
+import {SettingsPage} from "../settings/SettingsPage";
 import {SearchPage} from "../search/SearchPage";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 export const Menu: React.FC = () => {
   return <MegaContext.Consumer>
@@ -13,11 +14,10 @@ export const Menu: React.FC = () => {
               className="mb-3"
               style={{
                 width: '100%',
-                position: 'absolute',
                 top: '0px',
               }}>
         <Container fluid>
-          <Navbar.Brand href="#">{context.pageHead.get}</Navbar.Brand>
+          <Navbar.Brand href="#">{context.pageHead}</Navbar.Brand>
           <Navbar.Toggle aria-controls={"offcanvasNavbar-expand-md"}/>
           <Navbar.Offcanvas
             id={`offcanvasNavbar-expand-md`}
@@ -26,20 +26,27 @@ export const Menu: React.FC = () => {
           >
             <Offcanvas.Header closeButton>
               <Offcanvas.Title id={`offcanvasNavbarLabel-expand-md`}>
-                Offcanvas
+                Menu
               </Offcanvas.Title>
             </Offcanvas.Header>
             <Offcanvas.Body>
               <Nav className="justify-content-end flex-grow-1 pe-3">
                 <Nav.Link onClick={() => {
-                  info('Nav > Settings')
-                  context.page.set(<Settings/>)
-                  context.pageHead.set('Settings')
+                  info('Toggle > darkMode')
+                  context.settings.set({
+                    ...context.settings.value,
+                    theme: `${context.settings.value.theme === 'dark' ? 'light' : 'dark'}`
+                  })
+                }}>Toggle theme ({context.settings.value.theme}) <FontAwesomeIcon
+                  icon={['fas', `${context.settings.value.theme === 'dark' ? 'planet-moon' : 'sunrise'}`]}/>
+                </Nav.Link>
+                <Nav.Link onClick={() => {
+                  info('Nav > SettingsPage')
+                  context.navigatePage('Settings', <SettingsPage/>)
                 }}>Settings</Nav.Link>
                 <Nav.Link onClick={() => {
                   info('Nav > Search')
-                  context.page.set(<SearchPage/>)
-                  context.pageHead.set('Search')
+                  context.navigatePage('Search', <SearchPage/>)
                 }}>Search</Nav.Link>
               </Nav>
             </Offcanvas.Body>

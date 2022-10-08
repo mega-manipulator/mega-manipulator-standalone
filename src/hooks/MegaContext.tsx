@@ -3,28 +3,49 @@ import React from "react";
 export type MegaTheme = 'dark' | 'light'
 
 export type MegaSettingsType = {
+  version: '1',
   theme: MegaTheme,
+  keepLocalRepos?: string,
+  searchHosts: { [key: string]: SearchHostSettings, },
+  codeHosts: { [key: string]: CodeHostSettings, },
+}
+
+export type SearchHostType = 'GITHUB'
+export type SearchHostSettings = {
+  type: SearchHostType,
+  github?: GitHubSearchHostSettings,
+}
+export type GitHubSearchHostSettings = {
+  username: string,
+}
+export type CodeHostType = 'GITHUB'
+export type CodeHostSettings = {
+  type: CodeHostType,
+  github?: GitHubCodeHostSettings,
+}
+export type GitHubCodeHostSettings = {
+  username: string,
 }
 
 export type MegaContextType = {
-  settings: { get: MegaSettingsType, set: (settings: MegaSettingsType) => void },
-  pageHead: { get: string, set: (theme: string) => void },
-  page: { get: JSX.Element, set: (theme: JSX.Element) => void },
+  settings: { value: MegaSettingsType, set: (settings: MegaSettingsType) => void },
+  pageHead: string,
+  page: JSX.Element,
+  navigatePage: (pageHead: string, page: JSX.Element) => void
 }
 
 export const MegaContext = React.createContext<MegaContextType>({
-  page: {
-    get: <></>,
-    set: (page: JSX.Element) => {
-    },
-  },
-  pageHead: {
-    get: '',
-    set: (pageHead: string) => {
-    },
+  page: <></>,
+  pageHead: '',
+  navigatePage: (pageHead: string, page: JSX.Element) => {
   },
   settings: {
-    get: {theme: 'dark'},
+    value: {
+      version: '1',
+      theme: 'dark',
+      codeHosts: {},
+      searchHosts: {},
+    },
     set: (theme: MegaSettingsType) => {
     },
   }

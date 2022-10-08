@@ -12,20 +12,11 @@
   },
   "tauri": {
     "allowlist": {
+      "fs": {
+        "all": true
+      },
       "shell": {
-        "all": true,
-        "scope": [
-          {
-            "name": "run-brew",
-            "cmd": "brew",
-            "args": ["update"]
-          },
-          {
-            "name": "print-env",
-            "cmd": "printenv",
-            "args": ["PATH"]
-          }
-        ]
+        "all": true
       }
     },
     "bundle": {
@@ -72,7 +63,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "tauri-react-template",
+        "title": "mega-manipulator",
         "width": 800
       }
     ]

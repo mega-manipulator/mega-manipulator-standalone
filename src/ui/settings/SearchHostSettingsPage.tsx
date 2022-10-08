@@ -1,10 +1,14 @@
 import {Button, Form} from "react-bootstrap";
 import {invoke} from "@tauri-apps/api";
-import {ReactElement, useState} from "react";
+import {ReactElement, useContext, useState} from "react";
+import {MegaContext} from "../../hooks/MegaContext";
 
-export type SearchHostSettingsProps = {}
+export type SearchHostSettingsProps = {
+  searchHostKey?: string,
+}
 
-export const SearchHostSettings: (props: SearchHostSettingsProps) => ReactElement = ({}) => {
+export const SearchHostSettingsPage: (props: SearchHostSettingsProps) => ReactElement = ({searchHostKey}) => {
+  const context = useContext(MegaContext)
   const [userName, setUserName] = useState('')
   const [password, setPassword] = useState('')
   const [hidePassword, setHidePassword] = useState(true)
@@ -32,9 +36,9 @@ export const SearchHostSettings: (props: SearchHostSettingsProps) => ReactElemen
       invoke('store_password', {
         "username": userName,
         "password": password,
-      }).then((e) => console.log('Done'))
+      }).then((event) => console.log('Done'))
     }>
-      Save
+      {searchHostKey ? 'Update' : 'Create'}
     </Button>
   </Form>
 };

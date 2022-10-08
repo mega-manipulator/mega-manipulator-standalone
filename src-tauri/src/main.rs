@@ -1,10 +1,10 @@
 #![cfg_attr(
-    all(not(debug_assertions), target_os = "windows"),
-    windows_subsystem = "windows"
+all(not(debug_assertions), target_os = "windows"),
+windows_subsystem = "windows"
 )]
 
 use log::LevelFilter;
-use tauri_plugin_log::{LogTarget, LoggerBuilder, RotationStrategy};
+use tauri_plugin_log::{LoggerBuilder, LogTarget, RotationStrategy};
 
 #[tauri::command]
 fn store_password(username: String, password: String) -> Result<(), String> {
@@ -31,6 +31,7 @@ fn main() {
     let context = tauri::generate_context!();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::PluginBuilder::default().build())
         .plugin(
             LoggerBuilder::default()
                 .level(LevelFilter::Info)

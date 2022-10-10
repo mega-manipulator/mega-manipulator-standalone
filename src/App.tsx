@@ -15,10 +15,17 @@ function App() {
   const [settings, setSettings] = useState<MegaSettingsType>({
     version: '1',
     theme: 'dark',
-    searchHosts: {},
+    searchHosts: {
+      "github.com": {
+        type: "GITHUB",
+        github: {
+        }
+      }
+    },
     codeHosts: {
       "github.com": {
         type: 'GITHUB',
+        github: {}
       }
     },
   })
@@ -37,10 +44,13 @@ function App() {
   }
 
   return <MegaContext.Provider value={defaultValue}>
-    <div className={``}>
+    <div className={``} style={{width:"100%"}}>
       <Menu/>
       <hr/>
-      <Container>
+      <Container style={{
+        width:"100%",
+        margin: "1px"
+      }}>
         <Row>
           <Col md={12}>
             {page}

@@ -40,12 +40,12 @@ jobs:
 
       - run: npm install
 
-      - run: npm run build:web
+      - run: npm run build
 
-      - run: npm run lint
-        if: matrix.platform == 'ubuntu-latest'
+      #- run: npm run lint
+      #  if: matrix.platform == 'ubuntu-latest'
 
-      - run: npm run test
+      #- run: npm run test
 
       - name: Build
         uses: tauri-apps/tauri-action@v0

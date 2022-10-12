@@ -3,7 +3,7 @@ import {invoke} from "@tauri-apps/api";
 import {ReactElement, useContext, useEffect, useMemo, useState} from "react";
 import {GitHubSearchHostSettings, MegaContext} from "../../hooks/MegaContext";
 import {SettingsPage} from "./SettingsPage";
-import {error, info, warn} from "tauri-plugin-log-api";
+import {debug, info, warn} from "tauri-plugin-log-api";
 
 export type SearchHostSettingsProps = {
   searchHostKey?: string,
@@ -17,8 +17,8 @@ export const GitHubSearchHostSettingsPage: (props: SearchHostSettingsProps) => R
   const [password, setPassword] = useState('')
   useEffect(() => {
     invoke('get_password', {"username": searchHost.username})
-      .catch((e) => error(`Failed getting password: ${JSON.stringify(e)}`))
-      .then((e) => info(`Updated password for username ${searchHost.username}`))
+      .then((e) => info(`Fetched password for username ${searchHost.username}`))
+      .catch((e) => debug(`Failed getting password: ${JSON.stringify(e)}`))
   }, [searchHost.username])
   const [hidePassword, setHidePassword] = useState(true)
 
@@ -60,7 +60,7 @@ export const GitHubSearchHostSettingsPage: (props: SearchHostSettingsProps) => R
                     username: searchHost.username,
                   }
                 }
-                context.settings.set(ref)
+                context.settings.update(ref)
               } else if (context.settings) {
                 info('Updating old Search host config node')
                 warn('Not implemented')

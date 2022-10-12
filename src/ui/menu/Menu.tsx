@@ -33,7 +33,7 @@ export const Menu: React.FC = () => {
               <Nav className="justify-content-end flex-grow-1 pe-3">
                 <Nav.Link onClick={() => {
                   info('Toggle > darkMode')
-                  context.settings.set({
+                  context.settings.update({
                     ...context.settings.value,
                     theme: `${context.settings.value.theme === 'dark' ? 'light' : 'dark'}`
                   })

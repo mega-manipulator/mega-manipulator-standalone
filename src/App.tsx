@@ -9,10 +9,11 @@ import {Col, Container, Row} from "react-bootstrap";
 import React, {useState} from "react";
 import {SettingsPage} from "./ui/settings/SettingsPage";
 import {trace} from "tauri-plugin-log-api";
+import {useImmer} from "use-immer";
 
 function App() {
   library.add(fab, fas, faCheckSquare, faCoffee)
-  const [settings, setSettings] = useState<MegaSettingsType>({
+  const [settings, updateSettings] = useImmer<MegaSettingsType>({
     version: '1',
     theme: 'dark',
     searchHosts: {
@@ -33,7 +34,7 @@ function App() {
   const [page, setPage] = useState(<SettingsPage/>)
 
   const defaultValue: MegaContextType = {
-    settings: {value: settings, set: setSettings},
+    settings: {value: settings, update: updateSettings},
     pageHead: pageHead,
     page: page,
     navigatePage: (pageHead: string, page: JSX.Element) => {

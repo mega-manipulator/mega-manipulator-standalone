@@ -20,7 +20,7 @@ export const GitHubCodeHostSettingsPage: React.FC<CodeHostSettingsProps> = ({cod
           warn('Deleting code host ' + codeHostKey)
           const moddded: MegaSettingsType = JSON.parse(JSON.stringify(context.settings.value))
           delete moddded.codeHosts[codeHostKey]
-          context.settings.set(moddded)
+          context.settings.update(moddded)
           context.navigatePage('Settings', <SettingsPage/>)
         }
       })

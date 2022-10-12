@@ -28,7 +28,7 @@ export type GitHubCodeHostSettings = {
 }
 
 export type MegaContextType = {
-  settings: { value: MegaSettingsType, update: (settings: MegaSettingsType) => void },
+  settings: { value: MegaSettingsType, update: (fn:(settingsDraft: MegaSettingsType) => void) => void },
   pageHead: string,
   page: JSX.Element,
   navigatePage: (pageHead: string, page: JSX.Element) => void
@@ -46,7 +46,7 @@ export const MegaContext = React.createContext<MegaContextType>({
       codeHosts: {},
       searchHosts: {},
     },
-    update: (theme: MegaSettingsType) => {
+    update: (fn:(settingsDraft: MegaSettingsType) => void) => {
     },
   }
 })

@@ -9,11 +9,11 @@ import {Col, Container, Row} from "react-bootstrap";
 import React, {useState} from "react";
 import {SettingsPage} from "./ui/settings/SettingsPage";
 import {trace} from "tauri-plugin-log-api";
-import {useImmer} from "use-immer";
+import {useMutableState} from "./hooks/useMutableState";
 
 function App() {
   library.add(fab, fas, faCheckSquare, faCoffee)
-  const [settings, updateSettings] = useImmer<MegaSettingsType>({
+  const [settings, updateSettings] = useMutableState<MegaSettingsType>({
     version: '1',
     theme: 'dark',
     searchHosts: {

@@ -1,8 +1,52 @@
 import {GitHubSearchHostSettingsPage} from "./GitHubSearchHostSettingsPage";
 import {useContext, useState} from "react";
-import {MegaContext} from "../../hooks/MegaContext";
-import {Button, Col, Container, Form, Row, Table} from "react-bootstrap";
+import {GitHubCodeHostSettings, GitHubSearchHostSettings, MegaContext, MegaContextType} from "../../hooks/MegaContext";
+import {Button, Col, Container, Form, Modal, Row, Table} from "react-bootstrap";
 import {GitHubCodeHostSettingsPage} from "./GitHubCodeHostSettingsPage";
+import {error} from "tauri-plugin-log-api";
+import {ResetAllSettings} from "./ResetAllSettings";
+
+type SearchHostRowProps = {
+  searchHostKey: string,
+  context: MegaContextType,
+}
+
+const SearchHostRow: React.FC<SearchHostRowProps> = ({context, searchHostKey}) => {
+  const h = context.settings.value.searchHosts[searchHostKey];
+  if (h.type === 'GITHUB') {
+    return <tr
+      style={h?.github?.username ? {} : {background: "red"}}
+      onClick={() => context.navigatePage('Edit: ' + searchHostKey, <GitHubSearchHostSettingsPage
+        searchHostKey={searchHostKey}/>)}>
+      <td>{searchHostKey} </td>
+      <td>{h.type} </td>
+    </tr>
+  } else {
+    error(`Unable to determine class of search host ${searchHostKey} :: ${JSON.stringify(h)}`)
+    return null
+  }
+}
+
+type CodeHostRowProps = {
+  codeHostKey: string,
+  context: MegaContextType,
+}
+
+const CodeHostRow: React.FC<CodeHostRowProps> = ({context, codeHostKey}) => {
+  const h = context.settings.value.codeHosts[codeHostKey];
+  if (h.type === 'GITHUB') {
+    return <tr
+      style={h?.github?.username ? {} : {background: "red"}}
+      onClick={() => context.navigatePage('Edit: ' + codeHostKey, <GitHubCodeHostSettingsPage
+        codeHostKey={codeHostKey}/>)}>
+      <td>{codeHostKey} </td>
+      <td>{h.type} </td>
+    </tr>
+  } else {
+    error(`Unable to determine class of code host ${codeHostKey} :: ${JSON.stringify(h)}`)
+    return null
+  }
+}
 
 export const SettingsPage = () => {
   const context = useContext(MegaContext)
@@ -29,15 +73,10 @@ export const SettingsPage = () => {
             <th>Type</th>
             </thead>
             <tbody>
-            {Object.keys(context.settings.value.searchHosts).map((k) => {
-              const h = context.settings.value.searchHosts[k];
-              return <tr
-                style={h.github?.username ? {} : {background:"red"}}
-                onClick={() => context.navigatePage('Edit: ' + k, <GitHubSearchHostSettingsPage searchHostKey={k}/>)}>
-                <td>{k} </td>
-                <td>{h.type} </td>
-              </tr>
-            })}
+            {Object.keys(context.settings.value.searchHosts)
+              .map((k) => <SearchHostRow
+                searchHostKey={k}
+                context={context}/>)}
             </tbody>
           </Table>
           <Button onClick={() => context.navigatePage('New search host', <GitHubSearchHostSettingsPage/>)}>Add new
@@ -51,15 +90,10 @@ export const SettingsPage = () => {
             <th>Type</th>
             </thead>
             <tbody>
-            {Object.keys(context.settings.value.codeHosts).map((k) => {
-              const h = context.settings.value.codeHosts[k];
-              return <tr
-                style={h.github?.username ? {} : {background:"red"}}
-                onClick={() => context.navigatePage('Edit: ' + k, <GitHubCodeHostSettingsPage codeHostKey={k}/>)}>
-                <td>{k} </td>
-                <td>{h.type} </td>
-              </tr>
-            })}
+            {Object.keys(context.settings.value.codeHosts)
+              .map((k) => <CodeHostRow
+                codeHostKey={k}
+                context={context}/>)}
             </tbody>
           </Table>
           <Button onClick={() => context.navigatePage('New code host', <GitHubCodeHostSettingsPage
@@ -68,5 +102,8 @@ export const SettingsPage = () => {
         </Col>
       </Row>
     </Container>
+    <p>
+      <ResetAllSettings/>
+    </p>
   </>
 };

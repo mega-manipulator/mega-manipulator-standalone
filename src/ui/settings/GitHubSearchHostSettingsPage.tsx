@@ -5,6 +5,7 @@ import {SettingsPage} from "./SettingsPage";
 import {info, warn} from "tauri-plugin-log-api";
 import {PasswordForm} from "./PasswordForm";
 import {useMutableState} from "../../hooks/useMutableState";
+import {confirm} from "@tauri-apps/api/dialog";
 
 export type SearchHostSettingsProps = {
   searchHostKey?: string,
@@ -25,7 +26,7 @@ export const GitHubSearchHostSettingsPage: (props: SearchHostSettingsProps) => R
     if (searchHostKeyVal.length === 0) errors.push('Search host key cannot be empty')
     if (searchHostKey === undefined && searchHostKeySame > 0) errors.push('Search host key already defined')
     if (searchHostKey !== undefined && searchHostKeySame > 1) errors.push('Search host key already defined')
-    if (searchHostKey !== undefined && searchHostKeySame < 1) errors.push('Search host key cannot be changed')
+    if (searchHostKey !== undefined && searchHostKey !== searchHostKeyVal) errors.push('Search host key cannot be changed')
     if (searchHost.username === undefined || searchHost.username.length < 1) errors.push('Username is undefined')
     if (errors.length === 0) setValidationError(undefined); else setValidationError(errors.join(', '));
   }, [searchHost, searchHostKeyVal])
@@ -88,7 +89,23 @@ export const GitHubSearchHostSettingsPage: (props: SearchHostSettingsProps) => R
               }}>
               {searchHostKeyVal ? 'Update' : 'Create'}
             </Button>
-            { validationError ? <Badge bg={"danger"}>{validationError}</Badge> : null}
+            {validationError ? <Badge bg={"danger"}>{validationError}</Badge> : null}
+            <Button
+              variant={"danger"}
+              disabled={searchHostKey === undefined || searchHostKey === 'github.com'}
+              onClick={() => {
+                if (searchHostKey !== undefined) {
+                  confirm(`Delete ${searchHostKey}?`).then((ans) => {
+                    if (ans) {
+                      context.settings.update(settingsDraft => {
+                        delete settingsDraft.searchHosts[searchHostKey]
+                      })
+                      context.navigatePage('Settings', <SettingsPage/>)
+                    }
+                  })
+                }
+              }}
+            >Delete search host</Button>
           </Form>
         </Col>
         <br/>
@@ -103,5 +120,5 @@ export const GitHubSearchHostSettingsPage: (props: SearchHostSettingsProps) => R
     <div>
       <Button onClick={() => context.navigatePage('Settings', <SettingsPage/>)}>Back</Button>
     </div>
-  </>
+  </>;
 };

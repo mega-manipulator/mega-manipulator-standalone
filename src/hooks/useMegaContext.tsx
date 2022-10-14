@@ -1,7 +1,7 @@
 import {MegaContextType, MegaSettingsType} from "./MegaContext";
 import React, {useEffect, useState} from "react";
 import {SettingsPage} from "../ui/settings/SettingsPage";
-import {debug, error, info, trace} from "tauri-plugin-log-api";
+import {error, info, trace} from "tauri-plugin-log-api";
 import {Store} from 'tauri-plugin-store-api';
 
 const store = new Store('.settings.dat');
@@ -28,19 +28,29 @@ export function useMegaContext(): MegaContextType {
   useEffect(() => {
     (async () => {
       if (loaded) {
+        info(`Saving settings ${JSON.stringify(settings)}`)
         store.set('settings', settings)
           .then(() => info('Saved settings'))
           .catch((e) => error(`Failed storing settings: ${e}`))
       } else {
-        let loadedSettings: any = await store.get('settings')
-        if (loadedSettings !== undefined && loadedSettings instanceof MegaSettingsType) {
-          setSettings(loadedSettings)
-          info('Loaded settings from file')
+        try {
+          info('Loading settings')
+          let loadedSettings: any = await store.get('settings')
+          if (loadedSettings === undefined) {
+            info(`Didn't load settings, none found`)
+          } else if (loadedSettings instanceof MegaSettingsType) {
+            info(`Didn't load settings, was not able to determine type`)
+          } else {
+            setSettings(loadedSettings)
+            info(`Loaded settings from file: ${JSON.stringify(loadedSettings)}`)
+          }
+          setLoaded(true)
+        } catch (e) {
+          error(`Failed loading settings due to: ${e}`)
         }
-        setLoaded(true)
       }
     })()
-  }, [settings, loaded])
+  }, [settings])
   const [pageHead, setPageHead] = useState('Settings')
   const [page, setPage] = useState(<SettingsPage/>)
   const updateSettings: (a: (draft: MegaSettingsType) => void) => void = (a: (draft: MegaSettingsType) => void) => {

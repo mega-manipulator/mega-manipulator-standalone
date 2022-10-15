@@ -1,6 +1,7 @@
 {
   "name": "mega-manipulator",
   "private": true,
+  "homepage": ".",
   "version": "0.1.0",
   "scripts": {
     "dev": "vite",
@@ -14,6 +15,10 @@
     "@fortawesome/free-brands-svg-icons": "^6.2.0",
     "@fortawesome/free-solid-svg-icons": "^6.2.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@octokit/plugin-paginate-rest": "^5.0.1",
+    "@octokit/plugin-throttling": "^4.3.1",
+    "@octokit/plugin-retry": "^3.0.9",
+    "@octokit/rest": "^19.0.5",
     "@tauri-apps/api": "^1.0.2",
     "bootstrap": "^5.2.2",
     "octokit": "^2.0.7",

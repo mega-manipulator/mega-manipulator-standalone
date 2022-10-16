@@ -3,8 +3,9 @@ import {MegaContext} from "../../hooks/MegaContext";
 import {info} from 'tauri-plugin-log-api'
 import {SettingsPage} from "../settings/SettingsPage";
 import {SearchPage} from "../search/SearchPage";
-import {Button, MenuItem} from "@mui/material";
+import {Button, Grid, IconButton, MenuItem, Typography} from "@mui/material";
 import Menu from '@mui/material/Menu';
+import MenuIcon from '@mui/icons-material/Menu';
 
 export const AppMenu: React.FC = () => {
   const context = useContext(MegaContext)
@@ -17,15 +18,21 @@ export const AppMenu: React.FC = () => {
     setAnchorEl(null);
   };
   return <div>
-    <Button
-      variant={"contained"}
-      color={"secondary"}
-      id="basic-button"
-      aria-controls={open ? 'basic-menu' : undefined}
-      aria-haspopup="true"
-      aria-expanded={open ? 'true' : undefined}
-      onClick={handleClick}
-    >Menu</Button>
+    <Grid container padding={1} width={"100%"}>
+      <Grid item alignContent={"end"} alignSelf={"end"} alignItems={"end"}>
+        <IconButton
+          color={"secondary"}
+          id="basic-button"
+          aria-controls={open ? 'basic-menu' : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? 'true' : undefined}
+          onClick={handleClick}
+        ><MenuIcon/></IconButton>
+      </Grid>
+      <Grid item>
+        <Typography variant={'h4'}>{context.pageHead}</Typography>
+      </Grid>
+    </Grid>
     <Menu id="basic-menu"
           anchorEl={anchorEl}
           open={open}

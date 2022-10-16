@@ -2,8 +2,10 @@ import React, {useContext, useEffect, useState} from "react";
 import {MegaContext, SearchHostSettings} from "../../hooks/MegaContext";
 import {error, info, warn} from "tauri-plugin-log-api";
 import {useGithubClient} from "../../hooks/github.com";
-import {Alert, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
+import {Alert, Button} from "@mui/material";
 import {SearchHit} from "./types";
+import {SearchHitTable} from "./SearchHitTable";
+
 
 export const SearchPage: React.FC = () => {
   const context = useContext(MegaContext)
@@ -11,12 +13,16 @@ export const SearchPage: React.FC = () => {
   const [searchText, setSearchText] = useState('')
   const [searching, setSearching] = useState(false)
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
-  let githubClient = useGithubClient('github.com'); // TODO: get from select
+  const [selectedHits, setSelectedHits] = useState<SearchHit[]>([])
+  useEffect(() => {
+    info('Currently selected rows: ' + JSON.stringify(selectedHits.map((hit) => hit.repo)))
+  }, [selectedHits])
+  const githubClient = useGithubClient('github.com'); // TODO: get from select
+
   useEffect(() => {
     setSelected(context.settings.value.searchHosts[Object.keys(context.settings.value.searchHosts)[0]])
   }, [context.settings.value])
   return <>
-    <p>Search</p>
     <form onSubmit={() => info(`Submit: ${selected}`)}>
       <select onChange={(event) => {
         setSelected(context.settings.value.searchHosts[event.target.value])
@@ -35,7 +41,7 @@ export const SearchPage: React.FC = () => {
             githubClient.searchCode('amazing language:go', 100)
               .then((hits) => {
                 setSearchHits(hits)
-                info('Found ' + JSON.stringify(hits))
+                info(`Found ${hits.length} hits`)
               })
               .catch((e) => error(`Failed searching github ${e}`))
               .then(_ => info('Done'))
@@ -47,27 +53,6 @@ export const SearchPage: React.FC = () => {
         }}>Search</Button>
     </form>
     {searching ? <Alert severity={"info"}>Search in progress</Alert> : null}
-    <TableContainer component={Paper}>
-      <Table border={1}>
-        <TableHead>
-          <TableRow>
-            <TableCell>Search Host</TableCell>
-            <TableCell>Code Host</TableCell>
-            <TableCell>Owner</TableCell>
-            <TableCell>Repo</TableCell>
-            <TableCell>Description</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {searchHits.map((hit) => <TableRow>
-            <TableCell>{hit.searchHost}</TableCell>
-            <TableCell>{hit.codeHost}</TableCell>
-            <TableCell>{hit.owner}</TableCell>
-            <TableCell>{hit.repo}</TableCell>
-            <TableCell>{hit.description}</TableCell>
-          </TableRow>)}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <SearchHitTable data={searchHits} selectionCallback={setSelectedHits}/>
   </>
 }

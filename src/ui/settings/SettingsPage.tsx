@@ -1,14 +1,13 @@
 import {GitHubSearchHostSettingsPage} from "./GitHubSearchHostSettingsPage";
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {MegaContext, MegaContextType} from "../../hooks/MegaContext";
 import {GitHubCodeHostSettingsPage} from "./GitHubCodeHostSettingsPage";
 import {error} from "tauri-plugin-log-api";
 import {ResetAllSettings} from "./ResetAllSettings";
 import {usePassword} from "../../hooks/usePassword";
+
 import {
   Button,
-  FormControl,
-  FormGroup,
   Grid,
   Paper,
   Table,
@@ -79,18 +78,30 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({context, codeHostKey}) => {
 export const SettingsPage = () => {
   const context = useContext(MegaContext)
   const [keepLocalRepos, setKeepLocalRepos] = useState<string | undefined>(undefined)
+  const [clonePath, setClonePath] = useState<string | undefined>(undefined)
+  useEffect(() => {
+    setKeepLocalRepos(context.settings.value.keepLocalReposPath)
+    setClonePath(context.settings.value.clonePath)
+  }, [context.settings])
   return <>
-    <FormControl>
-      <FormGroup>
-        <TextField label={'Keep Local Repos location'} variant={"outlined"}
+    <Grid container spacing={2}>
+      <Grid item xs={12} md={6}>
+        <TextField fullWidth label={'Keep Local Repos location'} variant={"outlined"}
                    placeholder="File system Location"
                    value={keepLocalRepos}
+
                    onChange={(event) => setKeepLocalRepos(event.target.value)}/>
-      </FormGroup>
-    </FormControl>
-    <br/>
-    <Button variant={"contained"} onClick={() => null}>Save settings</Button>
-    <hr/>
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <TextField fullWidth label={'Clone Repos location'} variant={"outlined"}
+                   placeholder="File system Location"
+                   value={clonePath}
+                   onChange={(event) => setClonePath(event.target.value)}/>
+      </Grid>
+      <Grid item xs={12}>
+        <Button variant={"contained"} onClick={() => null}>Save settings</Button>
+      </Grid>
+    </Grid>
     <Grid container spacing={2}>
       <Grid item sm={12} md={6}>
         <TableContainer component={Paper}>
@@ -115,7 +126,7 @@ export const SettingsPage = () => {
           Search
           host</Button>
       </Grid>
-      <Grid item sm={12} md={6} >
+      <Grid item sm={12} md={6}>
         <TableContainer component={Paper}>
           <Table border={1}>
             <TableHead>

@@ -9,6 +9,8 @@ const defaultSettings: () => MegaSettingsType = () => {
   return {
     version: '1',
     theme: 'dark',
+    keepLocalReposPath: '~/vcs',
+    clonePath: '~/vcs/mega-manipulator-workdir',
     searchHosts: {
       "github.com": {
         type: "GITHUB",

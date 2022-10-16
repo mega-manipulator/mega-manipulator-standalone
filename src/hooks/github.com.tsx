@@ -10,7 +10,9 @@ const sleepUntilEpocSecond = (epocSecond: number) => {
   const time = Math.max(0, (epocSecond * 1000 - now))
   return sleep(time)
 }
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise((r) => {
+  return info(`Going to sleep for ${ms}ms`).then(_ => setTimeout(r, ms))
+});
 
 export const useGithubClient = (searchHostKey: string) => {
   try {
@@ -61,7 +63,7 @@ interface GithubSearchCodeItem {
 
 type ResponseStatus = 'ok' | 'retryable' | 'failed'
 
-function axiosInstance(username:string,token:string, baseURL:string): AxiosInstance {
+function axiosInstance(username: string, token: string, baseURL: string): AxiosInstance {
   const instance = axios.create({
     timeout: 10000,
     headers: {
@@ -72,7 +74,7 @@ function axiosInstance(username:string,token:string, baseURL:string): AxiosInsta
     baseURL,
   })
   instance.interceptors.request.use((request) => {
-    (async()=>{
+    (async () => {
       await trace(`Request: ${JSON.stringify(request, null, 2)}`)
       await sleep(1_000)
     })()
@@ -82,7 +84,7 @@ function axiosInstance(username:string,token:string, baseURL:string): AxiosInsta
     trace(`Response: ${JSON.stringify(response, null, 2)}`)
     return response;
   })
-  instance.defaults.validateStatus = function (){
+  instance.defaults.validateStatus = function () {
     return true
   }
   return instance
@@ -174,7 +176,7 @@ export class GithubClient {
           }
         }
       }
-      if (response.data?.message === 'You have exceeded a secondary rate limit. Please wait a few minutes before you try again.'){
+      if (response.data?.message === 'You have exceeded a secondary rate limit. Please wait a few minutes before you try again.') {
         await sleep(10_000)
         warn(`Ooops, this should have been recoverable!!!: ${JSON.stringify(response)}`)
         return "retryable"

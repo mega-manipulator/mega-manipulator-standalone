@@ -12,11 +12,18 @@ const defaultSettings: () => MegaSettingsType = () => {
     searchHosts: {
       "github.com": {
         type: "GITHUB",
+        github: {
+          baseUrl: 'https://api.github.com',
+          codeHostKey: 'github.com',
+        }
       }
     },
     codeHosts: {
       "github.com": {
         type: 'GITHUB',
+        github: {
+          baseUrl: 'https://api.github.com',
+        }
       }
     },
   }

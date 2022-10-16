@@ -4,7 +4,6 @@ import {MegaContext} from "../../hooks/MegaContext";
 import {info} from 'tauri-plugin-log-api'
 import {SettingsPage} from "../settings/SettingsPage";
 import {SearchPage} from "../search/SearchPage";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 export const Menu: React.FC = () => {
   return <MegaContext.Consumer>
@@ -33,12 +32,10 @@ export const Menu: React.FC = () => {
               <Nav className="justify-content-end flex-grow-1 pe-3">
                 <Nav.Link onClick={() => {
                   info('Toggle > darkMode')
-                  context.settings.update({
-                    ...context.settings.value,
-                    theme: `${context.settings.value.theme === 'dark' ? 'light' : 'dark'}`
+                  context.settings.update((draft) => {
+                    draft.theme = context.settings.value.theme === 'dark' ? 'light' : 'dark'
                   })
-                }}>Toggle theme ({context.settings.value.theme}) <FontAwesomeIcon
-                  icon={['fas', `${context.settings.value.theme === 'dark' ? 'planet-moon' : 'sunrise'}`]}/>
+                }}>Toggle theme ({context.settings.value.theme})
                 </Nav.Link>
                 <Nav.Link onClick={() => {
                   info('Nav > SettingsPage')

@@ -18,6 +18,8 @@ export type SearchHostSettings = {
 }
 export type GitHubSearchHostSettings = {
   username?: string,
+  baseUrl: string,
+  codeHostKey: string,
 }
 export type CodeHostType = 'GITHUB'
 export type CodeHostSettings = {
@@ -26,6 +28,7 @@ export type CodeHostSettings = {
 }
 export type GitHubCodeHostSettings = {
   username?: string,
+  baseUrl: string,
 }
 
 export type MegaContextType = {

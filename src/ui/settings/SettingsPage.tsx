@@ -30,7 +30,7 @@ const SearchHostRow: React.FC<SearchHostRowProps> = ({context, searchHostKey}) =
   const h = context.settings.value.searchHosts[searchHostKey];
   if (h.type === 'GITHUB') {
     return <tr
-      style={rowStyle(h.github?.username, 'github.com')}
+      style={rowStyle(h.github?.username, h?.github?.baseUrl)}
       onClick={() => context.navigatePage('Edit: ' + searchHostKey, <GitHubSearchHostSettingsPage
         searchHostKey={searchHostKey}/>)}>
       <td>{searchHostKey} </td>
@@ -51,7 +51,7 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({context, codeHostKey}) => {
   const h = context.settings.value.codeHosts[codeHostKey];
   if (h.type === 'GITHUB') {
     return <tr
-      style={rowStyle(h.github?.username, 'github.com')}
+      style={rowStyle(h.github?.username, h?.github?.baseUrl)}
       onClick={() => context.navigatePage('Edit: ' + codeHostKey, <GitHubCodeHostSettingsPage
         codeHostKey={codeHostKey}/>)}>
       <td>{codeHostKey} </td>
@@ -84,12 +84,14 @@ export const SettingsPage = () => {
         <Col md={6}>
           <Table striped bordered hover className={'table-hover'}>
             <thead>
-            <th>SearchHost</th>
-            <th>Type</th>
+              <tr>
+                <th>SearchHost</th>
+                <th>Type</th>
+              </tr>
             </thead>
             <tbody>
             {Object.keys(context.settings.value.searchHosts)
-              .map((k) => <SearchHostRow
+              .map((k,idx) => <SearchHostRow key={idx}
                 searchHostKey={k}
                 context={context}/>)}
             </tbody>
@@ -101,12 +103,14 @@ export const SettingsPage = () => {
         <Col md={6}>
           <Table striped bordered className={'table-hover'}>
             <thead>
-            <th>CodeHost</th>
-            <th>Type</th>
+              <tr>
+                <th>CodeHost</th>
+                <th>Type</th>
+              </tr>
             </thead>
             <tbody>
             {Object.keys(context.settings.value.codeHosts)
-              .map((k) => <CodeHostRow
+              .map((k,idx) => <CodeHostRow key={idx}
                 codeHostKey={k}
                 context={context}/>)}
             </tbody>

@@ -1,11 +1,24 @@
 import {GitHubSearchHostSettingsPage} from "./GitHubSearchHostSettingsPage";
-import {useContext, useState} from "react";
+import React, {useContext, useState} from "react";
 import {MegaContext, MegaContextType} from "../../hooks/MegaContext";
-import {Button, Col, Container, Form, Row, Table} from "react-bootstrap";
 import {GitHubCodeHostSettingsPage} from "./GitHubCodeHostSettingsPage";
 import {error} from "tauri-plugin-log-api";
 import {ResetAllSettings} from "./ResetAllSettings";
 import {usePassword} from "../../hooks/usePassword";
+import {
+  Button,
+  FormControl,
+  FormGroup,
+  Grid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField
+} from "@mui/material";
 
 type SearchHostRowProps = {
   searchHostKey: string,
@@ -29,13 +42,13 @@ function rowStyle(username?: string, baseUrl?: string): React.CSSProperties | un
 const SearchHostRow: React.FC<SearchHostRowProps> = ({context, searchHostKey}) => {
   const h = context.settings.value.searchHosts[searchHostKey];
   if (h.type === 'GITHUB') {
-    return <tr
+    return <TableRow
       style={rowStyle(h.github?.username, h?.github?.baseUrl)}
       onClick={() => context.navigatePage('Edit: ' + searchHostKey, <GitHubSearchHostSettingsPage
         searchHostKey={searchHostKey}/>)}>
-      <td>{searchHostKey} </td>
-      <td>{h.type} </td>
-    </tr>
+      <TableCell>{searchHostKey} </TableCell>
+      <TableCell>{h.type} </TableCell>
+    </TableRow>
   } else {
     error(`Unable to determine class of search host ${searchHostKey} :: ${JSON.stringify(h)}`)
     return null
@@ -50,13 +63,13 @@ type CodeHostRowProps = {
 const CodeHostRow: React.FC<CodeHostRowProps> = ({context, codeHostKey}) => {
   const h = context.settings.value.codeHosts[codeHostKey];
   if (h.type === 'GITHUB') {
-    return <tr
+    return <TableRow
       style={rowStyle(h.github?.username, h?.github?.baseUrl)}
       onClick={() => context.navigatePage('Edit: ' + codeHostKey, <GitHubCodeHostSettingsPage
         codeHostKey={codeHostKey}/>)}>
-      <td>{codeHostKey} </td>
-      <td>{h.type} </td>
-    </tr>
+      <TableCell>{codeHostKey} </TableCell>
+      <TableCell>{h.type} </TableCell>
+    </TableRow>
   } else {
     error(`Unable to determine class of code host ${codeHostKey} :: ${JSON.stringify(h)}`)
     return null
@@ -67,60 +80,64 @@ export const SettingsPage = () => {
   const context = useContext(MegaContext)
   const [keepLocalRepos, setKeepLocalRepos] = useState<string | undefined>(undefined)
   return <>
-    <Form>
-      <Form.Group>
-        <Form.Label>Keep Local Repos location</Form.Label>
-        <Form.Control type={"text"}
-                      placeholder="File system Location"
-                      value={keepLocalRepos}
-                      onChange={(event) => setKeepLocalRepos(event.target.value)}/>
-      </Form.Group>
-    </Form>
+    <FormControl>
+      <FormGroup>
+        <TextField label={'Keep Local Repos location'} variant={"outlined"}
+                   placeholder="File system Location"
+                   value={keepLocalRepos}
+                   onChange={(event) => setKeepLocalRepos(event.target.value)}/>
+      </FormGroup>
+    </FormControl>
     <br/>
-    <Button onClick={() => null}>Save settings</Button>
+    <Button variant={"contained"} onClick={() => null}>Save settings</Button>
     <hr/>
-    <Container fluid>
-      <Row>
-        <Col md={6}>
-          <Table striped bordered hover className={'table-hover'}>
-            <thead>
-              <tr>
-                <th>SearchHost</th>
-                <th>Type</th>
-              </tr>
-            </thead>
-            <tbody>
-            {Object.keys(context.settings.value.searchHosts)
-              .map((k,idx) => <SearchHostRow key={idx}
-                searchHostKey={k}
-                context={context}/>)}
-            </tbody>
+    <Grid container spacing={2}>
+      <Grid item sm={12} md={6}>
+        <TableContainer component={Paper}>
+          <Table border={1}>
+            <TableHead>
+              <TableRow>
+                <TableCell>SearchHost</TableCell>
+                <TableCell>Type</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {Object.keys(context.settings.value.searchHosts)
+                .map((k, idx) => <SearchHostRow
+                  key={idx}
+                  searchHostKey={k}
+                  context={context}/>)}
+            </TableBody>
           </Table>
-          <Button onClick={() => context.navigatePage('New search host', <GitHubSearchHostSettingsPage/>)}>Add new
-            Search
-            host</Button>
-        </Col>
-        <Col md={6}>
-          <Table striped bordered className={'table-hover'}>
-            <thead>
-              <tr>
-                <th>CodeHost</th>
-                <th>Type</th>
-              </tr>
-            </thead>
-            <tbody>
-            {Object.keys(context.settings.value.codeHosts)
-              .map((k,idx) => <CodeHostRow key={idx}
-                codeHostKey={k}
-                context={context}/>)}
-            </tbody>
+        </TableContainer>
+        <Button variant={"contained"}
+                onClick={() => context.navigatePage('New search host', <GitHubSearchHostSettingsPage/>)}>Add new
+          Search
+          host</Button>
+      </Grid>
+      <Grid item sm={12} md={6} >
+        <TableContainer component={Paper}>
+          <Table border={1}>
+            <TableHead>
+              <TableRow>
+                <TableCell>CodeHost</TableCell>
+                <TableCell>Type</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {Object.keys(context.settings.value.codeHosts)
+                .map((k, idx) => <CodeHostRow
+                  key={idx}
+                  codeHostKey={k}
+                  context={context}/>)}
+            </TableBody>
           </Table>
-          <Button onClick={() => context.navigatePage('New code host', <GitHubCodeHostSettingsPage
-            codeHostKey={undefined}/>)}>Add new Code
-            host</Button>
-        </Col>
-      </Row>
-    </Container>
+        </TableContainer>
+        <Button variant={"contained"} onClick={() => context.navigatePage('New code host', <GitHubCodeHostSettingsPage
+          codeHostKey={undefined}/>)}>Add new Code
+          host</Button>
+      </Grid>
+    </Grid>
     <p>
       <ResetAllSettings/>
     </p>

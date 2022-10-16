@@ -1,10 +1,10 @@
-import React, {useContext, useState} from "react";
-import {MegaContext, MegaSettingsType} from "../../hooks/MegaContext";
-import {Button} from "react-bootstrap";
+import React, {useContext} from "react";
+import {MegaContext} from "../../hooks/MegaContext";
 import {warn} from "tauri-plugin-log-api";
 import {SettingsPage} from "./SettingsPage";
 import {confirm} from "@tauri-apps/api/dialog";
 import {useMutableState} from "../../hooks/useMutableState";
+import {Button} from "@mui/material";
 
 export type CodeHostSettingsProps = {
   codeHostKey: string | undefined,
@@ -15,7 +15,7 @@ export const GitHubCodeHostSettingsPage: React.FC<CodeHostSettingsProps> = ({cod
   const [codeHost, updateCodeHost] = useMutableState(codeHostKey ? context.settings.value.codeHosts[codeHostKey] : {})
 
   return <>
-    {codeHostKey ? <>CodeHost: {codeHostKey} <Button variant={"danger"} onClick={() => {
+    {codeHostKey ? <>CodeHost: {codeHostKey} <Button color={"warning"} onClick={() => {
       confirm('Delete?', codeHostKey).then((d) => {
         if (d) {
           warn('Deleting code host ' + codeHostKey)

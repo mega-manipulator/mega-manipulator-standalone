@@ -1,4 +1,3 @@
-import {Badge, Button, Col, Container, Form, Row} from "react-bootstrap";
 import {ReactElement, useContext, useEffect, useMemo, useState} from "react";
 import {GitHubSearchHostSettings, MegaContext} from "../../hooks/MegaContext";
 import {SettingsPage} from "./SettingsPage";
@@ -6,6 +5,7 @@ import {info, warn} from "tauri-plugin-log-api";
 import {PasswordForm} from "./PasswordForm";
 import {useMutableState} from "../../hooks/useMutableState";
 import {confirm} from "@tauri-apps/api/dialog";
+import {Alert, Button, Grid, TextField} from "@mui/material";
 
 export type SearchHostSettingsProps = {
   searchHostKey?: string,
@@ -37,89 +37,90 @@ export const GitHubSearchHostSettingsPage: (props: SearchHostSettingsProps) => R
   }, [searchHost, searchHostKeyVal])
 
   return <>
-    <Container>
-      <Row>
-        <Col md={12} lg={6}>
-          <Form>
-            <Form.Group>
-              <Form.Label>Search Host Key</Form.Label>
-              <Form.Control type={"text"}
-                            disabled={searchHostKey !== undefined}
-                            placeholder="Search Host Key"
-                            value={searchHostKeyVal}
-                            onChange={(event) => setSearchHostKeyVal(event.target.value)}
-                            isValid={(searchHostKey !== undefined && searchHostKeySame > 1) || (searchHostKey === undefined && searchHostKeySame > 0)}
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Username</Form.Label>
-              <Form.Control type={"text"}
-                            placeholder="Username"
-                            value={searchHost.username}
-                            onChange={(event) => setSearchHost((draft) => {
-                              draft.username = event.target.value
-                            })}/>
-            </Form.Group>
-
-            <Button
-              disabled={validationError !== undefined}
-              onClick={() => {
-                if (searchHostKey === undefined) {
-                  if (searchHostKeyVal.length > 0 && searchHostKeySame === 0) {
-                    info('Creating new Search host config node')
-                    context.settings.update((settingsDraft) => {
-                      settingsDraft.searchHosts[searchHostKeyVal] = {
-                        type: 'GITHUB',
-                        github: searchHost,
-                      }
-                    })
-                    context.navigatePage('Settings', <SettingsPage/>)
-                  } else {
-                    warn('Failed validation')
+    <Grid>
+      <Grid item sm={12} lg={6}>
+        <TextField variant={"outlined"} label={'Search Host Key'}
+                   disabled={searchHostKey !== undefined}
+                   placeholder="Search Host Key"
+                   value={searchHostKeyVal}
+                   onChange={(event) => setSearchHostKeyVal(event.target.value)}
+        />
+      </Grid>
+      <Grid item sm={12} lg={6}>
+        <TextField variant={"outlined"} label={'Username'}
+                   placeholder="Username"
+                   value={searchHost.username}
+                   onChange={(event) => setSearchHost((draft) => {
+                     draft.username = event.target.value
+                   })}/>
+      </Grid>
+    </Grid>
+    <Grid>
+      <Grid item sm={12} lg={6}>
+        <Button
+          variant={"contained"}
+          color={"primary"}
+          disabled={validationError !== undefined}
+          onClick={() => {
+            if (searchHostKey === undefined) {
+              if (searchHostKeyVal.length > 0 && searchHostKeySame === 0) {
+                info('Creating new Search host config node')
+                context.settings.update((settingsDraft) => {
+                  settingsDraft.searchHosts[searchHostKeyVal] = {
+                    type: 'GITHUB',
+                    github: searchHost,
                   }
-                } else if (searchHostKeyVal.length > 0 && searchHostKeySame === 1) {
-                  info('Updating old Search host config node')
-                  context.settings.update((settingsDraft) => {
-                    settingsDraft.searchHosts[searchHostKeyVal] = {
-                      type: 'GITHUB',
-                      github: searchHost,
-                    }
-                  })
-                  setForceReload(forceReload + 1)
+                })
+                context.navigatePage('Settings', <SettingsPage/>)
+              } else {
+                warn('Failed validation')
+              }
+            } else if (searchHostKeyVal.length > 0 && searchHostKeySame === 1) {
+              info('Updating old Search host config node')
+              context.settings.update((settingsDraft) => {
+                settingsDraft.searchHosts[searchHostKeyVal] = {
+                  type: 'GITHUB',
+                  github: searchHost,
                 }
-              }}>
-              {searchHostKeyVal ? 'Update' : 'Create'}
-            </Button>
-            {validationError ? <Badge bg={"danger"}>{validationError}</Badge> : null}
-            <Button
-              variant={"danger"}
-              disabled={searchHostKey === undefined || searchHostKey === 'github.com'}
-              onClick={() => {
-                if (searchHostKey !== undefined) {
-                  confirm(`Delete ${searchHostKey}?`).then((ans) => {
-                    if (ans) {
-                      context.settings.update(settingsDraft => {
-                        delete settingsDraft.searchHosts[searchHostKey]
-                      })
-                      context.navigatePage('Settings', <SettingsPage/>)
-                    }
+              })
+              setForceReload(forceReload + 1)
+            }
+          }}>
+          {searchHostKeyVal ? 'Update' : 'Create'}
+        </Button>
+      </Grid>
+      {validationError ?
+        <Grid item sm={12} lg={6}><Alert severity={"warning"} color={"warning"}>{validationError}</Alert></Grid>
+        : null
+      }
+      <Grid item sm={12} lg={6}>
+        <Button
+          color={"warning"}
+          disabled={searchHostKey === undefined || searchHostKey === 'github.com'}
+          onClick={() => {
+            if (searchHostKey !== undefined) {
+              confirm(`Delete ${searchHostKey}?`).then((ans) => {
+                if (ans) {
+                  context.settings.update(settingsDraft => {
+                    delete settingsDraft.searchHosts[searchHostKey]
                   })
+                  context.navigatePage('Settings', <SettingsPage/>)
                 }
-              }}
-            >Delete search host</Button>
-          </Form>
-        </Col>
-        <br/>
-        <hr/>
-        <Col md={12} lg={6}>
-          {searchHostKey !== undefined && settings !== undefined ?
-            <PasswordForm username={settings.username} hostname={settings.baseUrl}/> : <></>}
-        </Col>
-      </Row>
-    </Container>
+              })
+            }
+          }}
+        >Delete search host</Button>
+      </Grid>
+      {searchHostKey !== undefined && settings !== undefined ?
+        <Grid item sm={12} lg={6}><PasswordForm
+          username={settings.username}
+          hostname={settings.baseUrl}
+        /></Grid> : null
+      }
+    </Grid>
     <hr/>
     <div>
-      <Button onClick={() => context.navigatePage('Settings', <SettingsPage/>)}>Back</Button>
+      <Button variant={"outlined"} color={"secondary"} onClick={() => context.navigatePage('Settings', <SettingsPage/>)}>Back</Button>
     </div>
   </>;
 };

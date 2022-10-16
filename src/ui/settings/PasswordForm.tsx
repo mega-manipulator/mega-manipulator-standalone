@@ -1,6 +1,6 @@
-import {Badge, Button, Form} from "react-bootstrap";
 import React, {useEffect, useState} from "react";
 import {joinPasswordUserName, usePassword} from "../../hooks/usePassword";
+import {Alert, Badge, Button, FormControl, FormGroup, FormLabel, Input, Switch} from "@mui/material";
 
 export type PasswordFormProps = {
   username?: string,
@@ -9,11 +9,9 @@ export type PasswordFormProps = {
 
 export const PasswordForm: React.FC<PasswordFormProps> = ({username, hostname}) => {
     if (username === undefined) {
-      return <Badge bg={"warning"} text={"dark"}>Username not set, but is needed in order to save a password/token for
-        this host.</Badge>
+      return <Alert severity={"warning"}>{'Username not set, but is needed in order to save a password/token for this host.'}</Alert>
     } else if (hostname === undefined) {
-      return <Badge bg={"warning"} text={"dark"}>Hostname not set, but is needed in order to save a password/token for
-        this host.</Badge>
+      return <Alert severity={"warning"}>{'Hostname not set, but is needed in order to save a password/token for this host.'}</Alert>
     }
     const [password, updatePassword] = usePassword(username, hostname)
     const [formPassword, setFormPassword] = useState(password ?? '')
@@ -22,23 +20,23 @@ export const PasswordForm: React.FC<PasswordFormProps> = ({username, hostname}) 
     }, [password])
     const username1 = joinPasswordUserName(username, hostname);
     const [hidePassword, setHidePassword] = useState(true)
-    return <Form>
-      <Form.Group>
-        <Form.Label>Password/Token for {username1}</Form.Label>
-        <Form.Control type={hidePassword ? "password" : "text"}
-                      placeholder="Password"
-                      value={formPassword}
-                      onChange={(event) => setFormPassword(event.target.value)}/>
-        <Form.Label>Hide Password</Form.Label>
-        <Form.Check type="switch" checked={hidePassword} onClick={() => setHidePassword(!hidePassword)}/>
-      </Form.Group>
+    return <FormControl>
+      <FormGroup>
+        <FormLabel>Password/Token for {username1}</FormLabel>
+        <Input type={hidePassword ? "password" : "text"}
+               placeholder="Password"
+               value={formPassword}
+               onChange={(event) => setFormPassword(event.target.value)}/>
+        <FormLabel>Hide Password</FormLabel>
+        <Switch checked={hidePassword} onClick={() => setHidePassword(!hidePassword)}/>
+      </FormGroup>
       <span>
-        <Button variant="primary" onClick={() => updatePassword(formPassword)}>
+        <Button color="primary" onClick={() => updatePassword(formPassword)}>
           Update password
         </Button>&nbsp;
-        <Button variant={'danger'} disabled={true}>Remove password</Button>
+        <Button color={"error"} disabled={true}>Remove password</Button>
       </span>
-    </Form>
+    </FormControl>
 
   }
 ;

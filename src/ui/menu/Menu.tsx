@@ -1,55 +1,50 @@
-import {Container, Nav, Navbar, Offcanvas} from "react-bootstrap";
-import React from "react";
+import React, {useContext} from "react";
 import {MegaContext} from "../../hooks/MegaContext";
 import {info} from 'tauri-plugin-log-api'
 import {SettingsPage} from "../settings/SettingsPage";
 import {SearchPage} from "../search/SearchPage";
+import {Button, MenuItem} from "@mui/material";
+import Menu from '@mui/material/Menu';
 
-export const Menu: React.FC = () => {
-  return <MegaContext.Consumer>
-    {context =>
-      <Navbar collapseOnSelect
-              expand={'xxxl'}
-              className="mb-3"
-              style={{
-                width: '100%',
-                top: '0px',
-              }}>
-        <Container fluid>
-          <Navbar.Brand href="#">{context.pageHead}</Navbar.Brand>
-          <Navbar.Toggle aria-controls={"offcanvasNavbar-expand-md"}/>
-          <Navbar.Offcanvas
-            id={`offcanvasNavbar-expand-md`}
-            aria-labelledby={`offcanvasNavbarLabel-expand-md`}
-            placement="end"
-          >
-            <Offcanvas.Header closeButton>
-              <Offcanvas.Title id={`offcanvasNavbarLabel-expand-md`}>
-                Menu
-              </Offcanvas.Title>
-            </Offcanvas.Header>
-            <Offcanvas.Body>
-              <Nav className="justify-content-end flex-grow-1 pe-3">
-                <Nav.Link onClick={() => {
-                  info('Toggle > darkMode')
-                  context.settings.update((draft) => {
-                    draft.theme = context.settings.value.theme === 'dark' ? 'light' : 'dark'
-                  })
-                }}>Toggle theme ({context.settings.value.theme})
-                </Nav.Link>
-                <Nav.Link onClick={() => {
-                  info('Nav > SettingsPage')
-                  context.navigatePage('Settings', <SettingsPage/>)
-                }}>Settings</Nav.Link>
-                <Nav.Link onClick={() => {
-                  info('Nav > Search')
-                  context.navigatePage('Search', <SearchPage/>)
-                }}>Search</Nav.Link>
-              </Nav>
-            </Offcanvas.Body>
-          </Navbar.Offcanvas>
-        </Container>
-      </Navbar>
-    }
-  </MegaContext.Consumer>;
+export const AppMenu: React.FC = () => {
+  const context = useContext(MegaContext)
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  return <div>
+    <Button
+      variant={"contained"}
+      color={"secondary"}
+      id="basic-button"
+      aria-controls={open ? 'basic-menu' : undefined}
+      aria-haspopup="true"
+      aria-expanded={open ? 'true' : undefined}
+      onClick={handleClick}
+    >Menu</Button>
+    <Menu id="basic-menu"
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          MenuListProps={{
+            'aria-labelledby': 'basic-button',
+          }}
+    >
+      <MenuItem onClick={async () => {
+        context.navigatePage('Settings', <SettingsPage/>)
+        await info('Nav > SettingsPage')
+        handleClose()
+      }}>Settings</MenuItem>
+
+      <MenuItem onClick={async () => {
+        context.navigatePage('Search', <SearchPage/>)
+        await info('Nav > Search')
+        handleClose()
+      }}>Search</MenuItem>
+    </Menu>
+  </div>;
 }

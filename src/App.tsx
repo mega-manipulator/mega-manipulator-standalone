@@ -1,16 +1,12 @@
-import {MegaContext, MegaContextType} from "./hooks/MegaContext";
-import {AppMenu} from "./ui/menu/Menu";
 import React from "react";
-import {useMegaContext} from "./hooks/useMegaContext";
+import ErrorBoundary from "./ui/ErrorBoundry";
+import {RouterProvider} from "react-router-dom";
+import {megaRouter} from "./ui/route/megaRouter";
 
 function App() {
-  const megaContext: MegaContextType = useMegaContext()
-
-  return <MegaContext.Provider value={megaContext}>
-    <AppMenu/>
-    <hr/>
-    {megaContext.page}
-  </MegaContext.Provider>
+  return <ErrorBoundary>
+    <RouterProvider router={megaRouter}/>
+  </ErrorBoundary>
 }
 
 export default App

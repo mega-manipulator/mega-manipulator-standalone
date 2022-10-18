@@ -19,7 +19,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider theme={darkTheme}>
       <CssBaseline/>
-      <App/>
+      <div style={{
+        marginLeft: "10px",
+        marginRight: "10px",
+        marginTop: "10px"
+      }}>
+        <App/>
+      </div>
     </ThemeProvider>
   </React.StrictMode>
 )

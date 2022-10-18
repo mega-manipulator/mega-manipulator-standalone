@@ -30,28 +30,3 @@ export type GitHubCodeHostSettings = {
   username?: string,
   baseUrl: string,
 }
-
-export type MegaContextType = {
-  settings: { value: MegaSettingsType, update: (fn:(settingsDraft: MegaSettingsType) => void) => void, wipe: () => void },
-  pageHead: string,
-  page: JSX.Element,
-  navigatePage: (pageHead: string, page: JSX.Element) => void
-}
-
-export const MegaContext = React.createContext<MegaContextType>({
-  page: <></>,
-  pageHead: '',
-  navigatePage: (pageHead: string, page: JSX.Element) => {
-  },
-  settings: {
-    value: {
-      version: '1',
-      theme: 'dark',
-      codeHosts: {},
-      searchHosts: {},
-    },
-    update: (fn:(settingsDraft: MegaSettingsType) => void) => {
-    },
-    wipe: () => {}
-  }
-})

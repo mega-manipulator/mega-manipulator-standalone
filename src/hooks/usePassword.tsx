@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {invoke} from "@tauri-apps/api";
-import {debug} from "tauri-plugin-log-api";
+import {logDebug} from "./logWrapper";
 
-export function joinPasswordUserName(username?: string, baseUrl?:string):string {
+export function joinPasswordUserName(username: string, baseUrl:string):string {
   return `${username}@${baseUrl}`
 }
 
@@ -12,10 +12,10 @@ export function usePassword(username: string, baseUrl:string): [string | undefin
   useEffect(() => {
     invoke('get_password', {"username": username1})
       .then((pass) => {
-        debug(`Fetched password for ${username1}`);
+        logDebug(`Fetched password for ${username1}`);
         setPassword(pass as string)
       })
-      .catch((e) => debug(`Failed getting password: ${JSON.stringify(e)}`))
+      .catch((e) => logDebug(`Failed getting password: ${JSON.stringify(e)}`))
   }, [username1])
   const updatePassword = (newPassword:string) => {
     invoke('store_password', {

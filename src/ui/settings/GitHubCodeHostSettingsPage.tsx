@@ -1,28 +1,29 @@
-import React, {useContext} from "react";
-import {MegaContext} from "../../hooks/MegaContext";
-import {warn} from "tauri-plugin-log-api";
-import {SettingsPage} from "./SettingsPage";
+import React from "react";
+import {logWarn} from '../../hooks/logWrapper'
 import {confirm} from "@tauri-apps/api/dialog";
 import {useMutableState} from "../../hooks/useMutableState";
 import {Button} from "@mui/material";
+import {Link, useNavigate, useParams} from "react-router-dom";
+import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
+import {AppMenu} from "../menu/Menu";
+import {locations} from "../route/locations";
 
-export type CodeHostSettingsProps = {
-  codeHostKey: string | undefined,
-}
-
-export const GitHubCodeHostSettingsPage: React.FC<CodeHostSettingsProps> = ({codeHostKey}) => {
-  const context = useContext(MegaContext)
-  const [codeHost, updateCodeHost] = useMutableState(codeHostKey ? context.settings.value.codeHosts[codeHostKey] : {})
+export const GitHubCodeHostSettingsPage: React.FC = () => {
+  const {codeHostKey} = useParams()
+  const {megaSettings, updateMegaSettings} = useMutableMegaSettings()
+  const [codeHost, updateCodeHost] = useMutableState(codeHostKey ? megaSettings.codeHosts[codeHostKey] : {})
+  const nav = useNavigate()
 
   return <>
+    <AppMenu/>
     {codeHostKey ? <>CodeHost: {codeHostKey} <Button color={"warning"} onClick={() => {
       confirm('Delete?', codeHostKey).then((d) => {
         if (d) {
-          warn('Deleting code host ' + codeHostKey)
-          context.settings.update((settingsDraft) => {
+          logWarn('Deleting code host ' + codeHostKey)
+          updateMegaSettings((settingsDraft) => {
             delete settingsDraft.codeHosts[codeHostKey]
-          })
-          context.navigatePage('Settings', <SettingsPage/>)
+          });
+          nav(locations.settings.link)
         }
       })
     }
@@ -31,7 +32,7 @@ export const GitHubCodeHostSettingsPage: React.FC<CodeHostSettingsProps> = ({cod
     </Button><br/></> : null}
     Json definition: {JSON.stringify(codeHost)}
     <div>
-      <Button onClick={() => context.navigatePage('Settings', <SettingsPage/>)}>Back</Button>
+      <Link to={'/settings'}>Back to Settings</Link>
     </div>
   </>
 }

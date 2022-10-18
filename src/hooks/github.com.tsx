@@ -1,9 +1,9 @@
-import {info, trace, warn} from "tauri-plugin-log-api";
-import {useContext} from "react";
-import {MegaContext} from "./MegaContext";
+import {logError, logInfo, logTrace, logWarn} from "./logWrapper";
+import {useMemo} from "react";
 import {usePassword} from "./usePassword";
 import axios, {AxiosInstance, AxiosResponse} from "axios";
 import {SearchHit} from "../ui/search/types";
+import {useMegaSettings} from "./useMegaSettings";
 
 const sleepUntilEpocSecond = (epocSecond: number) => {
   const now = (new Date()).getDate()
@@ -11,33 +11,51 @@ const sleepUntilEpocSecond = (epocSecond: number) => {
   return sleep(time)
 }
 const sleep = (ms: number) => new Promise((r) => {
-  return info(`Going to sleep for ${ms}ms`).then(_ => setTimeout(r, ms))
+  logInfo(`Going to sleep for ${ms}ms`)
+  return setTimeout(r, ms)
 });
 
-export const useGithubClient = (searchHostKey: string) => {
-  try {
-    const context = useContext(MegaContext);
-    const githubSettings = context.settings.value.searchHosts[searchHostKey]?.github;
-    if (githubSettings === undefined) {
-      warn('No username set')
-      return undefined
-    }
-    const username: string | undefined = githubSettings?.username;
-    if (username === undefined) {
-      warn('No username set')
-      return undefined
-    }
-    const baseUrl = githubSettings.baseUrl
-    const [password, setPassword]: [(string | undefined), ((password: string) => void)] = usePassword(username, baseUrl)
-    if (password === undefined) {
-      warn('Password not set')
-      return undefined
-    }
+export interface GitHubClientWrapper {
+  gitHubClient?: GithubClient;
+  gitHubClientInitError?: string;
+}
 
-    return new GithubClient(githubSettings.baseUrl, username, password, searchHostKey, githubSettings.codeHostKey)
-  } catch (e) {
-    return undefined
-  }
+export const useGithubClient: (searchHostKey?: string) => GitHubClientWrapper = (searchHostKey?: string) => {
+  return useMemo(() => {
+    try {
+      if (searchHostKey === undefined){
+        return {gitHubClientInitError: 'No search host key set'}
+      }
+      const megaSettings = useMegaSettings()
+      const githubSettings = megaSettings.searchHosts[searchHostKey]?.github;
+      if (githubSettings === undefined) {
+        let msg = `Settings unresolvable for '${searchHostKey}'`;
+        logWarn(msg)
+        return {gitHubClientInitError: msg}
+      }
+      const username: string | undefined = githubSettings?.username;
+      if (username === undefined) {
+        let msg = `No username set for '${searchHostKey}'`;
+        logWarn(msg)
+        return {gitHubClientInitError: msg}
+      }
+      const baseUrl = githubSettings.baseUrl
+      const [password, setPassword]: [(string | undefined), ((password: string) => void)] = usePassword(username, baseUrl)
+      if (password === undefined) {
+        let message = `Password not set for '${searchHostKey}'`;
+        logWarn(message)
+        return {gitHubClientInitError: message}
+      }
+
+      return ({
+        gitHubClient: new GithubClient(githubSettings.baseUrl, username, password, searchHostKey, githubSettings.codeHostKey),
+      })
+    } catch (e: unknown) {
+      const msg: string = typeof e === 'object' ? JSON.stringify(e) : typeof e === 'string' ? e : typeof e
+      logError('Failed setting up GitHub client due to: ' + msg)
+      return {gitHubClientInitError: msg}
+    }
+  },[searchHostKey])
 }
 
 interface GithubPage<T> {
@@ -75,13 +93,13 @@ function axiosInstance(username: string, token: string, baseURL: string): AxiosI
   })
   instance.interceptors.request.use((request) => {
     (async () => {
-      await trace(`Request: ${JSON.stringify(request, null, 2)}`)
+      logTrace(`Request: ${JSON.stringify(request, null, 2)}`)
       await sleep(1_000)
     })()
     return request;
   })
   instance.interceptors.response.use((response) => {
-    trace(`Response: ${JSON.stringify(response, null, 2)}`)
+    logTrace(`Response: ${JSON.stringify(response, null, 2)}`)
     return response;
   })
   instance.defaults.validateStatus = function () {
@@ -112,7 +130,6 @@ export class GithubClient {
     this.searchHostKey = searchHostKey;
     this.codeHostKey = codeHostKey;
     this.api = axiosInstance(username, token, baseUrl)
-
   }
 
   async searchCode(searchString: string, max: number): Promise<SearchHit[]> {
@@ -136,10 +153,10 @@ export class GithubClient {
       switch (status) {
         case "retryable":
           attempt++
-          info('Resume after throttle')
+          logInfo('Resume after throttle')
           continue
         case "failed":
-          warn(`Failed paginating request in a way that was not recoverable with throttling: ${response.status}::${JSON.stringify(response.data)}`)
+          logWarn(`Failed paginating request in a way that was not recoverable with throttling: ${response.status}::${JSON.stringify(response.data)}`)
           break pagination;
         case "ok":
           attempt = 0
@@ -178,7 +195,7 @@ export class GithubClient {
       }
       if (response.data?.message === 'You have exceeded a secondary rate limit. Please wait a few minutes before you try again.') {
         await sleep(10_000)
-        warn(`Ooops, this should have been recoverable!!!: ${JSON.stringify(response)}`)
+        logWarn(`Ooops, this should have been recoverable!!!: ${JSON.stringify(response)}`)
         return "retryable"
       }
     }

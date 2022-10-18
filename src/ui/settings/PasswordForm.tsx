@@ -3,15 +3,16 @@ import {joinPasswordUserName, usePassword} from "../../hooks/usePassword";
 import {Alert, Badge, Button, FormControl, FormGroup, FormLabel, Input, Switch} from "@mui/material";
 
 export type PasswordFormProps = {
+  passwordPhrase: string,
   username?: string,
   hostname?: string,
 }
 
-export const PasswordForm: React.FC<PasswordFormProps> = ({username, hostname}) => {
+export const PasswordForm: React.FC<PasswordFormProps> = ({username, hostname, passwordPhrase}) => {
     if (username === undefined) {
-      return <Alert severity={"warning"}>{'Username not set, but is needed in order to save a password/token for this host.'}</Alert>
+      return <Alert severity={"warning"}>{'Username not set, but is needed in order to save a '+passwordPhrase+' for this host.'}</Alert>
     } else if (hostname === undefined) {
-      return <Alert severity={"warning"}>{'Hostname not set, but is needed in order to save a password/token for this host.'}</Alert>
+      return <Alert severity={"warning"}>{'Hostname not set, but is needed in order to save a '+passwordPhrase+' for this host.'}</Alert>
     }
     const [password, updatePassword] = usePassword(username, hostname)
     const [formPassword, setFormPassword] = useState(password ?? '')
@@ -22,9 +23,9 @@ export const PasswordForm: React.FC<PasswordFormProps> = ({username, hostname}) 
     const [hidePassword, setHidePassword] = useState(true)
     return <FormControl>
       <FormGroup>
-        <FormLabel>Password/Token for {username1}</FormLabel>
+        <FormLabel>{passwordPhrase} for {username1}</FormLabel>
         <Input type={hidePassword ? "password" : "text"}
-               placeholder="Password"
+               placeholder={passwordPhrase}
                value={formPassword}
                onChange={(event) => setFormPassword(event.target.value)}/>
         <FormLabel>Hide Password</FormLabel>

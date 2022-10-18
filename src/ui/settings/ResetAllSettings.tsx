@@ -1,7 +1,8 @@
-import {useContext, useState} from "react";
-import {MegaContext} from "../../hooks/MegaContext";
+import {useState} from "react";
 import {Box, Button, Grid, Modal, Typography} from "@mui/material";
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import {createDefault} from "../../hooks/settings";
+import {Link} from "react-router-dom";
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -16,7 +17,6 @@ const style = {
 };
 
 export const ResetAllSettings = () => {
-  const context = useContext(MegaContext)
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -34,12 +34,14 @@ export const ResetAllSettings = () => {
             </Button>
           </Grid>
           <Grid item xs={6}>
-            <Button variant={"contained"} color="error" onClick={() => {
-              context.settings.wipe()
-              handleClose()
-            }}>
+            <Link
+              to={'/settings'}
+              onClick={() => {
+                createDefault()
+                handleClose()
+              }}>
               Reset
-            </Button>
+            </Link>
           </Grid>
         </Grid>
       </Box>

@@ -1,8 +1,6 @@
-import {GitHubSearchHostSettingsPage} from "./GitHubSearchHostSettingsPage";
-import React, {useContext, useEffect, useState} from "react";
-import {MegaContext, MegaContextType} from "../../hooks/MegaContext";
-import {GitHubCodeHostSettingsPage} from "./GitHubCodeHostSettingsPage";
-import {error} from "tauri-plugin-log-api";
+import React, {useEffect, useState} from "react";
+import {MegaSettingsType} from "../../hooks/MegaContext";
+import {logInfo,logError} from "../../hooks/logWrapper";
 import {ResetAllSettings} from "./ResetAllSettings";
 import {usePassword} from "../../hooks/usePassword";
 
@@ -16,90 +14,128 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField
+  TextField,
+  Typography
 } from "@mui/material";
+import {useNavigate} from "react-router-dom";
+import {useMegaSettings} from "../../hooks/useMegaSettings";
+import {AppMenu} from "../menu/Menu";
+import {locations} from "../route/locations";
 
 type SearchHostRowProps = {
   searchHostKey: string,
-  context: MegaContextType,
+  settings: MegaSettingsType,
 }
 
-function rowStyle(username?: string, baseUrl?: string): React.CSSProperties | undefined {
+function rowStyle(username?: string, baseUrl?: string): React.CSSProperties {
+  const baseCss: React.CSSProperties = {
+    cursor: "pointer"
+  }
   if (username === undefined) {
-    return {background: "red"};
+    return {
+      ...baseCss,
+      background: "red",
+    };
   }
   if (baseUrl === undefined) {
-    return {background: "red"};
+    return {
+      ...baseCss,
+      background: "red",
+    };
   }
   const [password] = usePassword(username, baseUrl)
   if (password === undefined) {
-    return {background: "orange"}
+    return {
+      ...baseCss,
+      background: "orange",
+    };
   }
-  return undefined
+  return baseCss;
 }
 
-const SearchHostRow: React.FC<SearchHostRowProps> = ({context, searchHostKey}) => {
-  const h = context.settings.value.searchHosts[searchHostKey];
+const SearchHostRow: React.FC<SearchHostRowProps> = ({settings, searchHostKey}) => {
+  const h = settings.searchHosts[searchHostKey];
+  const nav = useNavigate()
   if (h.type === 'GITHUB') {
     return <TableRow
       style={rowStyle(h.github?.username, h?.github?.baseUrl)}
-      onClick={() => context.navigatePage('Edit: ' + searchHostKey, <GitHubSearchHostSettingsPage
-        searchHostKey={searchHostKey}/>)}>
-      <TableCell>{searchHostKey} </TableCell>
+      onClick={() => {
+        logInfo('Nav > Edit Search host ' + locations.settings.search.github.link);
+        nav(`${locations.settings.search.github.link}/${searchHostKey}`)
+      }
+      }>
+      <TableCell>
+        {searchHostKey}
+      </TableCell>
       <TableCell>{h.type} </TableCell>
     </TableRow>
   } else {
-    error(`Unable to determine class of search host ${searchHostKey} :: ${JSON.stringify(h)}`)
+    logError(`Unable to determine class of search host ${searchHostKey} :: ${JSON.stringify(h)}`)
     return null
   }
 }
 
 type CodeHostRowProps = {
   codeHostKey: string,
-  context: MegaContextType,
+  settings: MegaSettingsType,
 }
 
-const CodeHostRow: React.FC<CodeHostRowProps> = ({context, codeHostKey}) => {
-  const h = context.settings.value.codeHosts[codeHostKey];
+const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
+  const h = settings.codeHosts[codeHostKey];
+  const nav = useNavigate()
   if (h.type === 'GITHUB') {
     return <TableRow
       style={rowStyle(h.github?.username, h?.github?.baseUrl)}
-      onClick={() => context.navigatePage('Edit: ' + codeHostKey, <GitHubCodeHostSettingsPage
-        codeHostKey={codeHostKey}/>)}>
+      onClick={() => nav(`${locations.settings.code.github.link}/${codeHostKey}`)}>
       <TableCell>{codeHostKey} </TableCell>
       <TableCell>{h.type} </TableCell>
     </TableRow>
   } else {
-    error(`Unable to determine class of code host ${codeHostKey} :: ${JSON.stringify(h)}`)
+    logError(`Unable to determine class of code host ${codeHostKey} :: ${JSON.stringify(h)}`)
     return null
   }
 }
 
 export const SettingsPage = () => {
-  const context = useContext(MegaContext)
-  const [keepLocalRepos, setKeepLocalRepos] = useState<string | undefined>(undefined)
-  const [clonePath, setClonePath] = useState<string | undefined>(undefined)
+  const megaSettings = useMegaSettings()
+  const nav = useNavigate()
+  const [keepLocalRepos, setKeepLocalRepos] = useState<string | undefined>(megaSettings.keepLocalReposPath)
+  const [clonePath, setClonePath] = useState<string | undefined>(megaSettings.clonePath)
   useEffect(() => {
-    setKeepLocalRepos(context.settings.value.keepLocalReposPath)
-    setClonePath(context.settings.value.clonePath)
-  }, [context.settings])
+    setKeepLocalRepos(megaSettings.keepLocalReposPath)
+    setClonePath(megaSettings.clonePath)
+  }, [megaSettings])
   return <>
+    <span>
+      <Typography variant={"h4"}>Settings</Typography>
+    </span>
+    <AppMenu/>
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
-        <TextField fullWidth label={'Keep Local Repos location'} variant={"outlined"}
-                   placeholder="File system Location"
-                   value={keepLocalRepos}
-
-                   onChange={(event) => setKeepLocalRepos(event.target.value)}/>
+        <TextField
+          id='keep-local-repos-location-text-field'
+          fullWidth
+          label='Keep Local Repos location'
+          variant="outlined"
+          value={keepLocalRepos}
+          onChange={(event) => setKeepLocalRepos(event.target.value)}
+        />
       </Grid>
       <Grid item xs={12} md={6}>
-        <TextField fullWidth label={'Clone Repos location'} variant={"outlined"}
-                   placeholder="File system Location"
-                   value={clonePath}
-                   onChange={(event) => setClonePath(event.target.value)}/>
+        <TextField
+          id='clone-repo-location-text-field'
+          fullWidth
+          label={'Clone Repos location'}
+          variant={"outlined"}
+          value={clonePath}
+          onChange={(event) => setClonePath(event.target.value)}
+        />
       </Grid>
       <Grid item xs={12}>
-        <Button variant={"contained"} onClick={() => null}>Save settings</Button>
+        <Button
+          variant={"contained"}
+          onClick={() => null}
+        >Save settings</Button>
       </Grid>
     </Grid>
     <Grid container spacing={2}>
@@ -113,17 +149,15 @@ export const SettingsPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.keys(context.settings.value.searchHosts)
-                .map((k, idx) => <SearchHostRow
-                  key={idx}
+              {Object.keys(megaSettings.searchHosts)
+                .map((k) => <SearchHostRow
+                  key={k}
                   searchHostKey={k}
-                  context={context}/>)}
+                  settings={megaSettings}/>)}
             </TableBody>
           </Table>
         </TableContainer>
-        <Button variant={"contained"}
-                onClick={() => context.navigatePage('New search host', <GitHubSearchHostSettingsPage/>)}>Add new
-          Search
+        <Button onClick={() => nav(locations.settings.search.github.link)} variant={"contained"}>Add new Search
           host</Button>
       </Grid>
       <Grid item sm={12} md={6}>
@@ -136,16 +170,15 @@ export const SettingsPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.keys(context.settings.value.codeHosts)
+              {Object.keys(megaSettings.codeHosts)
                 .map((k, idx) => <CodeHostRow
                   key={idx}
                   codeHostKey={k}
-                  context={context}/>)}
+                  settings={megaSettings}/>)}
             </TableBody>
           </Table>
         </TableContainer>
-        <Button variant={"contained"} onClick={() => context.navigatePage('New code host', <GitHubCodeHostSettingsPage
-          codeHostKey={undefined}/>)}>Add new Code
+        <Button onClick={() => nav(locations.settings.code.github.link)} variant={"contained"}>Add new Code
           host</Button>
       </Grid>
     </Grid>

@@ -1,4 +1,4 @@
-# React-tauri-vite-template
+# mega-manipulator-standalone
 
 Simple template to get started with react vite and tauri, note that it has typescript support also, ~~It enables the vite-plugin-tauri, to avoid ghost terminal issue~~.
 

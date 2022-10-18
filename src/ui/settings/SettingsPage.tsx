@@ -17,7 +17,7 @@ import {
   TextField,
   Typography
 } from "@mui/material";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {AppMenu} from "../menu/Menu";
 import {locations} from "../route/locations";
@@ -99,6 +99,8 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
 export const SettingsPage = () => {
   const megaSettings = useMegaSettings()
   const nav = useNavigate()
+  const location = useLocation()
+
   const [keepLocalRepos, setKeepLocalRepos] = useState<string | undefined>(megaSettings.keepLocalReposPath)
   const [clonePath, setClonePath] = useState<string | undefined>(megaSettings.clonePath)
   useEffect(() => {
@@ -107,7 +109,7 @@ export const SettingsPage = () => {
   }, [megaSettings])
   return <>
     <span>
-      <Typography variant={"h4"}>Settings</Typography>
+      <Typography variant={"h4"}>Settings {location.pathname}</Typography>
     </span>
     <AppMenu/>
     <Grid container spacing={2}>

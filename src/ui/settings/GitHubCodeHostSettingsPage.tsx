@@ -3,7 +3,7 @@ import {logWarn} from '../../hooks/logWrapper'
 import {confirm} from "@tauri-apps/api/dialog";
 import {useMutableState} from "../../hooks/useMutableState";
 import {Button} from "@mui/material";
-import {Link, useNavigate, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
 import {AppMenu} from "../menu/Menu";
 import {locations} from "../route/locations";
@@ -32,7 +32,7 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
     </Button><br/></> : null}
     Json definition: {JSON.stringify(codeHost)}
     <div>
-      <Link to={'/settings'}>Back to Settings</Link>
+      <Button variant={"outlined"} color={"secondary"} onClick={() => nav(locations.settings.link)}>Back to Settings</Button>
     </div>
   </>
 }

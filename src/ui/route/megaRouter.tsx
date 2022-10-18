@@ -3,21 +3,36 @@ import {createMemoryRouter} from "react-router-dom";
 import {SettingsPage} from "../settings/SettingsPage";
 import {SearchPage} from "../search/SearchPage";
 import {GitHubSearchHostSettingsPage} from "../settings/GitHubSearchHostSettingsPage";
-import ErrorBoundary from "../ErrorBoundry";
+import {RoutingErrorBoundary} from "../error/RoutingErrorBoundary";
 import {GitHubCodeHostSettingsPage} from "../settings/GitHubCodeHostSettingsPage";
 import {NotFoundPage} from "./NotFoundPage";
 import {locations} from "./locations";
 
 export const megaRouter = createMemoryRouter([
-  {path: '/', element: <SettingsPage/>, errorElement: <ErrorBoundary/>},
+  {path: '/', element: <SettingsPage/>, errorElement: <RoutingErrorBoundary/>},
+  {path: locations.settings.link, element: <SettingsPage/>, errorElement: <RoutingErrorBoundary/>},
   {
-    path: locations.settings.link, element: <SettingsPage/>, errorElement: <ErrorBoundary/>, children: [
-      {path: 'search/github', element: <GitHubSearchHostSettingsPage/>, errorElement: <ErrorBoundary/>},
-      {path: 'search/github/:searchHostKey', element: <GitHubSearchHostSettingsPage/>, errorElement: <ErrorBoundary/>},
-      {path: 'code/github', element: <GitHubCodeHostSettingsPage/>, errorElement: <ErrorBoundary/>},
-      {path: 'code/github/:codeHostKey', element: <GitHubCodeHostSettingsPage/>, errorElement: <ErrorBoundary/>},
-    ]
+    path: locations.settings.search.github.link,
+    element: <GitHubSearchHostSettingsPage/>,
+    errorElement: <RoutingErrorBoundary/>
   },
-  {path: locations.search.link, element: <SearchPage/>, errorElement: <ErrorBoundary/>},
-  {path: '*', element: <NotFoundPage/>, errorElement: <ErrorBoundary/>}
+  {
+    path: `${locations.settings.search.github.link}/:searchHostKey`,
+    element: <GitHubSearchHostSettingsPage/>,
+    errorElement: <RoutingErrorBoundary/>
+  },
+  {
+    path: locations.settings.code.github.link,
+    element: <GitHubCodeHostSettingsPage/>,
+    errorElement: <RoutingErrorBoundary/>
+  },
+  {
+    path: `${locations.settings.code.github.link}/:codeHostKey`,
+    element: <GitHubCodeHostSettingsPage/>,
+    errorElement: <RoutingErrorBoundary/>
+  },
+
+
+  {path: locations.search.link, element: <SearchPage/>, errorElement: <RoutingErrorBoundary/>},
+  {path: '*', element: <NotFoundPage/>, errorElement: <RoutingErrorBoundary/>}
 ])

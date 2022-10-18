@@ -2,7 +2,8 @@ import {useState} from "react";
 import {Box, Button, Grid, Modal, Typography} from "@mui/material";
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {createDefault} from "../../hooks/settings";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import {locations} from "../route/locations";
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -17,6 +18,7 @@ const style = {
 };
 
 export const ResetAllSettings = () => {
+  const nav = useNavigate()
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -34,14 +36,14 @@ export const ResetAllSettings = () => {
             </Button>
           </Grid>
           <Grid item xs={6}>
-            <Link
-              to={'/settings'}
+            <Button
               onClick={() => {
+                nav(locations.settings.link)
                 createDefault()
                 handleClose()
               }}>
               Reset
-            </Link>
+            </Button>
           </Grid>
         </Grid>
       </Box>

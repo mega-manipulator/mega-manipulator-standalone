@@ -4,12 +4,15 @@ import {logInfo, logWarn} from "../../hooks/logWrapper";
 import {PasswordForm} from "./PasswordForm";
 import {useMutableState} from "../../hooks/useMutableState";
 import {confirm} from "@tauri-apps/api/dialog";
-import {Alert, Button, Grid, TextField} from "@mui/material";
-import {Link, useParams} from "react-router-dom";
+import {Alert, Button, Grid, TextField, Typography} from "@mui/material";
+import {useNavigate, useParams} from "react-router-dom";
 import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
+import {locations} from "../route/locations";
+import {AppMenu} from "../menu/Menu";
 
 export const GitHubSearchHostSettingsPage: React.FC = () => {
   const {searchHostKey} = useParams()
+  const nav = useNavigate()
   const {megaSettings, updateMegaSettings} = useMutableMegaSettings();
   const settings = useMemo(() => searchHostKey ? megaSettings.searchHosts[searchHostKey]?.github : undefined, [megaSettings])
   const [searchHostKeyVal, setSearchHostKeyVal] = useState<string>(searchHostKey ?? '')
@@ -32,8 +35,11 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     if (searchHost.username === undefined || searchHost.username.length < 1) errors.push('Username is undefined')
     if (errors.length === 0) setValidationError(undefined); else setValidationError(errors.join(', '));
   }, [searchHost, searchHostKeyVal])
+  const header = useMemo(() => searchHostKey === undefined ? 'Create' : `Edit ${searchHostKey}`, [searchHostKey])
 
   return <>
+    <Typography variant={"h4"}>{header}</Typography>
+    <AppMenu/>
     <Grid>
       <Grid item sm={12} lg={6}>
         <TextField variant={"outlined"} label={'Search Host Key'}
@@ -68,7 +74,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
                     github: searchHost,
                   }
                 });
-                <Link to={'/settings'}>Settings</Link>
+                nav(locations.settings.link)
               } else {
                 logWarn('Failed validation')
               }
@@ -100,7 +106,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
                   updateMegaSettings(settingsDraft => {
                     delete settingsDraft.searchHosts[searchHostKey]
                   });
-                  <Link to={'/settings'}>Settings</Link>
+                  nav(locations.settings.link)
                 }
               })
             }
@@ -117,7 +123,11 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     </Grid>
     <hr/>
     <div>
-      <Link to={'/settings'}>Settings</Link>
+      <Button
+        variant={"outlined"}
+        color={"secondary"}
+        onClick={() => nav(locations.settings.link)}
+      >Back</Button>
     </div>
   </>;
 };

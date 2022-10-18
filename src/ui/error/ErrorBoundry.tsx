@@ -1,10 +1,9 @@
 import React, {Component, ErrorInfo, ReactNode} from "react";
 import {Button, Typography} from "@mui/material";
-import {createDefault} from "../hooks/settings";
-import {logError} from "../hooks/logWrapper";
+import {createDefault} from "../../hooks/settings";
+import {logError} from "../../hooks/logWrapper";
 
 interface Props {
-  nav?: () => void;
   children?: ReactNode;
 }
 
@@ -42,11 +41,6 @@ class ErrorBoundary extends Component<Props, State> {
         <br/>
         {this.errorInfo && <Typography>ErrorInfo: {JSON.stringify(this.errorInfo)}</Typography>}
         <Button color={"error"} variant={"outlined"} onClick={wipe}>Wipe settings</Button>
-        {this.props.nav !== undefined ?
-          <Button color={"primary"} variant={"contained"}
-                  onClick={() => this.props.nav !== undefined ? this.props.nav() : window.alert('Not implemented')}>Back
-            to settings page</Button>
-          : null}
       </>;
     } else {
       return this.props.children;

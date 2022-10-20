@@ -2,20 +2,9 @@ import {useState} from "react";
 import {Box, Button, Grid, Modal, Typography} from "@mui/material";
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {createDefault} from "../../hooks/settings";
-import {Link, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
-
-const style = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 400,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: 4,
-};
+import {modalStyle} from "../modal/megaModal";
 
 export const ResetAllSettings = () => {
   const nav = useNavigate()
@@ -24,7 +13,7 @@ export const ResetAllSettings = () => {
   const handleShow = () => setShow(true);
   return <>
     <Modal open={show} onClose={handleClose}>
-      <Box sx={style}>
+      <Box sx={modalStyle}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Typography variant={'h6'} component={'h2'}>⚠️ Reset all settings? ⚠️</Typography>

@@ -13,3 +13,7 @@ export class SearchHit {
     this.description = description;
   }
 }
+
+export interface SearchClient {
+  searchCode(searchString: string, max: number): Promise<SearchHit[]>;
+}

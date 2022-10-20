@@ -1,30 +1,25 @@
-import React, {useEffect, useState} from "react";
-import {logError, logInfo, logWarn} from "../../hooks/logWrapper";
-import {useGithubClient} from "../../hooks/github.com";
-import {Alert, Button, Grid, MenuItem, Select, TextField} from "@mui/material";
+import React, {useState} from "react";
+import {asString, logError, logInfo, logWarn} from "../../hooks/logWrapper";
+import {Alert, Button, Grid, MenuItem, Select, TextField, Typography} from "@mui/material";
 import {SearchHit} from "./types";
 import {SearchHitTable} from "./SearchHitTable";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
-import {AppMenu} from "../menu/Menu";
-
+import {useSearchClient} from "./useSearchClient";
 
 export const SearchPage: React.FC = () => {
   const settings = useMegaSettings()
   const [max, setMax] = useState(10)
 
-  const [selected, setSelected] = useState<string | null>(null)
-  //const selectedSettings = useMemo<SearchHostSettings | undefined>(() => selected ? settings.searchHosts[selected] : undefined, [selected])
+  const [selected, setSelected] = useState<string>('github.com')
+  const {searchClient, searchClientInitError} = useSearchClient(selected)
+
   const [searchText, setSearchText] = useState('tauri jensim language:typescript')
   const [searching, setSearching] = useState(false)
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
   const [selectedHits, setSelectedHits] = useState<SearchHit[]>([])
-  useEffect(() => {
-    logInfo('Currently selected rows: ' + JSON.stringify(selectedHits.map((hit) => hit.repo)))
-  }, [selectedHits])
-  const {gitHubClient, gitHubClientInitError} = useGithubClient(selected || undefined)
 
   return <>
-    <AppMenu/>
+    <Typography variant={"h4"}>Search</Typography>
     <Grid container width={"100%"}>
       <Grid container width={"100%"}>
         <Grid item xs={12} md={1} xl={1}>
@@ -36,7 +31,8 @@ export const SearchPage: React.FC = () => {
               logInfo(`onChange ${JSON.stringify(event)}`)
               logInfo(`Selected ${JSON.stringify(selected)}`)
             }}>
-            {Object.keys(settings.searchHosts).map((k) => <MenuItem value={k}>{k}</MenuItem>)}
+            {Object.keys(settings.searchHosts).map((k) => <MenuItem key={k} value={k}>{k}</MenuItem>)
+            }
           </Select>
         </Grid>
         <Grid item xs={12} md={10} xl={8}>
@@ -56,28 +52,29 @@ export const SearchPage: React.FC = () => {
         <Grid item xs={12} md={1} xl={1}>
           <Button
             variant={"contained"} color={"primary"}
-            disabled={gitHubClient === undefined || searching || searchText === undefined || searchText.length === 0}
+            disabled={searchClient === undefined || searching || searchText === undefined || searchText.length === 0}
             onClick={() => {
-              if (gitHubClient !== undefined) {
+              if (searchClient !== undefined) {
                 setSearching(true)
-                gitHubClient.searchCode(searchText, max)
+
+                searchClient.searchCode(searchText, max)
                   .then((hits) => {
                     setSearchHits(hits)
                     logInfo(`Found ${hits.length} hits`)
                   })
-                  .catch((e) => logError(`Failed searching github ${e}`))
+                  .catch((e) => logError(`Failed searching ${asString(e)}`))
                   .then(_ => logInfo('Done'))
                   .then(_ => setSearching(false))
               } else {
-                logWarn('GitHub Client was undefined')
+                logWarn('Search Client was undefined')
               }
               logInfo('Clicked')
             }}>Search</Button>
         </Grid>
       </Grid>
       <Grid container width={"100%"}>
-        {gitHubClientInitError !== undefined ?
-          <Alert variant={"filled"} color={"error"}>Failed setting up github client: {gitHubClientInitError}</Alert>
+        {searchClientInitError !== undefined ?
+          <Alert variant={"filled"} color={"error"}>Failed setting up search client: {searchClientInitError}</Alert>
           : null}
         <Grid item xs={12} xl={12}>
           {searching ? <Alert severity={"info"}

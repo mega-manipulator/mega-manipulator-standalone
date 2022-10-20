@@ -1,61 +1,25 @@
-import {logError, logInfo, logTrace, logWarn} from "./logWrapper";
-import {useMemo} from "react";
-import {usePassword} from "./usePassword";
+import {asString, logDebug, logInfo, logTrace, logWarn} from "./logWrapper";
 import axios, {AxiosInstance, AxiosResponse} from "axios";
-import {SearchHit} from "../ui/search/types";
-import {useMegaSettings} from "./useMegaSettings";
+import {SearchClient, SearchHit} from "../ui/search/types";
 
-const sleepUntilEpocSecond = (epocSecond: number) => {
+async function sleepUntilEpocSecond(epocSecond: number) {
   const now = (new Date()).getDate()
   const time = Math.max(0, (epocSecond * 1000 - now))
-  return sleep(time)
+  await sleep(time)
 }
-const sleep = (ms: number) => new Promise((r) => {
-  logInfo(`Going to sleep for ${ms}ms`)
-  return setTimeout(r, ms)
-});
+
+async function sleep(ms: number) {
+  if (ms < 2000) {
+    logDebug(`Going to sleep for ${ms}ms`)
+  } else {
+    logInfo(`Going to sleep for ${ms}ms`)
+  }
+  await new Promise(r => setTimeout(r, ms));
+}
 
 export interface GitHubClientWrapper {
   gitHubClient?: GithubClient;
   gitHubClientInitError?: string;
-}
-
-export const useGithubClient: (searchHostKey?: string) => GitHubClientWrapper = (searchHostKey?: string) => {
-  return useMemo(() => {
-    try {
-      if (searchHostKey === undefined){
-        return {gitHubClientInitError: 'No search host key set'}
-      }
-      const megaSettings = useMegaSettings()
-      const githubSettings = megaSettings.searchHosts[searchHostKey]?.github;
-      if (githubSettings === undefined) {
-        let msg = `Settings unresolvable for '${searchHostKey}'`;
-        logWarn(msg)
-        return {gitHubClientInitError: msg}
-      }
-      const username: string | undefined = githubSettings?.username;
-      if (username === undefined) {
-        let msg = `No username set for '${searchHostKey}'`;
-        logWarn(msg)
-        return {gitHubClientInitError: msg}
-      }
-      const baseUrl = githubSettings.baseUrl
-      const [password, setPassword]: [(string | undefined), ((password: string) => void)] = usePassword(username, baseUrl)
-      if (password === undefined) {
-        let message = `Password not set for '${searchHostKey}'`;
-        logWarn(message)
-        return {gitHubClientInitError: message}
-      }
-
-      return ({
-        gitHubClient: new GithubClient(githubSettings.baseUrl, username, password, searchHostKey, githubSettings.codeHostKey),
-      })
-    } catch (e: unknown) {
-      const msg: string = typeof e === 'object' ? JSON.stringify(e) : typeof e === 'string' ? e : typeof e
-      logError('Failed setting up GitHub client due to: ' + msg)
-      return {gitHubClientInitError: msg}
-    }
-  },[searchHostKey])
 }
 
 interface GithubPage<T> {
@@ -92,10 +56,7 @@ function axiosInstance(username: string, token: string, baseURL: string): AxiosI
     baseURL,
   })
   instance.interceptors.request.use((request) => {
-    (async () => {
-      logTrace(`Request: ${JSON.stringify(request, null, 2)}`)
-      await sleep(1_000)
-    })()
+    logTrace(`Request: ${JSON.stringify(request, null, 2)}`)
     return request;
   })
   instance.interceptors.response.use((response) => {
@@ -108,7 +69,7 @@ function axiosInstance(username: string, token: string, baseURL: string): AxiosI
   return instance
 }
 
-export class GithubClient {
+export class GithubClient implements SearchClient {
 
   private readonly baseUrl: string;
   private readonly username: string;
@@ -142,6 +103,8 @@ export class GithubClient {
     let page = 1
     let attempt = 0
     pagination: while (aggregator.length < max) {
+      await sleep(1000)
+      logDebug(`Fetching page ${page} with ${aggregator.length} found already`)
       const response = await this.api.get(url, {
         params: {
           ...params,
@@ -159,10 +122,12 @@ export class GithubClient {
           logWarn(`Failed paginating request in a way that was not recoverable with throttling: ${response.status}::${JSON.stringify(response.data)}`)
           break pagination;
         case "ok":
+          const data: GithubPage<GITHUB_TYPE> = response.data
+          logTrace(`Got response from GitHub ${asString(data)}`)
+          data.items.map(transformer).forEach((item) => aggregator.push(item))
+          if (data.incomplete_results === false || data.items.length === 0) break pagination
           attempt = 0
           page++
-          const data: GithubPage<GITHUB_TYPE> = response.data
-          data.items.map(transformer).forEach((item) => aggregator.push(item))
       }
     }
     return aggregator;
@@ -194,8 +159,8 @@ export class GithubClient {
         }
       }
       if (response.data?.message === 'You have exceeded a secondary rate limit. Please wait a few minutes before you try again.') {
+        logWarn(`Secondary rate limit hit ⚠️💥!!!`)
         await sleep(10_000)
-        logWarn(`Ooops, this should have been recoverable!!!: ${JSON.stringify(response)}`)
         return "retryable"
       }
     }

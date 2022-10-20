@@ -2,6 +2,14 @@ import React from "react";
 
 export type MegaTheme = 'dark' | 'light'
 
+export type HostType = 'SEARCH' | 'CODE';
+
+export interface UserLoginType {
+  hostType: HostType;
+  username?: string;
+  baseUrl?: string;
+}
+
 export class MegaSettingsType {
   version: '1' = '1';
   theme: MegaTheme = "dark";
@@ -16,17 +24,16 @@ export type SearchHostSettings = {
   type: SearchHostType,
   github?: GitHubSearchHostSettings,
 }
-export type GitHubSearchHostSettings = {
-  username?: string,
-  baseUrl: string,
-  codeHostKey: string,
+
+export interface GitHubSearchHostSettings extends UserLoginType {
+  codeHostKey: string;
 }
+
 export type CodeHostType = 'GITHUB'
 export type CodeHostSettings = {
   type: CodeHostType,
   github?: GitHubCodeHostSettings,
 }
-export type GitHubCodeHostSettings = {
-  username?: string,
-  baseUrl: string,
+
+export interface GitHubCodeHostSettings extends UserLoginType {
 }

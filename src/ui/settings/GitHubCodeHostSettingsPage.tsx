@@ -5,7 +5,6 @@ import {useMutableState} from "../../hooks/useMutableState";
 import {Button} from "@mui/material";
 import {useNavigate, useParams} from "react-router-dom";
 import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
-import {AppMenu} from "../menu/Menu";
 import {locations} from "../route/locations";
 
 export const GitHubCodeHostSettingsPage: React.FC = () => {
@@ -15,7 +14,6 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
   const nav = useNavigate()
 
   return <>
-    <AppMenu/>
     {codeHostKey ? <>CodeHost: {codeHostKey} <Button color={"warning"} onClick={() => {
       confirm('Delete?', codeHostKey).then((d) => {
         if (d) {

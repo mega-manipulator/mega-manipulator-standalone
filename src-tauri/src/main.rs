@@ -34,7 +34,8 @@ fn main() {
         .plugin(tauri_plugin_store::PluginBuilder::default().build())
         .plugin(
             LoggerBuilder::default()
-                .level(LevelFilter::Info)
+                //.level(LevelFilter::Info)
+                .level(LevelFilter::Debug)
                 .targets([
                     LogTarget::LogDir,
                     LogTarget::Stdout,

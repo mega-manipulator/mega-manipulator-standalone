@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {joinPasswordUserName, usePassword} from "../../hooks/usePassword";
+import {joinServiceUserName, usePassword} from "../../hooks/usePassword";
 import {Alert, Badge, Button, FormControl, FormGroup, FormLabel, Input, Switch} from "@mui/material";
 
 export type PasswordFormProps = {
@@ -19,7 +19,7 @@ export const PasswordForm: React.FC<PasswordFormProps> = ({username, hostname, p
     useEffect(() => {
       setFormPassword(password ?? '')
     }, [password])
-    const username1 = joinPasswordUserName(username, hostname);
+    const username1 = joinServiceUserName(username, hostname);
     const [hidePassword, setHidePassword] = useState(true)
     return <FormControl>
       <FormGroup>

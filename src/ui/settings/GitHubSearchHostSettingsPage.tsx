@@ -8,7 +8,6 @@ import {Alert, Button, Grid, TextField, Typography} from "@mui/material";
 import {useNavigate, useParams} from "react-router-dom";
 import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
 import {locations} from "../route/locations";
-import {AppMenu} from "../menu/Menu";
 
 export const GitHubSearchHostSettingsPage: React.FC = () => {
   const {searchHostKey} = useParams()
@@ -22,6 +21,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
   }, [searchHostKeyVal])
   const [searchHost, setSearchHost] = useMutableState<GitHubSearchHostSettings>(settings ?? {
     username: '',
+    hostType: "SEARCH",
     codeHostKey: 'github.com',
     baseUrl: 'https://api.github.com'
   })
@@ -39,7 +39,6 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
 
   return <>
     <Typography variant={"h4"}>{header}</Typography>
-    <AppMenu/>
     <Grid>
       <Grid item sm={12} lg={6}>
         <TextField variant={"outlined"} label={'Search Host Key'}

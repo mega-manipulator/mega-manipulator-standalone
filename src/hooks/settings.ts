@@ -14,6 +14,7 @@ export function defaultSettings(): MegaSettingsType {
       "github.com": {
         type: "GITHUB",
         github: {
+          hostType: "SEARCH",
           username: 'jensim',
           baseUrl: 'https://api.github.com',
           codeHostKey: 'github.com',
@@ -24,6 +25,7 @@ export function defaultSettings(): MegaSettingsType {
       "github.com": {
         type: 'GITHUB',
         github: {
+          hostType: "CODE",
           username: 'jensim',
           baseUrl: 'https://api.github.com',
         }

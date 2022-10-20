@@ -19,7 +19,6 @@ import {
 } from "@mui/material";
 import {useLocation, useNavigate} from "react-router-dom";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
-import {AppMenu} from "../menu/Menu";
 import {locations} from "../route/locations";
 
 type SearchHostRowProps = {
@@ -111,7 +110,6 @@ export const SettingsPage = () => {
     <span>
       <Typography variant={"h4"}>Settings {location.pathname}</Typography>
     </span>
-    <AppMenu/>
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
         <TextField

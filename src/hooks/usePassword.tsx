@@ -1,30 +1,52 @@
 import React, {useEffect, useState} from "react";
 import {invoke} from "@tauri-apps/api";
-import {logDebug} from "./logWrapper";
+import {asString, logDebug, logError, logInfo} from "./logWrapper";
 
-export function joinPasswordUserName(username: string, baseUrl:string):string {
+/**
+ * Used for creating a single idientifier for storing and retrieving credentials from the OS store
+ */
+export function joinServiceUserName(username: string, baseUrl: string): string {
   return `${username}@${baseUrl}`
 }
 
-export function usePassword(username: string, baseUrl:string): [string | undefined, (password:string) => void] {
-  const username1 = joinPasswordUserName(username, baseUrl);
-  const [password, setPassword] = useState<string | undefined>(undefined)
+export async function getPassword(username?: string, baseUrl?: string): Promise<(string | null)> {
+  if (username && baseUrl) {
+    const joinedUsername = joinServiceUserName(username, baseUrl)
+    let password: string | null = null;
+    try {
+      logDebug(`Fetched password for ${joinedUsername}`);
+      password = await invoke('get_password', {"username": joinedUsername})
+    } catch (e) {
+      logDebug(`Failed getting password: ${asString(e)}`)
+    }
+    return password
+  } else {
+    return null
+  }
+}
+
+export function usePassword(username?: string, baseUrl?: string): [string | null, (password: string) => void] {
+  const [password, setPassword] = useState<string | null>(null)
   useEffect(() => {
-    invoke('get_password', {"username": username1})
-      .then((pass) => {
-        logDebug(`Fetched password for ${username1}`);
-        setPassword(pass as string)
+    (async ()=>{
+    let osPass = await getPassword(username, baseUrl);
+    logDebug('found password '+osPass) // TODO: DELETE
+    setPassword(osPass)
+    })()
+  }, [username, baseUrl])
+  const updatePassword = (newPassword: string) => {
+    if(username && baseUrl && newPassword){
+      const joinedUsername = joinServiceUserName(username, baseUrl)
+      invoke('store_password', {
+        "username": joinedUsername,
+        "password": newPassword,
+      }).then(_ => {
+        setPassword(newPassword)
+        logInfo(`Password updated for ${joinedUsername}`)
       })
-      .catch((e) => logDebug(`Failed getting password: ${JSON.stringify(e)}`))
-  }, [username1])
-  const updatePassword = (newPassword:string) => {
-    invoke('store_password', {
-      "username": username1,
-      "password": newPassword,
-    }).then((e) => {
-      setPassword(newPassword)
-      console.log(`Password updated for ${username1}`)
-    })
+    } else {
+      logError('Updated password without username and baseUrl')
+    }
   }
   return [password, updatePassword];
 }

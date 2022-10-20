@@ -1,10 +1,10 @@
 import React from "react";
-import {info} from 'tauri-plugin-log-api'
 import {IconButton, MenuItem} from "@mui/material";
 import Menu from '@mui/material/Menu';
 import MenuIcon from '@mui/icons-material/Menu';
 import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
+import {logInfo} from "../../hooks/logWrapper";
 
 export const AppMenu: React.FC = () => {
   const navigate = useNavigate()
@@ -40,12 +40,13 @@ export const AppMenu: React.FC = () => {
           }}
     >
       <MenuItem onClick={() => {
-        info('Nav > SettingsPage').then(_ => navigate(locations.settings.link))
-        //handleClose()
+        logInfo('Nav > SettingsPage')
+        navigate(locations.settings.link)
       }}>Settings</MenuItem>
 
       <MenuItem onClick={() => {
-        info('Nav > Search').then(_ => navigate(locations.search.link))
+        logInfo('Nav > Search')
+        navigate(locations.search.link)
       }}>Search</MenuItem>
     </Menu>
   </div>;

@@ -1,21 +1,7 @@
 import {asString, logDebug, logInfo, logTrace, logWarn} from "./logWrapper";
 import axios, {AxiosInstance, AxiosResponse} from "axios";
 import {SearchClient, SearchHit} from "../ui/search/types";
-
-async function sleepUntilEpocSecond(epocSecond: number) {
-  const now = (new Date()).getDate()
-  const time = Math.max(0, (epocSecond * 1000 - now))
-  await sleep(time)
-}
-
-async function sleep(ms: number) {
-  if (ms < 2000) {
-    logDebug(`Going to sleep for ${ms}ms`)
-  } else {
-    logInfo(`Going to sleep for ${ms}ms`)
-  }
-  await new Promise(r => setTimeout(r, ms));
-}
+import {sleep, sleepUntilEpocSecond} from "../service/delay";
 
 export interface GitHubClientWrapper {
   gitHubClient?: GithubClient;
@@ -93,8 +79,28 @@ export class GithubClient implements SearchClient {
     this.api = axiosInstance(username, token, baseUrl)
   }
 
+  sshCloneUrl(owner: string, repo: string): string {
+    return `git@github.com:${owner}/${repo}.git`;
+  }
+
+  httpsCloneUrl(owner: string, repo: string): string {
+    return `https://github.com/${owner}/${repo}.git`
+  }
+
   async searchCode(searchString: string, max: number): Promise<SearchHit[]> {
-    const transformer = (codeItem: GithubSearchCodeItem) => new SearchHit(this.searchHostKey, this.codeHostKey, codeItem.repository.owner.login, codeItem.repository.name, codeItem.repository.description)
+    const transformer = (codeItem: GithubSearchCodeItem) => {
+      let owner = codeItem.repository.owner.login;
+      let repo = codeItem.repository.name;
+      return new SearchHit(
+        this.searchHostKey,
+        this.codeHostKey,
+        owner,
+        repo,
+        this.sshCloneUrl(owner, repo),
+        this.httpsCloneUrl(owner, repo),
+        codeItem.repository.description
+      );
+    }
     return this.paginate('/search/code', max, {q: searchString}, transformer)
   }
 

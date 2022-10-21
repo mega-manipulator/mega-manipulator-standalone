@@ -14,12 +14,12 @@ export const SearchPage: React.FC = () => {
   const [selected, setSelected] = useState<string>('github.com')
   const {searchClient, searchClientInitError} = useSearchClient(selected)
 
-  const [searchText, setSearchText] = useState('tauri jensim language:typescript')
+  const [searchText, setSearchText] = useState('tauri language:typescript')
   const [searching, setSearching] = useState(false)
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
   const [selectedHits, setSelectedHits] = useState<SearchHit[]>([])
 
-  const cloneModal = CloneModal({searchHits})
+  const cloneModal = CloneModal({searchHits:selectedHits})
 
   return <>
     {cloneModal.Component}

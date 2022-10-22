@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {asString, logError, logInfo, logWarn} from "../../hooks/logWrapper";
 import {Alert, Button, MenuItem, Select, TextField, Typography} from "@mui/material";
 import {SearchHit} from "./types";
@@ -19,6 +19,9 @@ export const SearchPage: React.FC = () => {
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
   const cloneModalPropsWrapper: CloneModalPropsWrapper = useCloneModalProps()
   const cloneModalProps = cloneModalPropsWrapper.cloneModalPropsWrapper
+  useEffect(() => {
+    cloneModalProps.setSourceString(`Clone from search '${searchText}'`)
+  },[searchText])
 
   return <>
     <CloneModal {...cloneModalPropsWrapper}/>

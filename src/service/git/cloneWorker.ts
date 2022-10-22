@@ -17,7 +17,7 @@ export type CloneHistoryItem = {
   result: any,
   status: WorkResultStatus,
 }
-export type CloneHistory = {
+export type CloneWorkMeta = {
   workLog: CloneHistoryItem[]
 }
 
@@ -35,7 +35,7 @@ export async function clone(
 ): Promise<number> {
   if(!branch || branch.length === 0) throw 'Branch name is not set'
   let time = new Date().getTime();
-  const result: WorkResult<SearchHit, CloneHistory[]> = {
+  const result: WorkResult<SearchHit, CloneWorkMeta> = {
     kind: "clone", name: sourceString, status: 'in-progress', time,
     result: hits.map(h => ({
       input: h,
@@ -44,21 +44,24 @@ export async function clone(
       }
     }))
   }
+  logDebug(`Start work on ${asString(result)}`)
   let progressTracker = new WorkProgressTracker(hits.length)
   for (let i = 0; i < result.result.length; i++) {
     const hit: SearchHit = result.result[i].input
-    const history:CloneHistory = {
+    const meta:CloneWorkMeta = {
       workLog: []
     };
+    result.result[i].output.meta = meta;
     try {
       const keepPath = await getKeepDir(settings, hit)
       const clonePath = await getCloneDir(settings, hit)
       const url = cloneType === 'SSH' ? hit.sshClone : hit.httpsClone;
       logInfo(`Clone ${url}`)
-      const cloneResult = await cloneIfNeeded(keepPath, url, history)
-      await restoreRepoFromKeep(keepPath, clonePath, branch, history)
+      const cloneResult = await cloneIfNeeded(keepPath, url, meta)
+      await restoreRepoFromKeep(keepPath, clonePath, branch, meta)
 
       result.result[i].output.status = "ok";
+      result.status = "ok"
       listener(progressTracker.progress(cloneResult))
     } catch (e) {
       const strErr = asString(e);
@@ -73,16 +76,16 @@ export async function clone(
   return time;
 }
 
-async function cloneIfNeeded(clonePath: string, url: string, historyLog: CloneHistory): Promise<CloneState> {
+async function cloneIfNeeded(clonePath: string, url: string, meta: CloneWorkMeta): Promise<CloneState> {
   await createDir(clonePath, {recursive: true});
   const cloneFsList: FileEntry[] = await fs.readDir(clonePath)
   await sleep(1000)
   //TODO: Add retry here?? GitHub sometimes throttle cloning.
   if (!cloneFsList.some(e => e.name === '.git')) {
-    requireZeroStatus(await runCommand('git', ['clone', url, '.'], clonePath, historyLog), `Failed to clone ${url}`)
+    requireZeroStatus(await runCommand('git', ['clone', url, '.'], clonePath, meta), `Failed to clone ${url}`)
     return 'cloned from remote'
   } else {
-    requireZeroStatus(await runCommand('git', ['fetch', 'origin'], clonePath, historyLog), `Failed to clone ${url}`)
+    requireZeroStatus(await runCommand('git', ['fetch', 'origin'], clonePath, meta), `Failed to clone ${url}`)
     return 'cloned from local'
   }
 }
@@ -92,7 +95,7 @@ function requireZeroStatus(command: ChildProcess, errPhrase: string): ChildProce
   return command;
 }
 
-async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch:string, historyLog: CloneHistory): Promise<boolean> {
+async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch:string, meta: CloneWorkMeta): Promise<boolean> {
   const cloneGitPath = await join(clonePath, '.git')
   try {
     await removeDir(cloneGitPath, {recursive: true});
@@ -103,46 +106,46 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch:s
   const keepFsList: FileEntry[] = await fs.readDir(keepPath)
   if (keepFsList.some(e => e.name === '.git')) {
     await copyDir(keepGitPath, cloneGitPath)
-    const mainBranch = await getMainBranchName(keepPath, historyLog)
+    const mainBranch = await getMainBranchName(keepPath, meta)
     logDebug(`Main branch of ${keepPath} is ${mainBranch}`)
-    await gitFetch(keepPath, mainBranch, branch, historyLog)
+    await gitFetch(keepPath, mainBranch, branch, meta)
     return true
   }
   return false
 }
 
-async function gitFetch(repoDir: string, mainBranch: string, branch: string, historyLog: CloneHistory) {
+async function gitFetch(repoDir: string, mainBranch: string, branch: string, meta: CloneWorkMeta) {
   requireZeroStatus(
-    await runCommand('git', ['checkout', '-f', mainBranch], repoDir, historyLog),
+    await runCommand('git', ['checkout', '-f', mainBranch], repoDir, meta),
   'Checkout main branch'
   )
   requireZeroStatus(
-    await runCommand('git', ['reset', '--hard', `origin/${mainBranch}`], repoDir, historyLog),
+    await runCommand('git', ['reset', '--hard', `origin/${mainBranch}`], repoDir, meta),
       'Reset state of '+mainBranch+' to origin'
   )
   if (mainBranch != branch) {
-    const chkOut = await runCommand('git', ['checkout', branch], repoDir, historyLog)
+    const chkOut = await runCommand('git', ['checkout', branch], repoDir, meta)
     if (chkOut.code === 0) requireZeroStatus(
-      await runCommand('git', ['reset', '--hard', `origin/${branch}`], repoDir, historyLog),
+      await runCommand('git', ['reset', '--hard', `origin/${branch}`], repoDir, meta),
       'Reset state of '+branch+' to origin'
     )
   }
 }
 
-async function runCommand(program: string, args: string[], dir: string, historyLog: CloneHistory): Promise<ChildProcess> {
+async function runCommand(program: string, args: string[], dir: string, meta: CloneWorkMeta): Promise<ChildProcess> {
   const result: ChildProcess = await new Command(program, args, {cwd: dir}).execute()
   const logEntry: CloneHistoryItem = {
     what: `${program} ${JSON.stringify(args)}`,
     result,
     status: result.code === 0 ? 'ok' : 'failed'
   }
-  historyLog.workLog.push(logEntry)
+  meta.workLog.push(logEntry)
   logDebug(`=> Ran '${logEntry.what}' in ${dir} with result ${JSON.stringify(result)}`)
   return result;
 }
 
-async function getMainBranchName(repoDir: string, historyLog: CloneHistory): Promise<string> {
-  const result: ChildProcess = await runCommand('git', ['remote', 'show', 'origin'], repoDir, historyLog)
+async function getMainBranchName(repoDir: string, meta: CloneWorkMeta): Promise<string> {
+  const result: ChildProcess = await runCommand('git', ['remote', 'show', 'origin'], repoDir, meta)
   if (result.code !== 0) throw `Unable to determine head branch name of ${repoDir} due to ${asString(result)}`
   const headBranchRow: string | undefined = result.stdout.split('\n').find(e => e.startsWith('  HEAD branch: '))
   if (!headBranchRow) throw `Unable to head branch of ${repoDir}`

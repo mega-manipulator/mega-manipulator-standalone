@@ -3,7 +3,7 @@ import {invoke} from "@tauri-apps/api";
 import {asString, logDebug, logError, logInfo, logTrace} from "./logWrapper";
 
 /**
- * Used for creating a single idientifier for storing and retrieving credentials from the OS store
+ * Used for creating a single identifier for storing and retrieving credentials from the OS store
  */
 export function joinServiceUserName(username: string, baseUrl: string): string {
   return `${username}@${baseUrl}`

@@ -8,6 +8,7 @@ import {GitHubCodeHostSettingsPage} from "../settings/GitHubCodeHostSettingsPage
 import {NotFoundPage} from "./NotFoundPage";
 import {locations} from "./locations";
 import {BasePage} from "./BasePage";
+import {ResultPage} from "../result/ResultPage";
 
 export const megaRouter = createMemoryRouter([
   {path: '/', element: <BasePage/>, errorElement: <RoutingErrorBoundary/>, children: [
@@ -34,6 +35,14 @@ export const megaRouter = createMemoryRouter([
       errorElement: <RoutingErrorBoundary/>
     },
 
+    {
+      path: locations.result.link,
+      element: <ResultPage/>,
+      errorElement: <RoutingErrorBoundary/>,
+      children: [
+        {path:':ref'}
+      ]
+    },
 
     {path: locations.search.link, element: <SearchPage/>, errorElement: <RoutingErrorBoundary/>},
     {path: '*', element: <NotFoundPage/>, errorElement: <RoutingErrorBoundary/>},

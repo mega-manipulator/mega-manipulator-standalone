@@ -5,7 +5,7 @@ import {SearchHit} from "./types";
 import {SearchHitTable} from "./SearchHitTable";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {useSearchClient} from "./useSearchClient";
-import {CloneModal, CloneModalPropsWrapper, useClonePageProps} from "../manage/clones/clonepage/CloneModal";
+import {CloneModal, CloneModalPropsWrapper, useCloneModalProps} from "../manage/clones/clonepage/CloneModal";
 
 export const SearchPage: React.FC = () => {
   const settings = useMegaSettings()
@@ -17,7 +17,7 @@ export const SearchPage: React.FC = () => {
   const [searchText, setSearchText] = useState('tauri language:typescript')
   const [searching, setSearching] = useState(false)
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
-  const cloneModalPropsWrapper: CloneModalPropsWrapper = useClonePageProps()
+  const cloneModalPropsWrapper: CloneModalPropsWrapper = useCloneModalProps()
   const cloneModalProps = cloneModalPropsWrapper.cloneModalPropsWrapper
 
   return <>

@@ -15,5 +15,8 @@ export const locations = {
   },
   search: {
     link: '/search'
+  },
+  result: {
+    link: '/result'
   }
 }

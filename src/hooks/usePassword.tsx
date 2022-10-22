@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {invoke} from "@tauri-apps/api";
-import {asString, logDebug, logError, logInfo} from "./logWrapper";
+import {asString, logDebug, logError, logInfo, logTrace} from "./logWrapper";
 
 /**
  * Used for creating a single idientifier for storing and retrieving credentials from the OS store
@@ -28,14 +28,14 @@ export async function getPassword(username?: string, baseUrl?: string): Promise<
 export function usePassword(username?: string, baseUrl?: string): [string | null, (password: string) => void] {
   const [password, setPassword] = useState<string | null>(null)
   useEffect(() => {
-    (async ()=>{
-    let osPass = await getPassword(username, baseUrl);
-    logDebug('found password '+osPass) // TODO: DELETE
-    setPassword(osPass)
+    (async () => {
+      let osPass = await getPassword(username, baseUrl);
+      logTrace('found password ' + osPass) // TODO: DELETE?
+      setPassword(osPass)
     })()
   }, [username, baseUrl])
   const updatePassword = (newPassword: string) => {
-    if(username && baseUrl && newPassword){
+    if (username && baseUrl && newPassword) {
       const joinedUsername = joinServiceUserName(username, baseUrl)
       invoke('store_password', {
         "username": joinedUsername,

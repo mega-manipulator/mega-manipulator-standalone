@@ -1,4 +1,4 @@
-import React, {ReactElement, useState} from "react";
+import React, {useState} from "react";
 import {Box, Button, LinearProgress, Modal, Typography} from "@mui/material";
 import {SearchHit} from "../../../search/types";
 import {useMegaSettings} from "../../../../hooks/useMegaSettings";
@@ -7,39 +7,61 @@ import {clone} from "../../../../service/git/cloneWorker";
 import {WorkProgress} from "../../../../service/types";
 import {logInfo} from "../../../../hooks/logWrapper";
 
-export type ClonePageProps = {
-  searchHits: SearchHit[]
+export type CloneModalPropsWrapper = {
+  cloneModalPropsWrapper: CloneModalProps
+}
+export type CloneModalProps = {
+    searchHits: SearchHit[]
+    setSearchHits: (hits: SearchHit[]) => void,
+    open: () => void,
+    close: () => void,
+    setOpen: (open: boolean) => void,
+    isOpen: boolean,
 }
 
-export type CloneModalReturn = {
-  Component: ReactElement,
-  open: () => void,
-  close: () => void,
+export const useClonePageProps: () => CloneModalPropsWrapper = () => {
+  const [searchHits, setSearchHits] = useState<SearchHit[]>([])
+  const [isOpen, setOpen] = useState(false)
+  return {
+    cloneModalPropsWrapper: {
+      searchHits,
+      setSearchHits,
+      open: () => {
+        setOpen(true)
+      },
+      close: () => {
+        setOpen(false)
+      },
+      setOpen,
+      isOpen,
+    }
+  }
 }
 
-export const CloneModal: (props: ClonePageProps) => CloneModalReturn = ({searchHits}: ClonePageProps) => {
+export const CloneModal: React.FC<CloneModalPropsWrapper> = (
+  {cloneModalPropsWrapper}: CloneModalPropsWrapper
+) => {
   const [running, setRunning] = useState(false)
   const [done, setDone] = useState(false)
-  const [open, setOpen] = useState(false)
-  const [cancel, setCancel] = useState(false)
   const settings = useMegaSettings()
   const [progress, setProgress] = useState<WorkProgress | null>(null)
-  const normalise = (value: number) => ((value) * 100) / (searchHits.length);
+  const normalise = (value: number) => ((value) * 100) / (cloneModalPropsWrapper.searchHits.length);
   const close = () => {
-    setOpen(false)
-    setCancel(false)
+    cloneModalPropsWrapper.setOpen(false)
     setRunning(false)
     setDone(false)
     setProgress(null)
   };
 
-  const Component = <Modal open={open} onClose={close}>
+  return <Modal open={cloneModalPropsWrapper.isOpen} onClose={close}>
     <Box sx={modalStyle}>
-      {!progress && <Typography>Clone {searchHits.length} things into {settings.clonePath}?</Typography>}
+      {!progress && <Typography>Clone {cloneModalPropsWrapper.searchHits.length} things into {settings.clonePath}?</Typography>}
 
       {progress && <>
-          <Box sx={{width: '100%'}}><LinearProgress variant="determinate"
-                                                    value={progress ? normalise(progress.done) : 0}/>{progress?.done ?? 0}/{searchHits.length} done.</Box>
+          <Box sx={{width: '100%'}}>
+              <LinearProgress
+                  variant="determinate"
+                  value={progress ? normalise(progress.done) : 0}/>{progress?.done ?? 0}/{cloneModalPropsWrapper.searchHits.length} done.</Box>
         {progress?.breakdown && Object.keys(progress?.breakdown).map((k) => <>{k}: {progress.breakdown[k]}</>)}
       </>}
       <p>
@@ -48,7 +70,7 @@ export const CloneModal: (props: ClonePageProps) => CloneModalReturn = ({searchH
             onClick={() => {
               logInfo('Start Cloning')
               setRunning(true)
-              clone(searchHits, "SSH", cancel,(progress) => {
+              clone(cloneModalPropsWrapper.searchHits, "SSH", settings, (progress) => {
                 setProgress(progress)
                 //setForceUpdate(forceUpdate + 1)
               }).then(_ => {
@@ -60,13 +82,7 @@ export const CloneModal: (props: ClonePageProps) => CloneModalReturn = ({searchH
         >Start clone</Button>}
         {(done || !running) && <Button disabled={running} onClick={close}>Close</Button>}
         {done && <Button>Show result</Button>}
-        {running && <Button onClick={()=>setCancel(true)}>Cancel</Button>}
       </p>
     </Box>
   </Modal>
-  return {
-    Component,
-    close,
-    open: () => setOpen(true),
-  }
 };

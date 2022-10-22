@@ -42,3 +42,21 @@ export class WorkProgressTracker {
     }
   }
 }
+
+export type WorkResultStatus = 'ok'|'failed'
+
+interface WorkResultOutput<OUTPUT>{
+  status: WorkResultStatus;
+  history: any;
+}
+
+export type WorkResultKind = 'clone'
+
+interface WorkResult<INPUT, OUTPUT> {
+  time: number;
+  kind: WorkResultKind;
+  name: string;
+  status: 'ok' | 'failed';
+  input: INPUT[];
+  output: WorkResultOutput<OUTPUT>;
+}

@@ -5,7 +5,7 @@ import {SearchHit} from "./types";
 import {SearchHitTable} from "./SearchHitTable";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {useSearchClient} from "./useSearchClient";
-import {CloneModal} from "../manage/clones/clonepage/CloneModal";
+import {CloneModal, CloneModalPropsWrapper, useClonePageProps} from "../manage/clones/clonepage/CloneModal";
 
 export const SearchPage: React.FC = () => {
   const settings = useMegaSettings()
@@ -17,12 +17,11 @@ export const SearchPage: React.FC = () => {
   const [searchText, setSearchText] = useState('tauri language:typescript')
   const [searching, setSearching] = useState(false)
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
-  const [selectedHits, setSelectedHits] = useState<SearchHit[]>([])
-
-  const cloneModal = CloneModal({searchHits:selectedHits})
+  const cloneModalPropsWrapper: CloneModalPropsWrapper = useClonePageProps()
+  const cloneModalProps = cloneModalPropsWrapper.cloneModalPropsWrapper
 
   return <>
-    {cloneModal.Component}
+    <CloneModal {...cloneModalPropsWrapper}/>
     <Typography variant={"h4"}>Search</Typography>
     <TextField
       fullWidth
@@ -73,11 +72,11 @@ export const SearchPage: React.FC = () => {
       <Button
         variant={"contained"}
         color={"info"}
-        disabled={selectedHits.length === 0}
-        onClick={cloneModal.open}
+        disabled={cloneModalProps.searchHits.length === 0}
+        onClick={cloneModalProps.open}
       >Clone</Button>}
     <SearchHitTable
       data={searchHits}
-      selectionCallback={setSelectedHits}/>
+      selectionCallback={cloneModalProps.setSearchHits}/>
   </>
 }

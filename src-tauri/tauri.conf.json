@@ -13,9 +13,20 @@
   "tauri": {
     "allowlist": {
       "fs": {
-        "all": true
+        "all": true,
+        "scope": ["$HOME/**"]
       },
       "shell": {
+        "all": true,
+        "scope": [
+          {
+            "cmd": "git",
+            "name": "git",
+            "args": true
+          }
+        ]
+      },
+      "path": {
         "all": true
       },
       "dialog": {

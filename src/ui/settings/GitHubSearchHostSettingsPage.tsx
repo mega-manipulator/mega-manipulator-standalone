@@ -23,17 +23,22 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
   }, [megaSettings])
   const [searchHostKeyVal, setSearchHostKeyVal] = useState<string>(searchHostKey ?? '')
   const [searchHostKeySame, setSearchHostKeySame] = useState(0)
-  useEffect(() => {
-    if (megaSettings !== null){
-      setSearchHostKeySame(Object.keys(megaSettings.searchHosts).filter((it) => it === searchHostKeyVal).length)
-    }
-  }, [searchHostKeyVal,megaSettings])
-  const [searchHost, setSearchHost] = useMutableState<GitHubSearchHostSettings>(settings ?? {
+  const [searchHost, updateSearchHost, setSearchHost] = useMutableState<GitHubSearchHostSettings>({
     username: '',
     hostType: "SEARCH",
     codeHostKey: 'github.com',
     baseUrl: 'https://api.github.com'
   })
+  useEffect(() => {
+    if (settings !== null) {
+      setSearchHost(settings)
+    }
+  }, [settings])
+  useEffect(() => {
+    if (megaSettings !== null) {
+      setSearchHostKeySame(Object.keys(megaSettings.searchHosts).filter((it) => it === searchHostKeyVal).length)
+    }
+  }, [searchHostKeyVal, megaSettings])
   const [validationError, setValidationError] = useState<string | undefined>(undefined)
   useEffect(() => {
     let errors: string[] = [];
@@ -61,7 +66,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
         <TextField variant={"outlined"} label={'Username'}
                    placeholder="Username"
                    value={searchHost.username}
-                   onChange={(event) => setSearchHost((draft) => {
+                   onChange={(event) => updateSearchHost((draft) => {
                      draft.username = event.target.value
                    })}/>
       </Grid>

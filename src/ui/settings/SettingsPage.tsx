@@ -65,10 +65,9 @@ const SearchHostRow: React.FC<SearchHostRowProps> = ({settings, searchHostKey}) 
         nav(`${locations.settings.search.github.link}/${searchHostKey}`)
       }
       }>
-      <TableCell>
-        {searchHostKey}
-      </TableCell>
+      <TableCell>{searchHostKey}</TableCell>
       <TableCell>{h.type} </TableCell>
+      <TableCell>{h.github?.username} </TableCell>
     </TableRow>
   } else {
     logError(`Unable to determine class of search host ${searchHostKey} :: ${JSON.stringify(h)}`)
@@ -90,6 +89,7 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
       onClick={() => nav(`${locations.settings.code.github.link}/${codeHostKey}`)}>
       <TableCell>{codeHostKey} </TableCell>
       <TableCell>{h.type} </TableCell>
+      <TableCell>{h.github?.username}</TableCell>
     </TableRow>
   } else {
     logError(`Unable to determine class of code host ${codeHostKey} :: ${JSON.stringify(h)}`)
@@ -161,13 +161,14 @@ export const SettingsPage = () => {
       </Grid>
     </Grid>
     <Grid container spacing={2}>
-      <Grid item sm={12} md={6}>
+      <Grid item sm={12} lg={6}>
         <TableContainer component={Paper}>
           <Table border={1}>
             <TableHead>
               <TableRow>
                 <TableCell>SearchHost</TableCell>
                 <TableCell>Type</TableCell>
+                <TableCell>Username</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -182,13 +183,14 @@ export const SettingsPage = () => {
         <Button onClick={() => nav(locations.settings.search.github.link)} variant={"contained"}>Add new Search
           host</Button>
       </Grid>
-      <Grid item sm={12} md={6}>
+      <Grid item sm={12} lg={6}>
         <TableContainer component={Paper}>
           <Table border={1}>
             <TableHead>
               <TableRow>
                 <TableCell>CodeHost</TableCell>
                 <TableCell>Type</TableCell>
+                <TableCell>Username</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

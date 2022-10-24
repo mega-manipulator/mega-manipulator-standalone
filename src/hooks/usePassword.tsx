@@ -25,7 +25,7 @@ export async function getPassword(username?: string, baseUrl?: string): Promise<
   }
 }
 
-export function usePassword(username?: string, baseUrl?: string): [string | null, (password: string) => void] {
+export function usePassword(username?: string, baseUrl?: string): [string | null, (password: string) => Promise<void>] {
   const [password, setPassword] = useState<string | null>(null)
   useEffect(() => {
     (async () => {
@@ -34,18 +34,17 @@ export function usePassword(username?: string, baseUrl?: string): [string | null
       setPassword(osPass)
     })()
   }, [username, baseUrl])
-  const updatePassword = (newPassword: string) => {
+  const updatePassword = async (newPassword: string) => {
     if (username && baseUrl && newPassword) {
       const joinedUsername = joinServiceUserName(username, baseUrl)
-      invoke('store_password', {
+      await invoke('store_password', {
         "username": joinedUsername,
         "password": newPassword,
-      }).then(_ => {
-        setPassword(newPassword)
-        logInfo(`Password updated for ${joinedUsername}`)
       })
+      setPassword(newPassword)
+      logInfo(`Password updated for ${joinedUsername}`)
     } else {
-      logError('Updated password without username and baseUrl')
+      throw 'Updated password without username and baseUrl'
     }
   }
   return [password, updatePassword];

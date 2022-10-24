@@ -14,7 +14,7 @@ export async function getPassword(username?: string, baseUrl?: string): Promise<
     const joinedUsername = joinServiceUserName(username, baseUrl)
     let password: string | null = null;
     try {
-      logDebug(`Fetched password for ${joinedUsername}`);
+      logTrace(`Fetched password for ${joinedUsername}`);
       password = await invoke('get_password', {"username": joinedUsername})
     } catch (e) {
       logDebug(`Failed getting password: ${asString(e)}`)

@@ -1,8 +1,16 @@
 import {fs} from "@tauri-apps/api";
 import {logDebug, logTrace} from "../../hooks/logWrapper";
+import {error} from "tauri-plugin-log-api";
 
 export async function copyDir(source: string, dest: string) {
-  await fs.readDir(dest, {recursive: true})
+  try{
+    await fs.readDir(source, {recursive: false})
+  }catch (e){
+    const message = 'Source '+source+' does not exist';
+    await error(message)
+    throw message
+  }
+  await fs.createDir(dest, {recursive:true})
   const destFiles = await fs.readDir(dest, {})
   if (destFiles.length > 0) {
     throw 'Copy destination is not empty'

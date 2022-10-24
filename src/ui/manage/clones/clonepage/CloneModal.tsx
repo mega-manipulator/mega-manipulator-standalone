@@ -65,6 +65,9 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
     setWorkRef(null)
     setErr(null)
   };
+  useEffect(() => {
+    if (settings === null) setState("loading"); else setState('ready');
+  }, [settings])
 
   return <Modal open={cloneModalPropsWrapper.isOpen} onClose={close}>
     <Box sx={modalStyle}>
@@ -116,7 +119,8 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
             }}
         >Start clone</Button>}
         {state !== "running" && <Button onClick={close}>Close</Button>}
-        {state === 'done' && workRef && <Button onClick={() => nav(`${locations.result.link}/${workRef}`)}>Show result</Button>}
+        {state === 'done' && workRef &&
+            <Button onClick={() => nav(`${locations.result.link}/${workRef}`)}>Show result</Button>}
         {err && <Alert variant={"filled"} color={"error"}>err</Alert>}
       </p>
     </Box>

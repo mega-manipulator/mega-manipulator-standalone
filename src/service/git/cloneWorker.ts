@@ -1,7 +1,6 @@
 import {SearchHit} from "../../ui/search/types";
 import {WorkProgress, WorkProgressTracker, WorkResult, WorkResultStatus} from "../types";
 import {sleep} from "../delay";
-import {asString, logDebug, logError, logInfo} from "../../hooks/logWrapper";
 import {MegaSettingsType} from "../../hooks/MegaContext";
 import {homeDir, join} from '@tauri-apps/api/path';
 import {fs} from "@tauri-apps/api";
@@ -9,6 +8,8 @@ import {createDir, FileEntry, removeDir} from "@tauri-apps/api/fs";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
 import {copyDir} from "../file/copyDirService";
 import {saveResultToStorage} from "../work/workLog";
+import {debug, error, info} from "tauri-plugin-log-api";
+import {asString} from "../../hooks/logWrapper";
 
 export type CloneState = 'cloned from remote' | 'cloned from local' | 'failed'
 export type CloneType = 'SSH' | 'HTTPS'
@@ -44,7 +45,7 @@ export async function clone(
       }
     }))
   }
-  logDebug(`Start work on ${asString(result)}`)
+  await debug(`Start work on ${asString(result)}`)
   let progressTracker = new WorkProgressTracker(hits.length)
   for (let i = 0; i < result.result.length; i++) {
     const hit: SearchHit = result.result[i].input
@@ -56,7 +57,7 @@ export async function clone(
       const keepPath = await getKeepDir(settings, hit)
       const clonePath = await getCloneDir(settings, hit)
       const url = cloneType === 'SSH' ? hit.sshClone : hit.httpsClone;
-      logInfo(`Clone ${url}`)
+      await info(`Clone ${url}, keepPath:${keepPath}, clonePath:${clonePath}`)
       const cloneResult = await cloneIfNeeded(keepPath, url, meta)
       await restoreRepoFromKeep(keepPath, clonePath, branch, meta)
 
@@ -65,7 +66,7 @@ export async function clone(
       listener(progressTracker.progress(cloneResult))
     } catch (e) {
       const strErr = asString(e);
-      logError(strErr)
+      await error(strErr)
       const limitedStrErr = strErr.substring(0, Math.min(15, strErr.length));
       listener(progressTracker.progress(`failed: ${limitedStrErr}`))
       result.result[i].output.status = "failed";
@@ -85,7 +86,7 @@ async function cloneIfNeeded(clonePath: string, url: string, meta: CloneWorkMeta
     requireZeroStatus(await runCommand('git', ['clone', url, '.'], clonePath, meta), `Failed to clone ${url}`)
     return 'cloned from remote'
   } else {
-    requireZeroStatus(await runCommand('git', ['fetch', 'origin'], clonePath, meta), `Failed to clone ${url}`)
+    requireZeroStatus(await runCommand('git', ['fetch', 'origin'], clonePath, meta), `Failed to fetch ${url}`)
     return 'cloned from local'
   }
 }
@@ -96,18 +97,16 @@ function requireZeroStatus(command: ChildProcess, errPhrase: string): ChildProce
 }
 
 async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch:string, meta: CloneWorkMeta): Promise<boolean> {
-  const cloneGitPath = await join(clonePath, '.git')
   try {
-    await removeDir(cloneGitPath, {recursive: true});
+    await removeDir(clonePath, {recursive: true});
   } catch (e) {
   }
-  const keepGitPath = await join(keepPath, '.git')
-  await createDir(cloneGitPath, {recursive: true});
+  await createDir(clonePath, {recursive: true});
   const keepFsList: FileEntry[] = await fs.readDir(keepPath)
   if (keepFsList.some(e => e.name === '.git')) {
-    await copyDir(keepGitPath, cloneGitPath)
+    await copyDir(await join(keepPath, '.git'), await join(clonePath, '.git'))
     const mainBranch = await getMainBranchName(keepPath, meta)
-    logDebug(`Main branch of ${keepPath} is ${mainBranch}`)
+    await debug(`Main branch of ${keepPath} is ${mainBranch}`)
     await gitFetch(keepPath, mainBranch, branch, meta)
     return true
   }
@@ -140,7 +139,7 @@ async function runCommand(program: string, args: string[], dir: string, meta: Cl
     status: result.code === 0 ? 'ok' : 'failed'
   }
   meta.workLog.push(logEntry)
-  logDebug(`=> Ran '${logEntry.what}' in ${dir} with result ${JSON.stringify(result)}`)
+  await debug(`=> Ran '${logEntry.what}' in ${dir} with result ${JSON.stringify(result)}`)
   return result;
 }
 
@@ -155,7 +154,7 @@ async function getMainBranchName(repoDir: string, meta: CloneWorkMeta): Promise<
 
 async function getKeepDir(settings: MegaSettingsType, searchHit: SearchHit) {
   const fullKeepPath = await basePath(settings.keepLocalReposPath, 'keepLocalReposPath')
-  return await join(fullKeepPath, 'clones', searchHit.searchHost, searchHit.codeHost, searchHit.owner, searchHit.repo)
+  return await join(fullKeepPath, searchHit.owner, searchHit.repo)
 }
 
 async function basePath(settingBase: string | undefined, settingName: string): Promise<string> {
@@ -167,5 +166,5 @@ async function basePath(settingBase: string | undefined, settingName: string): P
 
 async function getCloneDir(settings: MegaSettingsType, searchHit: SearchHit) {
   const fullKeepPath = await basePath(settings.clonePath, 'clonePath')
-  return await join(fullKeepPath, searchHit.owner, searchHit.repo)
+  return await join(fullKeepPath, searchHit.searchHost, searchHit.codeHost,searchHit.owner, searchHit.repo)
 }

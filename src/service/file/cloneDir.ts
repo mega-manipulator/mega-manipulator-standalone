@@ -1,6 +1,6 @@
 import {fs} from "@tauri-apps/api";
 import {MegaSettingsType} from "../../hooks/MegaContext";
-import {asString, logDebug, logError, logWarn} from "../../hooks/logWrapper";
+import {asString, logDebug, logError, logTrace, logWarn} from "../../hooks/logWrapper";
 
 export async function listClones(settings: MegaSettingsType): Promise<string[]> {
   logDebug('listClones')
@@ -9,32 +9,31 @@ export async function listClones(settings: MegaSettingsType): Promise<string[]> 
     return [];
   }
   try {
-
-    const unfilteredFiles = await fs.readDir(settings.clonePath)
-    const filtered: (string | undefined)[] = unfilteredFiles.flatMap(f => f.children?.flatMap(f => f.children?.flatMap(f => f.children?.flatMap(f => f.children?.flatMap(f => f.children?.filter(f => f.name === '.git').map(f => f.path))))))
-    logDebug('Filtered dirs ' + asString(filtered))
-    const filteredAndExists: string[] = filtered.filter(it => typeof it === "string").map(it => it as string)
-    logDebug('FilteredAndExists dirs ' + asString(filteredAndExists))
-    return filteredAndExists
+    return  await listClonesRecursive(0, settings.clonePath)
   } catch (e) {
     logError('listClones encountered an exception: ' + asString(e))
     return []
   }
 }
 
-/*
 async function listClonesRecursive(depth: number, path: string): Promise<string[]> {
-  const unfilteredFiles = await fs.readDir(path)
-  if(depth === 4){
-    if (unfilteredFiles.some(f => f.name === '.git')) {
+  const dir = await fs.readDir(path)
+  if (depth === 4) {
+    if (dir.some(f => f.name === '.git')) {
+      logDebug(`Here I am at path ${path}`)
       return [path]
     } else {
+      logDebug(`Here I am at path ${path} WITHOUT a .GIT`)
       return []
     }
-  }else{
-    let map: (FileEntry[] | undefined)[] = unfilteredFiles.filter(f => f.children).map(f => f.children?.map(f => f.));
-
+  } else {
+    const aggregate: string[] = []
+    for (const fileEntry of dir) {
+      if (fileEntry.children) {
+        const atLevel = await listClonesRecursive(depth + 1, fileEntry.path)
+        aggregate.push(...atLevel)
+      }
+    }
+    return aggregate
   }
-  return []
 }
-*/

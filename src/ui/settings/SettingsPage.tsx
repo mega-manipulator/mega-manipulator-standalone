@@ -104,6 +104,7 @@ export const SettingsPage = () => {
 
   const [keepLocalRepos, setKeepLocalRepos] = useState<string | undefined>(undefined)
   const [clonePath, setClonePath] = useState<string | undefined>(undefined)
+
   const [state, setState] = useState<'loading' | 'ready'>('loading')
   useEffect(() => {
     if (megaSettings !== null) {

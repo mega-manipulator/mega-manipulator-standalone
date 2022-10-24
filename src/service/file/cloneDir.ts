@@ -3,7 +3,7 @@ import {MegaSettingsType} from "../../hooks/MegaContext";
 import {asString, logDebug, logError, logTrace, logWarn} from "../../hooks/logWrapper";
 
 export async function listClones(settings: MegaSettingsType): Promise<string[]> {
-  logDebug('listClones')
+  logTrace('listClones')
   if (!settings.clonePath) {
     logWarn('listClones bailed, no clonePath in settings')
     return [];
@@ -20,10 +20,10 @@ async function listClonesRecursive(depth: number, path: string): Promise<string[
   const dir = await fs.readDir(path)
   if (depth === 4) {
     if (dir.some(f => f.name === '.git')) {
-      logDebug(`Here I am at path ${path}`)
+      logTrace(`Here I am at path ${path}`)
       return [path]
     } else {
-      logDebug(`Here I am at path ${path} WITHOUT a .GIT`)
+      logTrace(`Here I am at path ${path} WITHOUT a .GIT`)
       return []
     }
   } else {

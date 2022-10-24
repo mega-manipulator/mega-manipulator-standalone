@@ -2,7 +2,7 @@ import {SearchClient} from "./types";
 import {useEffect, useState} from "react";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {GithubClient} from "../../hooks/github.com";
-import {GitHubSearchHostSettings} from "../../hooks/MegaContext";
+import {GitHubSearchHostSettings, MegaSettingsType} from "../../hooks/MegaContext";
 import {getPassword} from "../../hooks/usePassword";
 
 export interface SearchClientWrapper {
@@ -41,13 +41,17 @@ async function bakeGithubClient(
 }
 
 export const useSearchClient: (searchHostKey: string | undefined) => SearchClientWrapper = (searchHostKey) => {
-  const [wrapper, setWrapper] = useState<SearchClientWrapper>({searchClientInitError:'Not initialized'})
-  const settings = useMegaSettings()
+  const [wrapper, setWrapper] = useState<SearchClientWrapper>({searchClientInitError: 'Not initialized'})
+  const settings: MegaSettingsType | null = useMegaSettings()
   useEffect(() => {
     (async () => {
       if (searchHostKey === undefined) {
         setWrapper({searchClientInitError: 'Search host key not set'})
-        return ;
+        return;
+      }
+      if (settings === null) {
+        setWrapper({searchClientInitError: 'Settings not loaded yet'})
+        return;
       }
       const hostSetting = settings.searchHosts[searchHostKey]
       switch (hostSetting?.type) {
@@ -60,6 +64,6 @@ export const useSearchClient: (searchHostKey: string | undefined) => SearchClien
           return;
       }
     })()
-  }, [searchHostKey])
+  }, [searchHostKey, settings])
   return wrapper
 }

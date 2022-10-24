@@ -49,9 +49,13 @@ export const AppMenu: React.FC = () => {
         navigate(locations.search.link)
       }}>Search</MenuItem>
       <MenuItem onClick={() => {
+        logInfo('Nav > Clones')
+        navigate(locations.clones.link)
+      }}>Clones</MenuItem>
+      <MenuItem onClick={() => {
         logInfo('Nav > Result')
         navigate(locations.result.link)
-      }}>Result</MenuItem>
+      }}>Results</MenuItem>
     </Menu>
   </div>;
 }

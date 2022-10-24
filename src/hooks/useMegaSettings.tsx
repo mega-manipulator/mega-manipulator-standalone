@@ -1,15 +1,29 @@
 import {MegaSettingsType} from "./MegaContext";
-import React, {useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {loadFromDiskOrDefault, saveToDisk} from "./settings";
+import {asString, logError} from "./logWrapper";
 
-export const useMegaSettings: () => MegaSettingsType = () => {
-  return loadFromDiskOrDefault()
+export const useMegaSettings: () => MegaSettingsType | null = () => {
+  const [settings, setSettings] = useState<MegaSettingsType | null>(null)
+  useEffect(() => {
+    loadFromDiskOrDefault()
+      .then((d) => {
+        setSettings(d)
+      })
+      .catch((e) => logError('Failed to load settings from disk! '+asString(e)))
+  }, [])
+  return settings;
 }
 
-export const useMutableMegaSettings: () => { megaSettings: MegaSettingsType, updateMegaSettings: (fn: (draft: MegaSettingsType) => void) => void } = () => {
+export const useMutableMegaSettings: () => { megaSettings: MegaSettingsType | null; updateMegaSettings: (fn: (draft: MegaSettingsType) => void) => Promise<void> } = () => {
   const [reload, setReload] = useState(0)
-  const megaSettings = useMemo(() => useMegaSettings(), [reload])
-  const updateMegaSettings = (fn: (draft: MegaSettingsType) => void) => {
+  const [megaSettings, setMegaSettings] = useState<MegaSettingsType | null>(null)
+  useEffect(() => {
+    loadFromDiskOrDefault().then((d) => setMegaSettings(d))
+  }, [reload])
+
+  const updateMegaSettings = async (fn: (draft: MegaSettingsType) => void) => {
+    const megaSettings = await loadFromDiskOrDefault()
     fn(megaSettings)
     saveToDisk(megaSettings)
     setReload(reload + 1)

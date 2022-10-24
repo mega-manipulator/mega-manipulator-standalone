@@ -17,6 +17,8 @@ export class MegaSettingsType {
   clonePath?: string = undefined;
   searchHosts: { [key: string]: SearchHostSettings, } = {};
   codeHosts: { [key: string]: CodeHostSettings, } = {};
+  constructor() {
+  }
 }
 
 export type SearchHostType = 'GITHUB'

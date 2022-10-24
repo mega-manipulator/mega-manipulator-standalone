@@ -1,7 +1,7 @@
 import React, {Component, ErrorInfo, ReactNode} from "react";
 import {Button, Typography} from "@mui/material";
 import {createDefault} from "../../hooks/settings";
-import {logError} from "../../hooks/logWrapper";
+import {logError, logInfo} from "../../hooks/logWrapper";
 
 interface Props {
   children?: ReactNode;
@@ -12,7 +12,7 @@ interface State {
 }
 
 function wipe() {
-  createDefault()
+  createDefault().then(_=>logInfo('Settings wiped'))
 }
 
 class ErrorBoundary extends Component<Props, State> {

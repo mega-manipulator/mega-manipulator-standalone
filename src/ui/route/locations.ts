@@ -18,5 +18,8 @@ export const locations = {
   },
   result: {
     link: '/result'
-  }
+  },
+  clones: {
+    link: '/clones'
+  },
 }

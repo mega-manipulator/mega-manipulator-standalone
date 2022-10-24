@@ -160,7 +160,6 @@ async function getKeepDir(settings: MegaSettingsType, searchHit: SearchHit) {
 
 async function basePath(settingBase: string | undefined, settingName: string): Promise<string> {
   if (!settingBase) throw `${settingName} is not defined`
-  if (!settingBase.startsWith('~/')) throw `${settingName} must start with ~/`
   if (settingBase.endsWith('/')) throw `${settingName} must NOT end with /`
   const homeDirPath = await homeDir();
   return settingBase.replace(/^~\//, homeDirPath)

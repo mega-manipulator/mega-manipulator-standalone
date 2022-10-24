@@ -1,7 +1,6 @@
 import React from "react";
 import {logWarn} from '../../hooks/logWrapper'
 import {confirm} from "@tauri-apps/api/dialog";
-import {useMutableState} from "../../hooks/useMutableState";
 import {Button} from "@mui/material";
 import {useNavigate, useParams} from "react-router-dom";
 import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
@@ -10,7 +9,6 @@ import {locations} from "../route/locations";
 export const GitHubCodeHostSettingsPage: React.FC = () => {
   const {codeHostKey} = useParams()
   const {megaSettings, updateMegaSettings} = useMutableMegaSettings()
-  const [codeHost, updateCodeHost] = useMutableState(codeHostKey ? megaSettings.codeHosts[codeHostKey] : {})
   const nav = useNavigate()
 
   return <>
@@ -28,9 +26,10 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
     }>
       Delete
     </Button><br/></> : null}
-    Json definition: {JSON.stringify(codeHost)}
+    Json definition: JSON.stringify(codeHost)
     <div>
-      <Button variant={"outlined"} color={"secondary"} onClick={() => nav(locations.settings.link)}>Back to Settings</Button>
+      <Button variant={"outlined"} color={"secondary"} onClick={() => nav(locations.settings.link)}>Back to
+        Settings</Button>
     </div>
   </>
 }

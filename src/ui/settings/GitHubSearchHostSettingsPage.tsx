@@ -13,12 +13,21 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
   const {searchHostKey} = useParams()
   const nav = useNavigate()
   const {megaSettings, updateMegaSettings} = useMutableMegaSettings();
-  const settings = useMemo(() => searchHostKey ? megaSettings.searchHosts[searchHostKey]?.github : undefined, [megaSettings])
+  const [settings, setSettings] = useState<GitHubSearchHostSettings | null>(null)
+  useEffect(() => {
+    if (searchHostKey && megaSettings) {
+      setSettings(megaSettings.searchHosts[searchHostKey]?.github ?? null)
+    } else {
+      setSettings(null)
+    }
+  }, [megaSettings])
   const [searchHostKeyVal, setSearchHostKeyVal] = useState<string>(searchHostKey ?? '')
   const [searchHostKeySame, setSearchHostKeySame] = useState(0)
   useEffect(() => {
-    setSearchHostKeySame(Object.keys(megaSettings.searchHosts).filter((it) => it === searchHostKeyVal).length)
-  }, [searchHostKeyVal])
+    if (megaSettings !== null){
+      setSearchHostKeySame(Object.keys(megaSettings.searchHosts).filter((it) => it === searchHostKeyVal).length)
+    }
+  }, [searchHostKeyVal,megaSettings])
   const [searchHost, setSearchHost] = useMutableState<GitHubSearchHostSettings>(settings ?? {
     username: '',
     hostType: "SEARCH",
@@ -115,8 +124,8 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
       {searchHostKey !== undefined && settings !== undefined ?
         <Grid item sm={12} lg={6}><PasswordForm
           passwordPhrase={'Personal Access Token'}
-          username={settings.username}
-          hostname={settings.baseUrl}
+          username={settings?.username}
+          hostname={settings?.baseUrl}
         /></Grid> : null
       }
     </Grid>

@@ -1,4 +1,4 @@
-import {debug, error, info, trace, warn} from "tauri-plugin-log-api";
+import {debug, error, info,  trace, warn} from "tauri-plugin-log-api";
 
 export function logInfo(message: string) {
   info(message).catch(_ => console.info(message))

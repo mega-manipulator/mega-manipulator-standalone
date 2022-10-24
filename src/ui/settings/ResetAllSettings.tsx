@@ -27,9 +27,10 @@ export const ResetAllSettings = () => {
           <Grid item xs={6}>
             <Button
               onClick={() => {
-                nav(locations.settings.link)
-                createDefault()
-                handleClose()
+                createDefault().then(_ => {
+                  handleClose();
+                  nav(locations.settings.link)
+                })
               }}>
               Reset
             </Button>

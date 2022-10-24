@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Alert, Box, Button, LinearProgress, Modal, TextField, Typography} from "@mui/material";
+import {Alert, Box, Button, CircularProgress, LinearProgress, Modal, TextField, Typography} from "@mui/material";
 import {SearchHit} from "../../../search/types";
 import {useMegaSettings} from "../../../../hooks/useMegaSettings";
 import {modalStyle} from "../../../modal/megaModal";
@@ -8,6 +8,7 @@ import {WorkProgress} from "../../../../service/types";
 import {asString, logError, logInfo} from "../../../../hooks/logWrapper";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../../../route/locations";
+import {MegaSettingsType} from "../../../../hooks/MegaContext";
 
 export type CloneModalPropsWrapper = {
   cloneModalPropsWrapper: CloneModalProps
@@ -48,20 +49,18 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
 ) => {
   const nav = useNavigate()
   const [err, setErr] = useState<string | null>(null)
-  const [running, setRunning] = useState(false)
-  const [done, setDone] = useState(false)
+  const [state, setState] = useState<'loading' | 'ready' | 'running' | 'done'>('loading')
   const [workRef, setWorkRef] = useState<number | null>(null)
-  const settings = useMegaSettings()
+  const settings: MegaSettingsType | null = useMegaSettings()
   const [progress, setProgress] = useState<WorkProgress | null>(null)
   const [branch, setBranch] = useState('')
   useEffect(() => {
-    setBranch('batch_'+(new Date().toISOString().replaceAll(' ', '_')))
-  },[])
+    setBranch('batch_' + (new Date().toISOString().replaceAll(' ', '_')))
+  }, [])
   const normalise = (value: number) => ((value) * 100) / (cloneModalPropsWrapper.searchHits.length);
   const close = () => {
     cloneModalPropsWrapper.setOpen(false)
-    setRunning(false)
-    setDone(false)
+    if (settings === null) setState("loading"); else setState('ready');
     setProgress(null)
     setWorkRef(null)
     setErr(null)
@@ -69,28 +68,34 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
 
   return <Modal open={cloneModalPropsWrapper.isOpen} onClose={close}>
     <Box sx={modalStyle}>
-      {!running && !done &&
-          <>
-              <Typography>Clone {cloneModalPropsWrapper.searchHits.length} things
-                  into {settings.clonePath}?</Typography>
-              <TextField variant={"filled"} label={'branch name'} value={branch} onChange={(event) => setBranch(event.target.value)}/>
-          </>
-      }
+      {state === 'loading' && <CircularProgress/>}
+      {state === 'ready' && <>
+          <Typography>Clone {cloneModalPropsWrapper.searchHits.length} things into {settings?.clonePath}?</Typography>
+          <TextField
+              variant={"filled"}
+              label={'branch name'}
+              value={branch}
+              onChange={(event) => setBranch(event.target.value)}
+          />
+      </>}
 
-      {progress && <>
+      {(state === "running" || state === 'done') && <>
           <Box sx={{width: '100%'}}>
               <LinearProgress
                   variant="determinate"
-                  value={progress ? normalise(progress.done) : 0}/>{progress?.done ?? 0}/{cloneModalPropsWrapper.searchHits.length} done.</Box>
-        {progress?.breakdown && Object.keys(progress?.breakdown).map((k) => <>{k}: {progress.breakdown[k]}</>)}
+                  value={progress ? normalise(progress.done) : 0}
+              />{progress?.done ?? 0}/{cloneModalPropsWrapper.searchHits.length} done.
+          </Box>
+        {progress?.breakdown && Object.keys(progress?.breakdown)
+          .map((k) => <>{k}: {progress.breakdown[k]},&nbsp;</>)
+        }
       </>}
       <p>
-        {!running && !done && <Button
-            disabled={running || done}
+        {state === 'ready' && <Button
             onClick={() => {
               logInfo('Start Cloning')
-              setRunning(true)
-              clone(
+              setState("running")
+              settings !== null && clone(
                 cloneModalPropsWrapper.searchHits,
                 cloneModalPropsWrapper.sourceString,
                 branch,
@@ -105,14 +110,13 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
                   setErr(asString(e))
                 })
                 .then(_ => {
-                  setRunning(false)
-                  setDone(true)
+                  setState('done')
                   logInfo('Done cloning')
                 });
             }}
         >Start clone</Button>}
-        {(done || !running) && <Button disabled={running} onClick={close}>Close</Button>}
-        {done && workRef && <Button onClick={() => nav(`${locations.result.link}/${workRef}`)}>Show result</Button>}
+        {state !== "running" && <Button onClick={close}>Close</Button>}
+        {state === 'done' && workRef && <Button onClick={() => nav(`${locations.result.link}/${workRef}`)}>Show result</Button>}
         {err && <Alert variant={"filled"} color={"error"}>err</Alert>}
       </p>
     </Box>

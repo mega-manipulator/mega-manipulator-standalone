@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from "react";
 import {MegaSettingsType} from "../../hooks/MegaContext";
-import {logInfo,logError} from "../../hooks/logWrapper";
+import {logError, logInfo} from "../../hooks/logWrapper";
 import {ResetAllSettings} from "./ResetAllSettings";
 import {usePassword} from "../../hooks/usePassword";
 
 import {
   Button,
+  CircularProgress,
   Grid,
   Paper,
   Table,
@@ -20,6 +21,7 @@ import {
 import {useLocation, useNavigate} from "react-router-dom";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {locations} from "../route/locations";
+import {createDefault} from "../../hooks/settings";
 
 type SearchHostRowProps = {
   searchHostKey: string,
@@ -96,16 +98,36 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
 }
 
 export const SettingsPage = () => {
-  const megaSettings = useMegaSettings()
+  const megaSettings: MegaSettingsType | null = useMegaSettings()
   const nav = useNavigate()
   const location = useLocation()
 
-  const [keepLocalRepos, setKeepLocalRepos] = useState<string | undefined>(megaSettings.keepLocalReposPath)
-  const [clonePath, setClonePath] = useState<string | undefined>(megaSettings.clonePath)
+  const [keepLocalRepos, setKeepLocalRepos] = useState<string | undefined>(undefined)
+  const [clonePath, setClonePath] = useState<string | undefined>(undefined)
+  const [state, setState] = useState<'loading' | 'ready'>('loading')
   useEffect(() => {
-    setKeepLocalRepos(megaSettings.keepLocalReposPath)
-    setClonePath(megaSettings.clonePath)
+    if (megaSettings !== null) {
+      setKeepLocalRepos(megaSettings.keepLocalReposPath)
+      setClonePath(megaSettings.clonePath)
+      setState('ready')
+    } else {
+      setKeepLocalRepos(undefined)
+      setClonePath(undefined)
+      setState('loading')
+    }
   }, [megaSettings])
+  if (state === "loading") {
+    return <>
+      <div><CircularProgress/></div>
+      <div>
+        If this loading continues forever, it might be due to your saved settings being borked.<br/>
+        One way to fix this is by resetting the settings to default state.<br/>
+        Passwords will remain in your OS keystore ofc 😉<br/>
+        <Button color={"error"} variant={"outlined"} onClick={() => {
+          createDefault().then(_ => logInfo('Settings wiped'))
+        }}>Wipe settings</Button></div>
+    </>
+  }
   return <>
     <span>
       <Typography variant={"h4"}>Settings {location.pathname}</Typography>
@@ -149,7 +171,7 @@ export const SettingsPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.keys(megaSettings.searchHosts)
+              {megaSettings && Object.keys(megaSettings.searchHosts)
                 .map((k) => <SearchHostRow
                   key={k}
                   searchHostKey={k}
@@ -170,7 +192,7 @@ export const SettingsPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.keys(megaSettings.codeHosts)
+              {megaSettings && Object.keys(megaSettings.codeHosts)
                 .map((k, idx) => <CodeHostRow
                   key={idx}
                   codeHostKey={k}

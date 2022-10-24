@@ -1,31 +1,42 @@
 import React, {useEffect, useState} from "react";
 import {asString, logError, logInfo, logWarn} from "../../hooks/logWrapper";
-import {Alert, Button, MenuItem, Select, TextField, Typography} from "@mui/material";
+import {Alert, Button, CircularProgress, MenuItem, Select, TextField, Typography} from "@mui/material";
 import {SearchHit} from "./types";
 import {SearchHitTable} from "./SearchHitTable";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {useSearchClient} from "./useSearchClient";
 import {CloneModal, CloneModalPropsWrapper, useCloneModalProps} from "../manage/clones/clonepage/CloneModal";
+import {MegaSettingsType} from "../../hooks/MegaContext";
 
 export const SearchPage: React.FC = () => {
-  const settings = useMegaSettings()
+  const settings: MegaSettingsType | null = useMegaSettings()
+  const [state, setState] = useState<'loading' | 'ready' | 'searching'>('loading')
   const [max, setMax] = useState(10)
 
   const [selected, setSelected] = useState<string>('github.com')
   const {searchClient, searchClientInitError} = useSearchClient(selected)
 
   const [searchText, setSearchText] = useState('tauri language:typescript')
-  const [searching, setSearching] = useState(false)
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
   const cloneModalPropsWrapper: CloneModalPropsWrapper = useCloneModalProps()
   const cloneModalProps = cloneModalPropsWrapper.cloneModalPropsWrapper
   useEffect(() => {
     cloneModalProps.setSourceString(`Clone from search '${searchText}'`)
-  },[searchText])
+  }, [searchText])
+  useEffect(() => {
+    if (settings === null || searchClient === undefined) {
+      setState('loading')
+    } else {
+      setState('ready')
+    }
+  }, [settings, searchClient])
+  if (state === 'loading') {
+    return <CircularProgress/>
+  }
 
   return <>
-    <CloneModal {...cloneModalPropsWrapper}/>
     <Typography variant={"h4"}>Search</Typography>
+    <CloneModal {...cloneModalPropsWrapper}/>
     <TextField
       fullWidth
       InputLabelProps={{shrink: true}}
@@ -41,19 +52,18 @@ export const SearchPage: React.FC = () => {
         logInfo(`onChange ${JSON.stringify(event)}`)
         logInfo(`Selected ${JSON.stringify(selected)}`)
       }}>
-      {Object.keys(settings.searchHosts).map((k) => <MenuItem key={k} value={k}>{k}</MenuItem>)
-      }
+      {settings && Object.keys(settings.searchHosts)
+        .map((k) => <MenuItem key={k} value={k}>{k}</MenuItem>)}
     </Select>
     <Select label={'Max hits'} value={max} onChange={(event) => setMax(+event.target.value)}>
       {[10, 50, 100].map((i: number) => <MenuItem value={i}>{i}</MenuItem>)}
     </Select>
     <Button
       variant={"contained"} color={"primary"}
-      disabled={searchClient === undefined || searching || searchText === undefined || searchText.length === 0}
+      disabled={state !== 'ready' || searchText.length === 0}
       onClick={() => {
         if (searchClient !== undefined) {
-          setSearching(true)
-
+          setState('searching')
           searchClient.searchCode(searchText, max)
             .then((hits) => {
               setSearchHits(hits)
@@ -61,7 +71,7 @@ export const SearchPage: React.FC = () => {
             })
             .catch((e) => logError(`Failed searching ${asString(e)}`))
             .then(_ => logInfo('Done'))
-            .then(_ => setSearching(false))
+            .then(_ => setState("ready"))
         } else {
           logWarn('Search Client was undefined')
         }
@@ -70,7 +80,7 @@ export const SearchPage: React.FC = () => {
     {searchClientInitError !== undefined ?
       <Alert variant={"filled"} color={"error"}>Failed setting up search client: {searchClientInitError}</Alert>
       : null}
-    {searching ? <Alert severity={"info"}
+    {state === 'searching' ? <Alert severity={"info"}
       >Search in progress</Alert> :
       <Button
         variant={"contained"}

@@ -1,68 +1,66 @@
 import {Store} from "tauri-plugin-store-api";
 import {MegaSettingsType} from "./MegaContext";
+import {homeDir} from "@tauri-apps/api/path";
+import {path} from "@tauri-apps/api";
+import {asString, logInfo} from "./logWrapper";
 
 const store = new Store('.settings.dat');
 const nodeName = 'settings'
 
-export function defaultSettings(): MegaSettingsType {
-  return {
-    version: '1',
-    theme: 'dark',
-    keepLocalReposPath: '~/vcs',
-    clonePath: '~/vcs/mega-manipulator-workdir',
-    searchHosts: {
-      "github.com": {
-        type: "GITHUB",
-        github: {
-          hostType: "SEARCH",
-          username: 'jensim',
-          baseUrl: 'https://api.github.com',
-          codeHostKey: 'github.com',
-        }
+export async function defaultSettings(): Promise<MegaSettingsType> {
+  const home = await homeDir()
+  const settings = new MegaSettingsType();
+  settings.keepLocalReposPath = await path.join(home, 'vcs');
+  settings.clonePath = await path.join(home,'vcs','mega-manipulator-workdir');
+  settings.searchHosts = {
+    "github.com": {
+      type: "GITHUB",
+      github: {
+        hostType: "SEARCH",
+        username: 'jensim',
+        baseUrl: 'https://api.github.com',
+        codeHostKey: 'github.com',
       }
-    },
-    codeHosts: {
-      "github.com": {
-        type: 'GITHUB',
-        github: {
-          hostType: "CODE",
-          username: 'jensim',
-          baseUrl: 'https://api.github.com',
-        }
+    }
+  }
+  settings.codeHosts = {
+    "github.com": {
+      type: 'GITHUB',
+      github: {
+        hostType: "CODE",
+        username: 'jensim',
+        baseUrl: 'https://api.github.com',
       }
-    },
-  };
+    }
+  }
+  return settings;
 }
 
 /**
  * This will effectively wipe all settings
  */
-export function createDefault(): MegaSettingsType {
-  const defaultVal = defaultSettings();
+export async function createDefault(): Promise<MegaSettingsType> {
+  const defaultVal = await defaultSettings();
   saveToDisk(defaultVal)
   return defaultVal
 }
 
 export function saveToDisk(settings: MegaSettingsType) {
-  if(typeof window.__TAURI_IPC__ === 'function') {
+  if (typeof window.__TAURI_IPC__ === 'function') {
     (async () => {
       await store.set(nodeName, settings)
     })()
   }
 }
 
-export function loadFromDiskOrDefault(): MegaSettingsType {
-  let loadedSettings: any
-  if(typeof window.__TAURI_IPC__ === 'function') {
-    (async () => {
-      loadedSettings = await store.get(nodeName)
-    })();
+export async function loadFromDiskOrDefault(): Promise<MegaSettingsType> {
+  const megaSettings = await defaultSettings();
+
+  if (typeof window.__TAURI_IPC__ === 'function') {
+    let loadedSettings: any = await store.get(nodeName)
+    if (loadedSettings){
+      Object.assign(megaSettings, loadedSettings)
+    }
   }
-  if (loadedSettings === undefined) {
-    return createDefault();
-  } else if (loadedSettings instanceof MegaSettingsType) {
-    return loadedSettings
-  } else {
-    throw 'Failed loading settings, stored settings are not compatible with expected format'
-  }
+  return megaSettings;
 }

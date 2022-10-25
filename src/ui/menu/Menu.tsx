@@ -56,6 +56,10 @@ export const AppMenu: React.FC = () => {
         logInfo('Nav > Result')
         navigate(locations.result.link)
       }}>Results</MenuItem>
+      <MenuItem onClick={() => {
+        logInfo('Nav > Logs')
+        navigate(locations.logs.link)
+      }}>Logs</MenuItem>
     </Menu>
   </div>;
 }

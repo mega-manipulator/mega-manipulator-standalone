@@ -22,4 +22,7 @@ export const locations = {
   clones: {
     link: '/clones'
   },
+  logs: {
+    link: '/logs'
+  }
 }

@@ -10,6 +10,7 @@ import {locations} from "./locations";
 import {BasePage} from "./BasePage";
 import {ResultPage} from "../result/ResultPage";
 import {ClonesPage} from "../clones/ClonesPage";
+import {LogsPage} from "../LogsPage";
 
 export const megaRouter = createMemoryRouter([
   {
@@ -48,6 +49,11 @@ export const megaRouter = createMemoryRouter([
       {
         path: locations.clones.link,
         element: <ClonesPage/>,
+        errorElement: <RoutingErrorBoundary/>,
+      },
+      {
+        path: locations.logs.link,
+        element: <LogsPage/>,
         errorElement: <RoutingErrorBoundary/>,
       },
 

@@ -2,16 +2,20 @@ import {Store} from "tauri-plugin-store-api";
 import {MegaSettingsType} from "./MegaContext";
 import {homeDir} from "@tauri-apps/api/path";
 import {path} from "@tauri-apps/api";
-import {asString, logInfo} from "./logWrapper";
 
 const store = new Store('.settings.dat');
 const nodeName = 'settings'
 
 export async function defaultSettings(): Promise<MegaSettingsType> {
-  const home = await homeDir()
   const settings = new MegaSettingsType();
-  settings.keepLocalReposPath = await path.join(home, 'vcs');
-  settings.clonePath = await path.join(home,'vcs','mega-manipulator-workdir');
+  if (typeof window.__TAURI_IPC__ === 'function') {
+    const home = await homeDir()
+    settings.keepLocalReposPath = await path.join(home, 'vcs');
+    settings.clonePath = await path.join(home, 'vcs', 'mega-manipulator-workdir');
+  } else {
+    settings.keepLocalReposPath = '~/vcs';
+    settings.clonePath = '~/vcs/mega-manipulator-workdir';
+  }
   settings.searchHosts = {
     "github.com": {
       type: "GITHUB",
@@ -58,7 +62,7 @@ export async function loadFromDiskOrDefault(): Promise<MegaSettingsType> {
 
   if (typeof window.__TAURI_IPC__ === 'function') {
     let loadedSettings: any = await store.get(nodeName)
-    if (loadedSettings){
+    if (loadedSettings) {
       Object.assign(megaSettings, loadedSettings)
     }
   }

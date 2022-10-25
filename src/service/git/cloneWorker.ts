@@ -34,7 +34,7 @@ export async function clone(
   settings: MegaSettingsType,
   listener: (progress: WorkProgress) => void,
 ): Promise<number> {
-  if(!branch || branch.length === 0) throw 'Branch name is not set'
+  if(!branch || branch.length === 0) throw new Error('Branch name is not set')
   let time = new Date().getTime();
   const result: WorkResult<SearchHit, CloneWorkMeta> = {
     kind: "clone", name: sourceString, status: 'in-progress', time,
@@ -145,9 +145,9 @@ async function runCommand(program: string, args: string[], dir: string, meta: Cl
 
 async function getMainBranchName(repoDir: string, meta: CloneWorkMeta): Promise<string> {
   const result: ChildProcess = await runCommand('git', ['remote', 'show', 'origin'], repoDir, meta)
-  if (result.code !== 0) throw `Unable to determine head branch name of ${repoDir} due to ${asString(result)}`
+  if (result.code !== 0) throw new Error(`Unable to determine head branch name of ${repoDir} due to ${asString(result)}`)
   const headBranchRow: string | undefined = result.stdout.split('\n').find(e => e.startsWith('  HEAD branch: '))
-  if (!headBranchRow) throw `Unable to head branch of ${repoDir}`
+  if (!headBranchRow) throw new Error(`Unable to head branch of ${repoDir}`)
   const rowParts:string[] = headBranchRow.split(' ')
   return rowParts[rowParts.length - 1]
 }
@@ -158,8 +158,8 @@ async function getKeepDir(settings: MegaSettingsType, searchHit: SearchHit) {
 }
 
 async function basePath(settingBase: string | undefined, settingName: string): Promise<string> {
-  if (!settingBase) throw `${settingName} is not defined`
-  if (settingBase.endsWith('/')) throw `${settingName} must NOT end with /`
+  if (!settingBase) throw new Error(`${settingName} is not defined`)
+  if (settingBase.endsWith('/')) throw new Error(`${settingName} must NOT end with /`)
   const homeDirPath = await homeDir();
   return settingBase.replace(/^~\//, homeDirPath)
 }

@@ -44,7 +44,7 @@ export function usePassword(username?: string, baseUrl?: string): [string | null
       setPassword(newPassword)
       logInfo(`Password updated for ${joinedUsername}`)
     } else {
-      throw 'Updated password without username and baseUrl'
+      throw new Error('Updated password without username and baseUrl')
     }
   }
   return [password, updatePassword];

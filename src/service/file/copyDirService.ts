@@ -8,12 +8,12 @@ export async function copyDir(source: string, dest: string) {
   }catch (e){
     const message = 'Source '+source+' does not exist';
     await error(message)
-    throw message
+    throw new Error(message)
   }
   await fs.createDir(dest, {recursive:true})
   const destFiles = await fs.readDir(dest, {})
   if (destFiles.length > 0) {
-    throw 'Copy destination is not empty'
+    throw new Error('Copy destination is not empty')
   }
   const allSourceFiles = await fs.readDir(source, {recursive: true})
   logDebug(`Recursive copy of ${allSourceFiles.length} files from ${source} to ${dest}`)

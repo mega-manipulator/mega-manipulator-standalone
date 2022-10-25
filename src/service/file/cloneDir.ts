@@ -1,6 +1,6 @@
 import {fs} from "@tauri-apps/api";
 import {MegaSettingsType} from "../../hooks/MegaContext";
-import {asString, logDebug, logError, logTrace, logWarn} from "../../hooks/logWrapper";
+import {asString, logError, logTrace, logWarn} from "../../hooks/logWrapper";
 
 export async function listClones(settings: MegaSettingsType): Promise<string[]> {
   logTrace('listClones')

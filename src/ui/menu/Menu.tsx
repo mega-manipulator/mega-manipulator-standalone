@@ -1,6 +1,5 @@
-import React from "react";
-import {IconButton, MenuItem} from "@mui/material";
-import Menu from '@mui/material/Menu';
+import React, {useState} from "react";
+import {Avatar, Drawer, List, ListItem} from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
@@ -8,58 +7,41 @@ import {info} from "tauri-plugin-log-api";
 
 export const AppMenu: React.FC = () => {
   const navigate = useNavigate()
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const [isOpen, setOpen] = useState(false)
   return <div>
-    <IconButton
-      color={"secondary"}
-      id="basic-button"
-      style={{
-        position: "fixed",
-        top: "10px",
-        right: "10px",
-        zIndex: 1000,
-      }}
-      aria-controls={open ? 'basic-menu' : undefined}
-      aria-haspopup="true"
-      aria-expanded={open ? 'true' : undefined}
-      onClick={handleClick}
-    ><MenuIcon/></IconButton>
-    <Menu id="basic-menu"
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleClose}
-          MenuListProps={{
-            'aria-labelledby': 'basic-button',
-          }}
-    >
-      <MenuItem onClick={() => {
-        info('Nav > SettingsPage')
-        navigate(locations.settings.link)
-      }}>Settings</MenuItem>
+    <Avatar
+      style={{position:"fixed", top: 10, right:10}}
+      onClick={() => setOpen(!isOpen)}
+    ><MenuIcon/></Avatar>
+    <Drawer open={isOpen} onClose={() => setOpen(false)} anchor={"right"}>
+      <List>
+        <ListItem onClick={() => {
+          info('Nav > SettingsPage')
+          setOpen(false)
+          navigate(locations.settings.link)
+        }}>Settings</ListItem>
 
-      <MenuItem onClick={() => {
-        info('Nav > Search')
-        navigate(locations.search.link)
-      }}>Search</MenuItem>
-      <MenuItem onClick={() => {
-        info('Nav > Clones')
-        navigate(locations.clones.link)
-      }}>Clones</MenuItem>
-      <MenuItem onClick={() => {
-        info('Nav > Result')
-        navigate(locations.result.link)
-      }}>Results</MenuItem>
-      <MenuItem onClick={() => {
-        info('Nav > Logs')
-        navigate(locations.logs.link)
-      }}>Logs</MenuItem>
-    </Menu>
+        <ListItem onClick={() => {
+          info('Nav > Search')
+          setOpen(false)
+          navigate(locations.search.link)
+        }}>Search</ListItem>
+        <ListItem onClick={() => {
+          info('Nav > Clones')
+          setOpen(false)
+          navigate(locations.clones.link)
+        }}>Clones</ListItem>
+        <ListItem onClick={() => {
+          info('Nav > Result')
+          setOpen(false)
+          navigate(locations.result.link)
+        }}>Results</ListItem>
+        <ListItem onClick={() => {
+          info('Nav > Logs')
+          setOpen(false)
+          navigate(locations.logs.link)
+        }}>Logs</ListItem>
+      </List>
+    </Drawer>
   </div>;
 }

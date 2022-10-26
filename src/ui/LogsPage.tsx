@@ -44,15 +44,13 @@ export const LogsPage: React.FC = () => {
   }, [logFiles])
   const [logFileContent, setLogFileContent] = useState<string | null>(null);
   useEffect(() => {
-    const refreshFileContent = (async (doScroll:'top' | 'bottom' | undefined) => {
+    const refreshFileContent = (async (doScroll:boolean) => {
       if (selectedLogFile !== null) {
         try {
           const fullPath = await path.join(await logDir(), selectedLogFile)
           setLogFileContent(await fs.readTextFile(fullPath));
-          if(doScroll === 'bottom') {
+          if(doScroll) {
             bottomRef.current?.scrollIntoView()
-          }else if(doScroll === 'top'){
-            topRef.current?.scrollIntoView()
           }
           trace('File content refreshed! ' + tail + ' logFileContent.length:' + logFileContent?.length)
         } catch (e) {
@@ -62,9 +60,9 @@ export const LogsPage: React.FC = () => {
         setLogFileContent(null)
       }
     });
-    refreshFileContent(tail ? 'bottom' : undefined)
+    refreshFileContent(tail)
     if(tail) {
-      const id = setInterval(refreshFileContent, 1000)
+      const id = setInterval(()=>refreshFileContent(true), 1000)
       return () => clearInterval(id)
     }
   }, [selectedLogFile, tail]);

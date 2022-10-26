@@ -4,7 +4,7 @@ import Menu from '@mui/material/Menu';
 import MenuIcon from '@mui/icons-material/Menu';
 import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
-import {logInfo} from "../../hooks/logWrapper";
+import {info} from "tauri-plugin-log-api";
 
 export const AppMenu: React.FC = () => {
   const navigate = useNavigate()
@@ -21,7 +21,7 @@ export const AppMenu: React.FC = () => {
       color={"secondary"}
       id="basic-button"
       style={{
-        position: "absolute",
+        position: "fixed",
         top: "10px",
         right: "10px",
         zIndex: 1000,
@@ -40,24 +40,24 @@ export const AppMenu: React.FC = () => {
           }}
     >
       <MenuItem onClick={() => {
-        logInfo('Nav > SettingsPage')
+        info('Nav > SettingsPage')
         navigate(locations.settings.link)
       }}>Settings</MenuItem>
 
       <MenuItem onClick={() => {
-        logInfo('Nav > Search')
+        info('Nav > Search')
         navigate(locations.search.link)
       }}>Search</MenuItem>
       <MenuItem onClick={() => {
-        logInfo('Nav > Clones')
+        info('Nav > Clones')
         navigate(locations.clones.link)
       }}>Clones</MenuItem>
       <MenuItem onClick={() => {
-        logInfo('Nav > Result')
+        info('Nav > Result')
         navigate(locations.result.link)
       }}>Results</MenuItem>
       <MenuItem onClick={() => {
-        logInfo('Nav > Logs')
+        info('Nav > Logs')
         navigate(locations.logs.link)
       }}>Logs</MenuItem>
     </Menu>

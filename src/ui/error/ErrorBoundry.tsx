@@ -1,7 +1,8 @@
 import React, {Component, ErrorInfo, ReactNode} from "react";
 import {Button, Typography} from "@mui/material";
 import {createDefault} from "../../hooks/settings";
-import {logError, logInfo} from "../../hooks/logWrapper";
+import {info, error} from "tauri-plugin-log-api";
+import {asString} from "../../hooks/logWrapper";
 
 interface Props {
   children?: ReactNode;
@@ -12,7 +13,7 @@ interface State {
 }
 
 function wipe() {
-  createDefault().then(_=>logInfo('Settings wiped'))
+  createDefault().then(_=>info('Settings wiped'))
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -27,10 +28,10 @@ class ErrorBoundary extends Component<Props, State> {
     return {hasError: true};
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    this.error = error;
+  public componentDidCatch(error2: Error, errorInfo: ErrorInfo) {
+    this.error = error2;
     this.errorInfo = errorInfo;
-    logError("Uncaught error: " + error.toString() + ' :: ErrorInfo: ' + errorInfo?.componentStack?.replaceAll('\n', ' > '));
+    error(`Uncaught error: ${asString(error2)} :: ErrorInfo: ${errorInfo?.componentStack?.replaceAll('\n', ' > ')}`);
   }
 
   public render() {

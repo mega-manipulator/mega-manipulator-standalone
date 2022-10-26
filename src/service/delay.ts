@@ -1,4 +1,4 @@
-import {logDebug, logInfo} from "../hooks/logWrapper";
+import {debug, info} from "tauri-plugin-log-api";
 
 export async function sleepUntilEpocSecond(epocSecond: number) {
   const now = (new Date()).getDate()
@@ -8,9 +8,9 @@ export async function sleepUntilEpocSecond(epocSecond: number) {
 
 export async function sleep(ms: number) {
   if (ms < 2000) {
-    logDebug(`Going to sleep for ${ms}ms`)
+    debug(`Going to sleep for ${ms}ms`)
   } else {
-    logInfo(`Going to sleep for ${ms}ms`)
+    info(`Going to sleep for ${ms}ms`)
   }
   await new Promise(r => setTimeout(r, ms));
 }

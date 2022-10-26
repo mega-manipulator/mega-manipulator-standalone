@@ -34,13 +34,13 @@ fn main() {
         .plugin(tauri_plugin_store::PluginBuilder::default().build())
         .plugin(
             LoggerBuilder::default()
-                //.level(LevelFilter::Info)
                 .level(LevelFilter::Debug)
                 .targets([
                     LogTarget::LogDir,
                     LogTarget::Stdout,
+                    LogTarget::Webview,
                 ])
-                .rotation_strategy(RotationStrategy::KeepOne)
+                .rotation_strategy(RotationStrategy::KeepAll)
                 .build(),
         )
         .menu(if cfg!(target_os = "macos") {

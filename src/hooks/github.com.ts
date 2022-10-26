@@ -1,7 +1,8 @@
-import {asString, logDebug, logInfo, logTrace, logWarn} from "./logWrapper";
+import {asString} from "./logWrapper";
 import axios, {AxiosInstance, AxiosResponse} from "axios";
 import {SearchClient, SearchHit} from "../ui/search/types";
 import {sleep, sleepUntilEpocSecond} from "../service/delay";
+import {debug, info, trace, warn} from "tauri-plugin-log-api";
 
 export interface GitHubClientWrapper {
   gitHubClient?: GithubClient;
@@ -42,11 +43,11 @@ function axiosInstance(username: string, token: string, baseURL: string): AxiosI
     baseURL,
   })
   instance.interceptors.request.use((request) => {
-    logTrace(`Request: ${JSON.stringify(request, null, 2)}`)
+    trace(`Request: ${JSON.stringify(request, null, 2)}`)
     return request;
   })
   instance.interceptors.response.use((response) => {
-    logTrace(`Response: ${JSON.stringify(response, null, 2)}`)
+    trace(`Response: ${JSON.stringify(response, null, 2)}`)
     return response;
   })
   instance.defaults.validateStatus = function () {
@@ -110,7 +111,7 @@ export class GithubClient implements SearchClient {
     let attempt = 0
     pagination: while (aggregator.length < max) {
       await sleep(1000)
-      logDebug(`Fetching page ${page} with ${aggregator.length} found already`)
+      debug(`Fetching page ${page} with ${aggregator.length} found already`)
       const response = await this.api.get(url, {
         params: {
           ...params,
@@ -122,14 +123,14 @@ export class GithubClient implements SearchClient {
       switch (status) {
         case "retryable":
           attempt++
-          logInfo('Resume after throttle')
+          info('Resume after throttle')
           continue
         case "failed":
-          logWarn(`Failed paginating request in a way that was not recoverable with throttling: ${response.status}::${JSON.stringify(response.data)}`)
+          warn(`Failed paginating request in a way that was not recoverable with throttling: ${response.status}::${JSON.stringify(response.data)}`)
           break pagination;
         case "ok":
           const data: GithubPage<GITHUB_TYPE> = response.data
-          logTrace(`Got response from GitHub ${asString(data)}`)
+          trace(`Got response from GitHub ${asString(data)}`)
           data.items.map(transformer).forEach((item) => aggregator.push(item))
           if (data.incomplete_results === false || data.items.length === 0) break pagination
           attempt = 0
@@ -165,7 +166,7 @@ export class GithubClient implements SearchClient {
         }
       }
       if (response.data?.message === 'You have exceeded a secondary rate limit. Please wait a few minutes before you try again.') {
-        logWarn(`Secondary rate limit hit ⚠️💥!!!`)
+        warn(`Secondary rate limit hit ⚠️💥!!!`)
         await sleep(10_000)
         return "retryable"
       }

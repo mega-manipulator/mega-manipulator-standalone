@@ -1,7 +1,8 @@
 import {MegaSettingsType} from "./MegaContext";
 import React, {useEffect, useState} from "react";
 import {loadFromDiskOrDefault, saveToDisk} from "./settings";
-import {asString, logError} from "./logWrapper";
+import {asString} from "./logWrapper";
+import {error} from "tauri-plugin-log-api";
 
 export const useMegaSettings: () => MegaSettingsType | null = () => {
   const [settings, setSettings] = useState<MegaSettingsType | null>(null)
@@ -10,7 +11,7 @@ export const useMegaSettings: () => MegaSettingsType | null = () => {
       .then((d) => {
         setSettings(d)
       })
-      .catch((e) => logError('Failed to load settings from disk! '+asString(e)))
+      .catch((e) => error(`Failed to load settings from disk! ${asString(e)}`))
   }, [])
   return settings;
 }

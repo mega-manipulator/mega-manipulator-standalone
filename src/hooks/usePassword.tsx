@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {invoke} from "@tauri-apps/api";
-import {asString, logDebug, logError, logInfo, logTrace} from "./logWrapper";
+import {asString} from "./logWrapper";
+import {debug, info, trace} from "tauri-plugin-log-api";
 
 /**
  * Used for creating a single identifier for storing and retrieving credentials from the OS store
@@ -14,10 +15,10 @@ export async function getPassword(username?: string, baseUrl?: string): Promise<
     const joinedUsername = joinServiceUserName(username, baseUrl)
     let password: string | null = null;
     try {
-      logTrace(`Fetched password for ${joinedUsername}`);
+      trace(`Fetched password for ${joinedUsername}`);
       password = await invoke('get_password', {"username": joinedUsername})
     } catch (e) {
-      logDebug(`Failed getting password: ${asString(e)}`)
+      debug(`Failed getting password: ${asString(e)}`)
     }
     return password
   } else {
@@ -30,7 +31,7 @@ export function usePassword(username?: string, baseUrl?: string): [string | null
   useEffect(() => {
     (async () => {
       let osPass = await getPassword(username, baseUrl);
-      logTrace('found password ' + osPass) // TODO: DELETE?
+      trace('found password ' + osPass) // TODO: DELETE?
       setPassword(osPass)
     })()
   }, [username, baseUrl])
@@ -42,7 +43,7 @@ export function usePassword(username?: string, baseUrl?: string): [string | null
         "password": newPassword,
       })
       setPassword(newPassword)
-      logInfo(`Password updated for ${joinedUsername}`)
+      info(`Password updated for ${joinedUsername}`)
     } else {
       throw new Error('Updated password without username and baseUrl')
     }

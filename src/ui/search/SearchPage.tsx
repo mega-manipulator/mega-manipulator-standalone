@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {asString, logError, logInfo, logWarn} from "../../hooks/logWrapper";
+import {asString} from "../../hooks/logWrapper";
 import {Alert, Button, CircularProgress, MenuItem, Select, TextField, Typography} from "@mui/material";
 import {SearchHit} from "./types";
 import {SearchHitTable} from "./SearchHitTable";
@@ -7,6 +7,7 @@ import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {useSearchClient} from "./useSearchClient";
 import {CloneModal, CloneModalPropsWrapper, useCloneModalProps} from "../manage/clones/clonepage/CloneModal";
 import {MegaSettingsType} from "../../hooks/MegaContext";
+import {error, info, warn} from "tauri-plugin-log-api";
 
 export const SearchPage: React.FC = () => {
   const settings: MegaSettingsType | null = useMegaSettings()
@@ -49,8 +50,8 @@ export const SearchPage: React.FC = () => {
       labelId="demo-simple-select-label"
       onChange={(event) => {
         setSelected(event.target.value as string)
-        logInfo(`onChange ${JSON.stringify(event)}`)
-        logInfo(`Selected ${JSON.stringify(selected)}`)
+        info(`onChange ${JSON.stringify(event)}`)
+        info(`Selected ${JSON.stringify(selected)}`)
       }}>
       {settings && Object.keys(settings.searchHosts)
         .map((k) => <MenuItem key={k} value={k}>{k}</MenuItem>)}
@@ -67,15 +68,15 @@ export const SearchPage: React.FC = () => {
           searchClient.searchCode(searchText, max)
             .then((hits) => {
               setSearchHits(hits)
-              logInfo(`Found ${hits.length} hits`)
+              info(`Found ${hits.length} hits`)
             })
-            .catch((e) => logError(`Failed searching ${asString(e)}`))
-            .then(_ => logInfo('Done'))
+            .catch((e) => error(`Failed searching ${asString(e)}`))
+            .then(_ => info('Done'))
             .then(_ => setState("ready"))
         } else {
-          logWarn('Search Client was undefined')
+          warn('Search Client was undefined')
         }
-        logInfo('Clicked')
+        info('Clicked')
       }}>Search</Button>
     {searchClientInitError !== undefined ?
       <Alert variant={"filled"} color={"error"}>Failed setting up search client: {searchClientInitError}</Alert>

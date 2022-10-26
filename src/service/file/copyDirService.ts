@@ -1,6 +1,5 @@
 import {fs} from "@tauri-apps/api";
-import {logDebug, logTrace} from "../../hooks/logWrapper";
-import {error} from "tauri-plugin-log-api";
+import {debug, trace, error} from "tauri-plugin-log-api";
 
 export async function copyDir(source: string, dest: string) {
   try{
@@ -16,21 +15,21 @@ export async function copyDir(source: string, dest: string) {
     throw new Error('Copy destination is not empty')
   }
   const allSourceFiles = await fs.readDir(source, {recursive: true})
-  logDebug(`Recursive copy of ${allSourceFiles.length} files from ${source} to ${dest}`)
+  debug(`Recursive copy of ${allSourceFiles.length} files from ${source} to ${dest}`)
   for (const f of allSourceFiles) {
     const allDestFiles = await fs.readDir(dest, {recursive: true})
-    logTrace('Dest now contains: ' + JSON.stringify(allDestFiles))
+    trace('Dest now contains: ' + JSON.stringify(allDestFiles))
     const newDestPath = f.path.replace(source, dest)
-    logTrace(`Will now copy ${f.path} to ${newDestPath}`)
+    trace(`Will now copy ${f.path} to ${newDestPath}`)
 
     if (f.children !== undefined) {
-      logTrace('Create new dir: ' + newDestPath)
+      trace('Create new dir: ' + newDestPath)
       try {
         await fs.createDir(newDestPath)
       } catch (e) {
       }
     } else {
-      logTrace('Copy file to: ' + newDestPath)
+      trace('Copy file to: ' + newDestPath)
       await fs.copyFile(f.path, newDestPath)
     }
   }

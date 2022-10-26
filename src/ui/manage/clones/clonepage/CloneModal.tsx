@@ -5,10 +5,11 @@ import {useMegaSettings} from "../../../../hooks/useMegaSettings";
 import {modalStyle} from "../../../modal/megaModal";
 import {clone} from "../../../../service/git/cloneWorker";
 import {WorkProgress} from "../../../../service/types";
-import {asString, logError, logInfo} from "../../../../hooks/logWrapper";
+import {asString} from "../../../../hooks/logWrapper";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../../../route/locations";
 import {MegaSettingsType} from "../../../../hooks/MegaContext";
+import {info, error} from "tauri-plugin-log-api";
 
 export type CloneModalPropsWrapper = {
   cloneModalPropsWrapper: CloneModalProps
@@ -96,7 +97,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
       <p>
         {state === 'ready' && <Button
             onClick={() => {
-              logInfo('Start Cloning')
+              info('Start Cloning')
               setState("running")
               settings !== null && clone(
                 cloneModalPropsWrapper.searchHits,
@@ -109,12 +110,12 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
                 })
                 .then((ref) => setWorkRef(ref))
                 .catch(e => {
-                  logError('Failed cloning' + asString(e));
+                  error('Failed cloning' + asString(e));
                   setErr(asString(e))
                 })
                 .then(_ => {
                   setState('done')
-                  logInfo('Done cloning')
+                  info('Done cloning')
                 });
             }}
         >Start clone</Button>}

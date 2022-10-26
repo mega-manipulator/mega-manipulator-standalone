@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {GitHubSearchHostSettings} from "../../hooks/MegaContext";
-import {logInfo, logWarn} from "../../hooks/logWrapper";
 import {PasswordForm} from "./PasswordForm";
 import {useMutableState} from "../../hooks/useMutableState";
 import {confirm} from "@tauri-apps/api/dialog";
@@ -8,6 +7,7 @@ import {Alert, Button, Grid, TextField, Typography} from "@mui/material";
 import {useNavigate, useParams} from "react-router-dom";
 import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
 import {locations} from "../route/locations";
+import {info, warn} from "tauri-plugin-log-api";
 
 export const GitHubSearchHostSettingsPage: React.FC = () => {
   const {searchHostKey} = useParams()
@@ -80,7 +80,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
           onClick={() => {
             if (searchHostKey === undefined) {
               if (searchHostKeyVal.length > 0 && searchHostKeySame === 0) {
-                logInfo('Creating new Search host config node')
+                info('Creating new Search host config node')
                 updateMegaSettings((settingsDraft) => {
                   settingsDraft.searchHosts[searchHostKeyVal] = {
                     type: 'GITHUB',
@@ -89,10 +89,10 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
                 });
                 nav(locations.settings.link)
               } else {
-                logWarn('Failed validation')
+                warn('Failed validation')
               }
             } else if (searchHostKeyVal.length > 0 && searchHostKeySame === 1) {
-              logInfo('Updating old Search host config node')
+              info('Updating old Search host config node')
               updateMegaSettings((settingsDraft) => {
                 settingsDraft.searchHosts[searchHostKeyVal] = {
                   type: 'GITHUB',

@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from "react";
 import {MegaSettingsType} from "../../hooks/MegaContext";
-import {logError, logInfo} from "../../hooks/logWrapper";
 import {ResetAllSettings} from "./ResetAllSettings";
 import {usePassword} from "../../hooks/usePassword";
 
@@ -22,6 +21,7 @@ import {useLocation, useNavigate} from "react-router-dom";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {locations} from "../route/locations";
 import {createDefault} from "../../hooks/settings";
+import {error, info} from "tauri-plugin-log-api";
 
 type SearchHostRowProps = {
   searchHostKey: string,
@@ -61,7 +61,7 @@ const SearchHostRow: React.FC<SearchHostRowProps> = ({settings, searchHostKey}) 
     return <TableRow
       style={rowStyle(h.github?.username, h?.github?.baseUrl)}
       onClick={() => {
-        logInfo('Nav > Edit Search host ' + locations.settings.search.github.link);
+        info('Nav > Edit Search host ' + locations.settings.search.github.link);
         nav(`${locations.settings.search.github.link}/${searchHostKey}`)
       }
       }>
@@ -70,7 +70,7 @@ const SearchHostRow: React.FC<SearchHostRowProps> = ({settings, searchHostKey}) 
       <TableCell>{h.github?.username} </TableCell>
     </TableRow>
   } else {
-    logError(`Unable to determine class of search host ${searchHostKey} :: ${JSON.stringify(h)}`)
+    error(`Unable to determine class of search host ${searchHostKey} :: ${JSON.stringify(h)}`)
     return null
   }
 }
@@ -92,7 +92,7 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
       <TableCell>{h.github?.username}</TableCell>
     </TableRow>
   } else {
-    logError(`Unable to determine class of code host ${codeHostKey} :: ${JSON.stringify(h)}`)
+    error(`Unable to determine class of code host ${codeHostKey} :: ${JSON.stringify(h)}`)
     return null
   }
 }
@@ -125,7 +125,7 @@ export const SettingsPage = () => {
         One way to fix this is by resetting the settings to default state.<br/>
         Passwords will remain in your OS keystore ofc 😉<br/>
         <Button color={"error"} variant={"outlined"} onClick={() => {
-          createDefault().then(_ => logInfo('Settings wiped'))
+          createDefault().then(_ => info('Settings wiped'))
         }}>Wipe settings</Button></div>
     </>
   }

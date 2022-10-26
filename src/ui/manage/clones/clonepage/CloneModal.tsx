@@ -56,7 +56,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
   const [progress, setProgress] = useState<WorkProgress | null>(null)
   const [branch, setBranch] = useState('')
   useEffect(() => {
-    setBranch('batch_' + (new Date().toISOString().replaceAll(' ', '_')))
+    setBranch('batch_' + (new Date().toISOString().replaceAll(/[^a-zA-Z0-9-]/g, '_')))
   }, [])
   const normalise = (value: number) => ((value) * 100) / (cloneModalPropsWrapper.searchHits.length);
   const close = () => {

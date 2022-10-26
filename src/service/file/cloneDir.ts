@@ -1,7 +1,8 @@
 import {fs} from "@tauri-apps/api";
 import {MegaSettingsType} from "../../hooks/MegaContext";
 import {asString} from "../../hooks/logWrapper";
-import {error, trace, warn} from "tauri-plugin-log-api";
+import {debug, error, trace, warn} from "tauri-plugin-log-api";
+import {Command} from "@tauri-apps/api/shell";
 
 export async function listClones(settings: MegaSettingsType): Promise<string[]> {
   trace('listClones')
@@ -46,7 +47,7 @@ export interface RepoBadStatesReport {
   noDiffWithOriginHead: boolean;
 }
 
-export async function analyzeRepoForBadStates(settings:MegaSettingsType, repoPath: string): Promise<RepoBadStatesReport> {
+export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPath: string): Promise<RepoBadStatesReport> {
   const [uncommittedChanges, onDefaultBranch, noDiffWithOriginHead] = await Promise.all([hasUncommittedChanges(repoPath), hasOnDefaultBranch(repoPath), hasNoDiffWithOriginHead(repoPath)])
   const trimmedRepoPath = repoPath.substring((settings.clonePath?.length ?? -1) + 1)
   return {
@@ -59,7 +60,10 @@ export async function analyzeRepoForBadStates(settings:MegaSettingsType, repoPat
 
 async function hasUncommittedChanges(repoPath: string): Promise<boolean> {
   // todo: impl
-  return true;
+  // git diff HEAD
+  const result = await new Command('git', ['diff'], {cwd: repoPath}).execute()
+  debug(`Ran 'git diff' in ${repoPath} with result: ${asString(result)}`)
+  return result.code !== 0 || result.stdout.length !== 0 || result.stderr.length !== 0
 }
 
 async function hasOnDefaultBranch(repoPath: string): Promise<boolean> {

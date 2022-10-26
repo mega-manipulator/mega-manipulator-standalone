@@ -22,6 +22,10 @@ export type CloneWorkMeta = {
   workLog: CloneHistoryItem[]
 }
 
+const BranchRegexp = /[/a-zA-Z0-9_-]/g
+const BranchStartRegexp = /^[a-zA-Z0-9_-]/
+const BranchEndRegexp = /[a-zA-Z0-9_-]$/
+
 /**
  * Returns the timestamp that marks the resulting worklog item, which can be used to navigate to it
  */
@@ -34,7 +38,9 @@ export async function clone(
   settings: MegaSettingsType,
   listener: (progress: WorkProgress) => void,
 ): Promise<number> {
-  if(!branch || branch.length === 0) throw new Error('Branch name is not set')
+  if(!branch || branch.length === 0 || !BranchRegexp.test(branch) || !BranchStartRegexp.test(branch) || !BranchEndRegexp.test(branch)) {
+    throw new Error('Branch name is not correct')
+  }
   let time = new Date().getTime();
   const result: WorkResult<SearchHit, CloneWorkMeta> = {
     kind: "clone", name: sourceString, status: 'in-progress', time,
@@ -107,7 +113,7 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch:s
     await copyDir(await join(keepPath, '.git'), await join(clonePath, '.git'))
     const mainBranch = await getMainBranchName(keepPath, meta)
     await debug(`Main branch of ${keepPath} is ${mainBranch}`)
-    await gitFetch(keepPath, mainBranch, branch, meta)
+    await gitFetch(clonePath, mainBranch, branch, meta)
     return true
   }
   return false
@@ -120,14 +126,23 @@ async function gitFetch(repoDir: string, mainBranch: string, branch: string, met
   )
   requireZeroStatus(
     await runCommand('git', ['reset', '--hard', `origin/${mainBranch}`], repoDir, meta),
-      'Reset state of '+mainBranch+' to origin'
+      `Reset state of ${mainBranch} to origin`
+  )
+  requireZeroStatus(
+    await runCommand('git', ['clean', '-fd'], repoDir, meta),
+    `Cleanup files`
   )
   if (mainBranch != branch) {
-    const chkOut = await runCommand('git', ['checkout', branch], repoDir, meta)
-    if (chkOut.code === 0) requireZeroStatus(
-      await runCommand('git', ['reset', '--hard', `origin/${branch}`], repoDir, meta),
-      'Reset state of '+branch+' to origin'
-    )
+    await runCommand('git', ['branch','--delete', branch], repoDir, meta)
+    const chkOut = await runCommand('git', ['switch', branch], repoDir, meta)
+    if (chkOut.code === 0) {
+      requireZeroStatus(
+        await runCommand('git', ['reset', '--hard', `origin/${branch}`], repoDir, meta),
+        'Reset state of ' + branch + ' to origin'
+      )
+    } else {
+      requireZeroStatus(await runCommand('git', ['switch', '-c', branch], repoDir, meta), 'Create branch')
+    }
   }
 }
 

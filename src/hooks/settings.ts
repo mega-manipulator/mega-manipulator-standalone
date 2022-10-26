@@ -10,7 +10,7 @@ export async function defaultSettings(): Promise<MegaSettingsType> {
   const settings = new MegaSettingsType();
   if (typeof window.__TAURI_IPC__ === 'function') {
     const home = await homeDir()
-    settings.keepLocalReposPath = await path.join(home, 'vcs');
+    settings.keepLocalReposPath = await path.join(home, 'vcs', 'mega-manipulator-keep');
     settings.clonePath = await path.join(home, 'vcs', 'mega-manipulator-workdir');
   } else {
     settings.keepLocalReposPath = '~/vcs';

@@ -24,10 +24,8 @@ export async function copyDir(source: string, dest: string) {
 
     if (f.children !== undefined) {
       trace('Create new dir: ' + newDestPath)
-      try {
-        await fs.createDir(newDestPath)
-      } catch (e) {
-      }
+      await fs.createDir(newDestPath)
+      await copyDir(f.path, newDestPath)
     } else {
       trace('Copy file to: ' + newDestPath)
       await fs.copyFile(f.path, newDestPath)

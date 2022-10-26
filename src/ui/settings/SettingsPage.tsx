@@ -18,10 +18,11 @@ import {
   Typography
 } from "@mui/material";
 import {useLocation, useNavigate} from "react-router-dom";
-import {useMegaSettings} from "../../hooks/useMegaSettings";
+import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
 import {locations} from "../route/locations";
 import {createDefault} from "../../hooks/settings";
 import {error, info} from "tauri-plugin-log-api";
+import {asString} from "../../hooks/logWrapper";
 
 type SearchHostRowProps = {
   searchHostKey: string,
@@ -98,7 +99,7 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
 }
 
 export const SettingsPage = () => {
-  const megaSettings: MegaSettingsType | null = useMegaSettings()
+  const {megaSettings, updateMegaSettings} = useMutableMegaSettings()
   const nav = useNavigate()
   const location = useLocation()
 
@@ -157,7 +158,13 @@ export const SettingsPage = () => {
       <Grid item xs={12}>
         <Button
           variant={"contained"}
-          onClick={() => null}
+          onClick={() => {
+            updateMegaSettings((draft) => {
+              draft.clonePath = clonePath;
+              draft.keepLocalReposPath = keepLocalRepos;
+            }).then(_ => info('Updated settings'))
+              .catch((e) => error(`Failed updating settings: ${asString(e)}`))
+          }}
         >Save settings</Button>
       </Grid>
     </Grid>

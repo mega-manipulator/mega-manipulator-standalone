@@ -1,7 +1,7 @@
 import {fs} from "@tauri-apps/api";
 import {MegaSettingsType} from "../../hooks/MegaContext";
 import {asString} from "../../hooks/logWrapper";
-import {trace, warn,error} from "tauri-plugin-log-api";
+import {error, trace, warn} from "tauri-plugin-log-api";
 
 export async function listClones(settings: MegaSettingsType): Promise<string[]> {
   trace('listClones')
@@ -10,7 +10,7 @@ export async function listClones(settings: MegaSettingsType): Promise<string[]> 
     return [];
   }
   try {
-    return  await listClonesRecursive(0, settings.clonePath)
+    return await listClonesRecursive(0, settings.clonePath)
   } catch (e) {
     error('listClones encountered an exception: ' + asString(e))
     return []
@@ -37,4 +37,37 @@ async function listClonesRecursive(depth: number, path: string): Promise<string[
     }
     return aggregate
   }
+}
+
+export interface RepoBadStatesReport {
+  repoPath: string;
+  uncommittedChanges: boolean;
+  onDefaultBranch: boolean;
+  noDiffWithOriginHead: boolean;
+}
+
+export async function analyzeRepoForBadStates(settings:MegaSettingsType, repoPath: string): Promise<RepoBadStatesReport> {
+  const [uncommittedChanges, onDefaultBranch, noDiffWithOriginHead] = await Promise.all([hasUncommittedChanges(repoPath), hasOnDefaultBranch(repoPath), hasNoDiffWithOriginHead(repoPath)])
+  const trimmedRepoPath = repoPath.substring((settings.clonePath?.length ?? -1) + 1)
+  return {
+    repoPath: trimmedRepoPath,
+    uncommittedChanges,
+    onDefaultBranch,
+    noDiffWithOriginHead,
+  }
+}
+
+async function hasUncommittedChanges(repoPath: string): Promise<boolean> {
+  // todo: impl
+  return true;
+}
+
+async function hasOnDefaultBranch(repoPath: string): Promise<boolean> {
+  // todo: impl
+  return true;
+}
+
+async function hasNoDiffWithOriginHead(repoPath: string): Promise<boolean> {
+  // todo: impl
+  return true;
 }

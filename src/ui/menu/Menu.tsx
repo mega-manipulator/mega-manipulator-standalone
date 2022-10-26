@@ -1,46 +1,37 @@
 import React, {useState} from "react";
 import {Avatar, Drawer, List, ListItem} from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
 import {info} from "tauri-plugin-log-api";
 
+const items: {
+  nav: string;
+  title: string;
+}[] = [
+  {nav: locations.settings.link, title: 'Settings'},
+  {nav: locations.search.link, title: 'Search'},
+  {nav: locations.clones.link, title: 'Clones'},
+  {nav: locations.result.link, title: 'Result'},
+  {nav: locations.logs.link, title: 'Logs'},
+]
+
 export const AppMenu: React.FC = () => {
   const navigate = useNavigate()
+  const { pathname } = useLocation();
   const [isOpen, setOpen] = useState(false)
   return <div>
     <Avatar
-      style={{position:"fixed", top: 10, right:10}}
+      style={{position: "fixed", top: 10, right: 10}}
       onClick={() => setOpen(!isOpen)}
     ><MenuIcon/></Avatar>
     <Drawer open={isOpen} onClose={() => setOpen(false)} anchor={"right"}>
       <List>
-        <ListItem onClick={() => {
-          info('Nav > SettingsPage')
+        {items.map((item) => <ListItem selected={pathname === item.nav} onClick={() => {
+          info('Nav > ' + item.title)
           setOpen(false)
-          navigate(locations.settings.link)
-        }}>Settings</ListItem>
-
-        <ListItem onClick={() => {
-          info('Nav > Search')
-          setOpen(false)
-          navigate(locations.search.link)
-        }}>Search</ListItem>
-        <ListItem onClick={() => {
-          info('Nav > Clones')
-          setOpen(false)
-          navigate(locations.clones.link)
-        }}>Clones</ListItem>
-        <ListItem onClick={() => {
-          info('Nav > Result')
-          setOpen(false)
-          navigate(locations.result.link)
-        }}>Results</ListItem>
-        <ListItem onClick={() => {
-          info('Nav > Logs')
-          setOpen(false)
-          navigate(locations.logs.link)
-        }}>Logs</ListItem>
+          navigate(item.nav)
+        }}>{item.title}</ListItem>)}
       </List>
     </Drawer>
   </div>;

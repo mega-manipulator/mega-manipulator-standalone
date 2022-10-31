@@ -56,10 +56,10 @@ export async function clone(
   }
   await debug(`Start work on ${asString(result)}`)
   let progressTracker = new WorkProgressTracker(hits.length);
-  listener({done:0,total:result.result.length,breakdown:{}})
+  listener({done: 0, total: result.result.length, breakdown: {}})
   for (let i = 0; i < result.result.length; i++) {
     const hit: SearchHit = result.result[i].input;
-    const meta:CloneWorkMeta = {
+    const meta: CloneWorkMeta = {
       workLog: [],
     };
     result.result[i].output.meta = meta;
@@ -68,7 +68,7 @@ export async function clone(
       const clonePath = await getCloneDir(settings, hit);
       await info(`Clone ${hit.sshClone}, keepPath:${keepPath}, clonePath:${clonePath}`);
       const cloneResult = await cloneIfNeeded(keepPath, hit.sshClone, fetchIfLocal, meta);
-      if(!onlyKeep) {
+      if (!onlyKeep) {
         await restoreRepoFromKeep(keepPath, clonePath, branch, meta, sparseCheckout);
       }
 
@@ -100,7 +100,7 @@ async function cloneIfNeeded(clonePath: string, url: string, fetchIfLocal: boole
   } else if (fetchIfLocal) {
     await sleep(1000)
     await info(`Fetch ${url}, clonePath:${clonePath}`);
-    requireZeroStatus(await runCommand('git', ['fetch', 'origin'], clonePath, meta), `Failed to fetch ${url}`)
+    requireZeroStatus(await runCommand('git', ['fetch', 'origin', 'HEAD'], clonePath, meta), `Failed to fetch ${url}`)
     return 'cloned from local'
   } else {
     await info(`Skip fetch ${url}, clonePath:${clonePath}`);
@@ -185,6 +185,13 @@ async function runCommand(program: string, args: string[], dir: string, meta: Cl
 }
 
 async function getMainBranchName(repoDir: string, meta: CloneWorkMeta): Promise<string> {
+  /** Local lookup up remotes head branch 💩 Because it's 100 times faster */
+  const headBranchFile = await path.join(repoDir, '.git', 'refs', 'remotes', 'origin', 'HEAD');
+  const headBranchFileContent = await fs.readTextFile(headBranchFile);
+  if (headBranchFileContent.startsWith('ref: refs/remotes/origin/')) {
+    return headBranchFileContent.split('\n')[0].substring(25)
+  }
+
   const result: ChildProcess = requireZeroStatus(await runCommand('git', ['remote', 'show', 'origin'], repoDir, meta), 'Fetch remote branches')
   if (result.code !== 0) throw new Error(`Unable to determine head branch name of ${repoDir} due to ${asString(result)}`)
   const headBranchRow: string | undefined = result.stdout.split('\n').find(e => e.startsWith('  HEAD branch: '))

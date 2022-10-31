@@ -41,7 +41,7 @@ export type CloneModalProps = {
 
 export const useCloneModalProps: () => CloneModalPropsWrapper = () => {
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
-  const [isOpen, setOpen] = useState(true)
+  const [isOpen, setOpen] = useState(false)
   const [sourceString, setSourceString] = useState('')
   return {
     cloneModalPropsWrapper: {

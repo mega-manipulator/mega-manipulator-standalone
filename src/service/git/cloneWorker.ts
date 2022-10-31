@@ -133,12 +133,13 @@ async function setupSparse(keepPath: string,meta: CloneWorkMeta, sparseCheckout:
     return;
   }
   let sparseConfFile = await path.join(keepPath, '.git', 'info', 'sparse-checkout');
+  await debug(`Setting up sparse checkout in ${sparseConfFile}`)
   await fs.removeFile(sparseConfFile)
     .then(() => meta.workLog.push({what: `Remove ${sparseConfFile}`, status: "ok", result: true}))
     .catch((e) => meta.workLog.push({what: `Remove ${sparseConfFile}`, status: "failed", result: e}));
   requireZeroStatus(await runCommand("git", ["config", "core.sparseCheckout", "true"], keepPath, meta), 'Enable sparse checkout');
-  await fs.createDir(await path.dirname(sparseCheckout), {recursive:true}).catch();
-  await fs.writeFile(sparseConfFile, sparseCheckout);
+  await fs.createDir(await path.dirname(sparseConfFile), {recursive:true}).catch();
+  await fs.writeTextFile(sparseConfFile, sparseCheckout);
 }
 
 async function gitFetch(repoDir: string, mainBranch: string, branch: string, meta: CloneWorkMeta) {
@@ -181,7 +182,7 @@ async function runCommand(program: string, args: string[], dir: string, meta: Cl
 }
 
 async function getMainBranchName(repoDir: string, meta: CloneWorkMeta): Promise<string> {
-  const result: ChildProcess = await runCommand('git', ['remote', 'show', 'origin'], repoDir, meta)
+  const result: ChildProcess = requireZeroStatus(await runCommand('git', ['remote', 'show', 'origin'], repoDir, meta), 'Fetch remote branches')
   if (result.code !== 0) throw new Error(`Unable to determine head branch name of ${repoDir} due to ${asString(result)}`)
   const headBranchRow: string | undefined = result.stdout.split('\n').find(e => e.startsWith('  HEAD branch: '))
   if (!headBranchRow) throw new Error(`Unable to head branch of ${repoDir}`)

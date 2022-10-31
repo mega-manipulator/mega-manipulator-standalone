@@ -88,7 +88,9 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
     if (settings === null) setState("loading"); else setState('ready');
   }, [settings])
 
-  return <Modal open={cloneModalPropsWrapper.isOpen} onClose={close}>
+  return <Modal open={cloneModalPropsWrapper.isOpen} onClose={(_event) => {
+    if (state !== "running") close()
+  }} >
     <Box sx={modalStyle}>
       {state === 'loading' && <CircularProgress/>}
       {state === 'ready' && <>

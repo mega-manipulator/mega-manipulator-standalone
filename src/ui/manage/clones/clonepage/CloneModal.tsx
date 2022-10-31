@@ -1,5 +1,19 @@
 import React, {useEffect, useState} from "react";
-import {Alert, Box, Button, CircularProgress, LinearProgress, Modal, TextField, Typography} from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Checkbox,
+  CircularProgress,
+  FormControlLabel,
+  LinearProgress,
+  Modal,
+  Skeleton,
+  TextareaAutosize,
+  TextField,
+  Tooltip,
+  Typography
+} from "@mui/material";
 import {SearchHit} from "../../../search/types";
 import {useMegaSettings} from "../../../../hooks/useMegaSettings";
 import {modalStyle} from "../../../modal/megaModal";
@@ -9,7 +23,7 @@ import {asString} from "../../../../hooks/logWrapper";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../../../route/locations";
 import {MegaSettingsType} from "../../../../hooks/MegaContext";
-import {info, error} from "tauri-plugin-log-api";
+import {error, info} from "tauri-plugin-log-api";
 
 export type CloneModalPropsWrapper = {
   cloneModalPropsWrapper: CloneModalProps
@@ -27,7 +41,7 @@ export type CloneModalProps = {
 
 export const useCloneModalProps: () => CloneModalPropsWrapper = () => {
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
-  const [isOpen, setOpen] = useState(false)
+  const [isOpen, setOpen] = useState(true)
   const [sourceString, setSourceString] = useState('')
   return {
     cloneModalPropsWrapper: {
@@ -49,6 +63,10 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
   {cloneModalPropsWrapper}: CloneModalPropsWrapper
 ) => {
   const nav = useNavigate()
+  const [fetchIfLocal, setFetchIfLocal] = useState<boolean>(false)
+  const [onlyKeep, setOnlyKeep] = useState<boolean>(false)
+  const [doSparseCheckout, setDoSpaseCheckout] = useState<boolean>(false)
+  const [sparseCheckout, setSpaseCheckout] = useState<string>('README.md')
   const [err, setErr] = useState<string | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'running' | 'done'>('loading')
   const [workRef, setWorkRef] = useState<number | null>(null)
@@ -74,13 +92,61 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
     <Box sx={modalStyle}>
       {state === 'loading' && <CircularProgress/>}
       {state === 'ready' && <>
-          <Typography>Clone {cloneModalPropsWrapper.searchHits.length} things into {settings?.clonePath}?</Typography>
-          <TextField
-              variant={"filled"}
-              label={'branch name'}
-              value={branch}
-              onChange={(event) => setBranch(event.target.value)}
-          />
+          <div>
+              <Typography>Clone {cloneModalPropsWrapper.searchHits.length} things
+                  into {settings?.clonePath}?</Typography>
+          </div>
+          <div>
+              <TextField
+                  fullWidth
+                  variant={"filled"}
+                  label={'branch name'}
+                  value={branch}
+                  onChange={(event) => setBranch(event.target.value)}
+              />
+          </div>
+          <div>
+              <Tooltip
+                  title={"Run 'git fetch' on the clones found locally, but it's faster not to run the fetch"} arrow>
+                  <FormControlLabel control={
+                    <Checkbox checked={fetchIfLocal} onClick={() => setFetchIfLocal(!fetchIfLocal)}/>
+                  } label={<Typography>Fetch if exists locally?</Typography>}/>
+              </Tooltip>
+          </div>
+          <div>
+              <Tooltip
+                  title={"Only clone to keep dir."} arrow>
+                  <FormControlLabel control={
+                    <Checkbox checked={onlyKeep} onClick={() => {
+                      setOnlyKeep(!onlyKeep)
+                      setFetchIfLocal(false)
+                      setDoSpaseCheckout(false)
+                    }}/>
+                  } label={<Typography>Skip workdir copy?</Typography>}/>
+              </Tooltip>
+          </div>
+
+          <div>
+              <FormControlLabel control={
+                <Checkbox checked={doSparseCheckout} onClick={() => setDoSpaseCheckout(!doSparseCheckout)}/>
+              } label={'Sparse checkout?'}/>
+          </div>
+          <div>
+            {doSparseCheckout ?
+              <TextareaAutosize
+                aria-label="minimum height"
+                minRows={3}
+                value={sparseCheckout}
+                onChange={(evt) => setSpaseCheckout(evt.target.value)}
+                placeholder="Minimum 3 rows"
+              /> : <Skeleton animation={false}>
+                <TextareaAutosize
+                  aria-label="minimum height"
+                  minRows={3}
+                  placeholder="Minimum 3 rows"
+                />
+              </Skeleton>}
+          </div>
       </>}
 
       {(state === "running" || state === 'done') && <>
@@ -107,7 +173,11 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
                 settings,
                 (progress) => {
                   setProgress(progress)
-                })
+                },
+                onlyKeep,
+                fetchIfLocal,
+                doSparseCheckout ? sparseCheckout : null,
+              )
                 .then((ref) => setWorkRef(ref))
                 .catch(e => {
                   error('Failed cloning' + asString(e));

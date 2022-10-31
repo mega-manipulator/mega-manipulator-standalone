@@ -3,7 +3,7 @@ import {WorkProgress, WorkProgressTracker, WorkResult, WorkResultStatus} from ".
 import {sleep} from "../delay";
 import {MegaSettingsType} from "../../hooks/MegaContext";
 import {homeDir, join} from '@tauri-apps/api/path';
-import {fs} from "@tauri-apps/api";
+import {fs, path} from "@tauri-apps/api";
 import {createDir, FileEntry, removeDir} from "@tauri-apps/api/fs";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
 import {copyDir} from "../file/copyDirService";
@@ -37,6 +37,9 @@ export async function clone(
   cloneType: CloneType,
   settings: MegaSettingsType,
   listener: (progress: WorkProgress) => void,
+  onlyKeep: boolean = false,
+  fetchIfLocal: boolean,
+  sparseCheckout: string | null = null,
 ): Promise<number> {
   if(!branch || branch.length === 0 || !BranchRegexp.test(branch) || !BranchStartRegexp.test(branch) || !BranchEndRegexp.test(branch)) {
     throw new Error('Branch name is not correct')
@@ -52,47 +55,52 @@ export async function clone(
     }))
   }
   await debug(`Start work on ${asString(result)}`)
-  let progressTracker = new WorkProgressTracker(hits.length)
+  let progressTracker = new WorkProgressTracker(hits.length);
   for (let i = 0; i < result.result.length; i++) {
-    const hit: SearchHit = result.result[i].input
+    const hit: SearchHit = result.result[i].input;
     const meta:CloneWorkMeta = {
-      workLog: []
+      workLog: [],
     };
     result.result[i].output.meta = meta;
     try {
-      const keepPath = await getKeepDir(settings, hit)
-      const clonePath = await getCloneDir(settings, hit)
+      const keepPath = await getKeepDir(settings, hit);
+      const clonePath = await getCloneDir(settings, hit);
       const url = cloneType === 'SSH' ? hit.sshClone : hit.httpsClone;
-      await info(`Clone ${url}, keepPath:${keepPath}, clonePath:${clonePath}`)
-      const cloneResult = await cloneIfNeeded(keepPath, url, meta)
-      await restoreRepoFromKeep(keepPath, clonePath, branch, meta)
+      await info(`Clone ${url}, keepPath:${keepPath}, clonePath:${clonePath}`);
+      const cloneResult = await cloneIfNeeded(keepPath, url, fetchIfLocal, meta);
+      if(!onlyKeep) {
+        await restoreRepoFromKeep(keepPath, clonePath, branch, meta, sparseCheckout);
+      }
 
       result.result[i].output.status = "ok";
-      result.status = "ok"
-      listener(progressTracker.progress(cloneResult))
+      result.status = "ok";
+      listener(progressTracker.progress(cloneResult));
     } catch (e) {
       const strErr = asString(e);
-      await error(strErr)
+      await error(strErr);
       const limitedStrErr = strErr.substring(0, Math.min(15, strErr.length));
-      listener(progressTracker.progress(`failed: ${limitedStrErr}`))
+      listener(progressTracker.progress(`failed: ${limitedStrErr}`));
       result.result[i].output.status = "failed";
-      result.status = "failed"
+      result.status = "failed";
     }
   }
   await saveResultToStorage(result);
   return time;
 }
 
-async function cloneIfNeeded(clonePath: string, url: string, meta: CloneWorkMeta): Promise<CloneState> {
+async function cloneIfNeeded(clonePath: string, url: string, fetchIfLocal: boolean, meta: CloneWorkMeta): Promise<CloneState> {
   await createDir(clonePath, {recursive: true});
   const cloneFsList: FileEntry[] = await fs.readDir(clonePath)
-  await sleep(1000)
   //TODO: Add retry here?? GitHub sometimes throttle cloning.
   if (!cloneFsList.some(e => e.name === '.git')) {
+    await sleep(1000)
     requireZeroStatus(await runCommand('git', ['clone', url, '.'], clonePath, meta), `Failed to clone ${url}`)
     return 'cloned from remote'
-  } else {
+  } else if(fetchIfLocal) {
+    await sleep(1000)
     requireZeroStatus(await runCommand('git', ['fetch', 'origin'], clonePath, meta), `Failed to fetch ${url}`)
+    return 'cloned from local'
+  } else {
     return 'cloned from local'
   }
 }
@@ -102,7 +110,7 @@ function requireZeroStatus(command: ChildProcess, errPhrase: string): ChildProce
   return command;
 }
 
-async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch:string, meta: CloneWorkMeta): Promise<boolean> {
+async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch:string, meta: CloneWorkMeta, sparseCheckout: string | null): Promise<boolean> {
   try {
     await removeDir(clonePath, {recursive: true});
   } catch (e) {
@@ -111,12 +119,26 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch:s
   const keepFsList: FileEntry[] = await fs.readDir(keepPath)
   if (keepFsList.some(e => e.name === '.git')) {
     await copyDir(await join(keepPath, '.git'), await join(clonePath, '.git'))
+    await setupSparse(keepPath, meta, sparseCheckout)
     const mainBranch = await getMainBranchName(keepPath, meta)
     await debug(`Main branch of ${keepPath} is ${mainBranch}`)
     await gitFetch(clonePath, mainBranch, branch, meta)
     return true
   }
   return false
+}
+
+async function setupSparse(keepPath: string,meta: CloneWorkMeta, sparseCheckout: string | null) {
+  if (sparseCheckout === null){
+    return;
+  }
+  let sparseConfFile = await path.join(keepPath, '.git', 'info', 'sparse-checkout');
+  await fs.removeFile(sparseConfFile)
+    .then(() => meta.workLog.push({what: `Remove ${sparseConfFile}`, status: "ok", result: true}))
+    .catch((e) => meta.workLog.push({what: `Remove ${sparseConfFile}`, status: "failed", result: e}));
+  requireZeroStatus(await runCommand("git", ["config", "core.sparseCheckout", "true"], keepPath, meta), 'Enable sparse checkout');
+  await fs.createDir(await path.dirname(sparseCheckout), {recursive:true}).catch();
+  await fs.writeFile(sparseConfFile, sparseCheckout);
 }
 
 async function gitFetch(repoDir: string, mainBranch: string, branch: string, meta: CloneWorkMeta) {

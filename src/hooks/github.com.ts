@@ -89,6 +89,7 @@ export class GithubClient implements SearchClient {
   }
 
   async searchCode(searchString: string, max: number): Promise<SearchHit[]> {
+    info(`Searching for '${searchString}' with the github client`)
     const transformer = (codeItem: GithubSearchCodeItem) => {
       let owner = codeItem.repository.owner.login;
       let repo = codeItem.repository.name;

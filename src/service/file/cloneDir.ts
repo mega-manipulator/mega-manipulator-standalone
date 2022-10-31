@@ -3,6 +3,7 @@ import {MegaSettingsType} from "../../hooks/MegaContext";
 import {asString} from "../../hooks/logWrapper";
 import {debug, error, trace, warn} from "tauri-plugin-log-api";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
+import {SearchHit} from "../../ui/search/types";
 
 export async function listClones(settings: MegaSettingsType): Promise<string[]> {
   trace('listClones')
@@ -11,16 +12,71 @@ export async function listClones(settings: MegaSettingsType): Promise<string[]> 
     return [];
   }
   try {
-    return await listClonesRecursive(0, settings.clonePath)
+    return await listClonesRecursive(4, settings.clonePath)
   } catch (e) {
     error('listClones encountered an exception: ' + asString(e))
     return []
   }
 }
 
+export async function listKeeps(settings: MegaSettingsType): Promise<string[]> {
+  if (!settings.keepLocalReposPath) {
+    warn('listKeeps bailed, no keepLocalReposPath in settings')
+    return [];
+  }
+  try {
+    return await listClonesRecursive(2, settings.keepLocalReposPath)
+  } catch (e) {
+    error('listKeeps encountered an exception: ' + asString(e))
+    return []
+  }
+}
+
+export async function keepPathToSearchHit(searchHost:string, repoPath:string):Promise<SearchHit>{
+  const repo = await path.basename(repoPath)
+  const ownerPath = await path.dirname(repoPath)
+  const owner = await path.basename(ownerPath)
+  const cloneAddr = await cloneAddress(repoPath)
+  // TODO Guess codeHost from cloneAddress
+  const codeHost = 'github.com'
+
+  return new SearchHit(searchHost, codeHost, owner, repo, cloneAddr, cloneAddr)
+}
+export async function clonePathToSearchHit(repoPath:string):Promise<SearchHit>{
+  const repo = await path.basename(repoPath)
+  const ownerPath = await path.dirname(repoPath)
+  const owner = await path.basename(ownerPath)
+
+  const codePath = await path.dirname(ownerPath)
+  const code = await path.basename(codePath)
+
+  const searchPath = await path.dirname(codePath)
+  const search = await path.basename(searchPath)
+
+  const cloneAddr = await cloneAddress(repoPath)
+
+  return new SearchHit(search, code, owner, repo, cloneAddr, cloneAddr)
+}
+
+async function cloneAddress(repoPath:string):Promise<string> {
+  try{
+    const remoteListing = await new Command('git', ['remote', '-v'], {cwd:repoPath}).execute()
+    if (remoteListing.code === 0){
+      const originLine = remoteListing.stdout.split('\n')
+        .find((line) => line.startsWith('origin') && line.endsWith('(push)'))
+      if (originLine){
+        return  originLine.split(/ */g)[1]
+      }
+    }
+  } catch (e) {
+    error('Exception reverseEngineering clone address for repo '+asString(e))
+  }
+  return 'unknown'
+}
+
 async function listClonesRecursive(depth: number, path: string): Promise<string[]> {
   const dir = await fs.readDir(path)
-  if (depth === 4) {
+  if (depth === 0) {
     if (dir.some(f => f.name === '.git')) {
       trace(`Here I am at path ${path}`)
       return [path]
@@ -32,7 +88,7 @@ async function listClonesRecursive(depth: number, path: string): Promise<string[
     const aggregate: string[] = []
     for (const fileEntry of dir) {
       if (fileEntry.children) {
-        const atLevel = await listClonesRecursive(depth + 1, fileEntry.path)
+        const atLevel = await listClonesRecursive(depth - 1, fileEntry.path)
         aggregate.push(...atLevel)
       }
     }
@@ -121,7 +177,7 @@ async function hasNoDiffWithOriginHead(repoPath: string): Promise<ReportSate> {
     if (diffResult.code !== 0) {
       debug(`Failed #hasNoDiffWithOriginHead ${asString(diffResult)}`)
       return "failed to execute"
-    } else if (diffResult.stdout.length === 0 && diffResult.stderr.length === 0) return "bad"
+    } else if (diffResult.stdout.length === 0) return "bad"
     else return "good"
   } catch (e) {
     return 'failed to execute'

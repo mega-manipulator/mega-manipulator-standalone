@@ -23,6 +23,21 @@
             "cmd": "git",
             "name": "git",
             "args": true
+          },
+          {
+            "cmd": "ag",
+            "name": "ag",
+            "args": true
+          },
+          {
+            "cmd": "grep",
+            "name": "grep",
+            "args": true
+          },
+          {
+            "cmd": "ripgrep",
+            "name": "ripgrep",
+            "args": true
           }
         ]
       },

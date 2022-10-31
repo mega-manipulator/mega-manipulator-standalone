@@ -2,8 +2,9 @@ import {SearchClient} from "./types";
 import {useEffect, useState} from "react";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {GithubClient} from "../../hooks/github.com";
-import {GitHubSearchHostSettings, MegaSettingsType} from "../../hooks/MegaContext";
+import {GitHubSearchHostSettings, LocalSearchHostSettings, MegaSettingsType} from "../../hooks/MegaContext";
 import {getPassword} from "../../hooks/usePassword";
+import {LocalSearchClient} from "./LocalSearchClient";
 
 export interface SearchClientWrapper {
   searchClient?: SearchClient,
@@ -40,12 +41,20 @@ async function bakeGithubClient(
   }
 }
 
-export const useSearchClient: (searchHostKey: string | undefined) => SearchClientWrapper = (searchHostKey) => {
+async function bakeLocalClient(settings: MegaSettingsType, localSettings?: LocalSearchHostSettings): Promise<SearchClientWrapper> {
+  if (localSettings) {
+    return {searchClient: new LocalSearchClient(settings, localSettings)}
+  } else {
+    return {searchClientInitError: 'No settings defined, you might need to reset your settings.'}
+  }
+}
+
+export const useSearchClient: (searchHostKey: string | null) => SearchClientWrapper = (searchHostKey) => {
   const [wrapper, setWrapper] = useState<SearchClientWrapper>({searchClientInitError: 'Not initialized'})
   const settings: MegaSettingsType | null = useMegaSettings()
   useEffect(() => {
     (async () => {
-      if (searchHostKey === undefined) {
+      if (searchHostKey === null) {
         setWrapper({searchClientInitError: 'Search host key not set'})
         return;
       }
@@ -62,6 +71,9 @@ export const useSearchClient: (searchHostKey: string | undefined) => SearchClien
           const githubClient = await bakeGithubClient(searchHostKey, hostSetting.github);
           setWrapper(githubClient)
           return;
+        case 'LOCAL':
+          const localClient = await bakeLocalClient(settings, hostSetting.local)
+          setWrapper(localClient)
       }
     })()
   }, [searchHostKey, settings])

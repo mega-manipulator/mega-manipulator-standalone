@@ -1,22 +1,30 @@
 import React, {useEffect, useState} from "react";
 import {asString} from "../../hooks/logWrapper";
-import {Alert, Button, CircularProgress, MenuItem, Select, TextField, Typography} from "@mui/material";
-import {SearchHit} from "./types";
+import {Alert, Backdrop, Box, Button, CircularProgress, MenuItem, Select, TextField, Typography} from "@mui/material";
+import {SearchHit, SearchPageState} from "./types";
 import {SearchHitTable} from "./SearchHitTable";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {useSearchClient} from "./useSearchClient";
 import {CloneModal, CloneModalPropsWrapper, useCloneModalProps} from "../manage/clones/clonepage/CloneModal";
 import {MegaSettingsType} from "../../hooks/MegaContext";
 import {error, info, warn} from "tauri-plugin-log-api";
+import {modalStyle} from "../modal/megaModal";
+import ErrorBoundary from "../error/ErrorBoundry";
 
 export const SearchPage: React.FC = () => {
   const settings: MegaSettingsType | null = useMegaSettings()
-  const [state, setState] = useState<'loading' | 'ready' | 'searching'>('loading')
+  const [state, setState] = useState<SearchPageState>('loading')
   const [max, setMax] = useState(10)
+  const [selected, setSelected] = useState<string | null>(null)
+  useEffect(() => {
+    if (settings && settings.searchHosts && Object.keys(settings.searchHosts).length > 0) {
+      setSelected(Object.keys(settings.searchHosts)[0])
+    } else {
+      setSelected(null)
+    }
+  }, [settings])
 
-  const [selected, setSelected] = useState<string>('github.com')
   const {searchClient, searchClientInitError} = useSearchClient(selected)
-
   const [searchText, setSearchText] = useState('tauri language:typescript')
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
   const cloneModalPropsWrapper: CloneModalPropsWrapper = useCloneModalProps()
@@ -31,12 +39,30 @@ export const SearchPage: React.FC = () => {
       setState('ready')
     }
   }, [settings, searchClient])
-  if (state === 'loading') {
-    return <CircularProgress/>
-  }
+
+  const searchHostSelect = <Select
+    label='Search host'
+    labelId="demo-simple-select-label"
+    value={selected}
+    onChange={(event) => {
+      setSelected(event.target.value as string)
+      info(`onChange ${JSON.stringify(event)}`)
+      info(`Selected ${JSON.stringify(selected)}`)
+    }}>
+    {settings && Object.keys(settings.searchHosts)
+      .map((k) => <MenuItem key={k} value={k}>{k}</MenuItem>)}
+  </Select>
 
   return <>
     <Typography variant={"h4"}>Search</Typography>
+    <Backdrop open={state === 'loading'} sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}>
+      {settings && settings.searchHosts && (Object.keys(settings.searchHosts).length > 0) ?
+        <Box sx={modalStyle}>
+          <CircularProgress/>
+          {searchHostSelect}
+        </Box> : <ErrorBoundary/>}
+    </Backdrop>
+
     <CloneModal {...cloneModalPropsWrapper}/>
     <TextField
       fullWidth
@@ -45,17 +71,7 @@ export const SearchPage: React.FC = () => {
       value={searchText}
       onChange={(event) => setSearchText(event.target.value)}
     />
-    <Select
-      label='Search host'
-      labelId="demo-simple-select-label"
-      onChange={(event) => {
-        setSelected(event.target.value as string)
-        info(`onChange ${JSON.stringify(event)}`)
-        info(`Selected ${JSON.stringify(selected)}`)
-      }}>
-      {settings && Object.keys(settings.searchHosts)
-        .map((k) => <MenuItem key={k} value={k}>{k}</MenuItem>)}
-    </Select>
+    {searchHostSelect}
     <Select label={'Max hits'} value={max} onChange={(event) => setMax(+event.target.value)}>
       {[10, 50, 100].map((i: number) => <MenuItem value={i}>{i}</MenuItem>)}
     </Select>
@@ -70,7 +86,7 @@ export const SearchPage: React.FC = () => {
               setSearchHits(hits)
               info(`Found ${hits.length} hits`)
             })
-            .catch((e) => error(`Failed searching ${asString(e)}`))
+            .catch((e) => error(`Failed searching ${selected} '${asString(e)}'`))
             .then(_ => info('Done'))
             .then(_ => setState("ready"))
         } else {

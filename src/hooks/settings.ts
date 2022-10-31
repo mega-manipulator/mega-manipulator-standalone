@@ -25,6 +25,12 @@ export async function defaultSettings(): Promise<MegaSettingsType> {
         baseUrl: 'https://api.github.com',
         codeHostKey: 'github.com',
       }
+    },
+    "local": {
+      type: "LOCAL",
+      local: {
+        program: "ag"
+      }
     }
   }
   settings.codeHosts = {

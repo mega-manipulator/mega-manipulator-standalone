@@ -4,7 +4,6 @@ export class SearchHit {
   public readonly owner: string;
   public readonly repo: string;
   public readonly sshClone: string;
-  public readonly httpsClone: string;
   public readonly description?: string;
 
   constructor(
@@ -13,7 +12,6 @@ export class SearchHit {
     owner: string,
     repo: string,
     sshClone: string,
-    httpsClone: string,
     description?: string
   ) {
     this.searchHost = searchHost;
@@ -21,7 +19,6 @@ export class SearchHit {
     this.owner = owner;
     this.repo = repo;
     this.sshClone = sshClone;
-    this.httpsClone = httpsClone;
     this.description = description;
   }
 }

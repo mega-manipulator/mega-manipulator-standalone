@@ -41,7 +41,7 @@ export async function clone(
   fetchIfLocal: boolean,
   sparseCheckout: string | null = null,
 ): Promise<number> {
-  if(!branch || branch.length === 0 || !BranchRegexp.test(branch) || !BranchStartRegexp.test(branch) || !BranchEndRegexp.test(branch)) {
+  if (!branch || branch.length === 0 || !BranchRegexp.test(branch) || !BranchStartRegexp.test(branch) || !BranchEndRegexp.test(branch)) {
     throw new Error('Branch name is not correct')
   }
   let time = new Date().getTime();
@@ -56,6 +56,7 @@ export async function clone(
   }
   await debug(`Start work on ${asString(result)}`)
   let progressTracker = new WorkProgressTracker(hits.length);
+  listener({done:0,total:result.result.length,breakdown:{}})
   for (let i = 0; i < result.result.length; i++) {
     const hit: SearchHit = result.result[i].input;
     const meta:CloneWorkMeta = {
@@ -65,9 +66,8 @@ export async function clone(
     try {
       const keepPath = await getKeepDir(settings, hit);
       const clonePath = await getCloneDir(settings, hit);
-      const url = cloneType === 'SSH' ? hit.sshClone : hit.httpsClone;
-      await info(`Clone ${url}, keepPath:${keepPath}, clonePath:${clonePath}`);
-      const cloneResult = await cloneIfNeeded(keepPath, url, fetchIfLocal, meta);
+      await info(`Clone ${hit.sshClone}, keepPath:${keepPath}, clonePath:${clonePath}`);
+      const cloneResult = await cloneIfNeeded(keepPath, hit.sshClone, fetchIfLocal, meta);
       if(!onlyKeep) {
         await restoreRepoFromKeep(keepPath, clonePath, branch, meta, sparseCheckout);
       }
@@ -94,13 +94,16 @@ async function cloneIfNeeded(clonePath: string, url: string, fetchIfLocal: boole
   //TODO: Add retry here?? GitHub sometimes throttle cloning.
   if (!cloneFsList.some(e => e.name === '.git')) {
     await sleep(1000)
+    await info(`Clone ${url}, clonePath:${clonePath}`);
     requireZeroStatus(await runCommand('git', ['clone', url, '.'], clonePath, meta), `Failed to clone ${url}`)
     return 'cloned from remote'
-  } else if(fetchIfLocal) {
+  } else if (fetchIfLocal) {
     await sleep(1000)
+    await info(`Fetch ${url}, clonePath:${clonePath}`);
     requireZeroStatus(await runCommand('git', ['fetch', 'origin'], clonePath, meta), `Failed to fetch ${url}`)
     return 'cloned from local'
   } else {
+    await info(`Skip fetch ${url}, clonePath:${clonePath}`);
     return 'cloned from local'
   }
 }
@@ -110,7 +113,7 @@ function requireZeroStatus(command: ChildProcess, errPhrase: string): ChildProce
   return command;
 }
 
-async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch:string, meta: CloneWorkMeta, sparseCheckout: string | null): Promise<boolean> {
+async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: string, meta: CloneWorkMeta, sparseCheckout: string | null): Promise<boolean> {
   try {
     await removeDir(clonePath, {recursive: true});
   } catch (e) {
@@ -128,8 +131,8 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch:s
   return false
 }
 
-async function setupSparse(keepPath: string,meta: CloneWorkMeta, sparseCheckout: string | null) {
-  if (sparseCheckout === null){
+async function setupSparse(keepPath: string, meta: CloneWorkMeta, sparseCheckout: string | null) {
+  if (sparseCheckout === null) {
     return;
   }
   let sparseConfFile = await path.join(keepPath, '.git', 'info', 'sparse-checkout');
@@ -138,25 +141,25 @@ async function setupSparse(keepPath: string,meta: CloneWorkMeta, sparseCheckout:
     .then(() => meta.workLog.push({what: `Remove ${sparseConfFile}`, status: "ok", result: true}))
     .catch((e) => meta.workLog.push({what: `Remove ${sparseConfFile}`, status: "failed", result: e}));
   requireZeroStatus(await runCommand("git", ["config", "core.sparseCheckout", "true"], keepPath, meta), 'Enable sparse checkout');
-  await fs.createDir(await path.dirname(sparseConfFile), {recursive:true}).catch();
+  await fs.createDir(await path.dirname(sparseConfFile), {recursive: true}).catch();
   await fs.writeTextFile(sparseConfFile, sparseCheckout);
 }
 
 async function gitFetch(repoDir: string, mainBranch: string, branch: string, meta: CloneWorkMeta) {
   requireZeroStatus(
     await runCommand('git', ['checkout', '-f', mainBranch], repoDir, meta),
-  'Checkout main branch'
+    'Checkout main branch'
   )
   requireZeroStatus(
     await runCommand('git', ['reset', '--hard', `origin/${mainBranch}`], repoDir, meta),
-      `Reset state of ${mainBranch} to origin`
+    `Reset state of ${mainBranch} to origin`
   )
   requireZeroStatus(
     await runCommand('git', ['clean', '-fd'], repoDir, meta),
     `Cleanup files`
   )
   if (mainBranch != branch) {
-    await runCommand('git', ['branch','--delete', branch], repoDir, meta)
+    await runCommand('git', ['branch', '--delete', branch], repoDir, meta)
     const chkOut = await runCommand('git', ['switch', branch], repoDir, meta)
     if (chkOut.code === 0) {
       requireZeroStatus(
@@ -186,7 +189,7 @@ async function getMainBranchName(repoDir: string, meta: CloneWorkMeta): Promise<
   if (result.code !== 0) throw new Error(`Unable to determine head branch name of ${repoDir} due to ${asString(result)}`)
   const headBranchRow: string | undefined = result.stdout.split('\n').find(e => e.startsWith('  HEAD branch: '))
   if (!headBranchRow) throw new Error(`Unable to head branch of ${repoDir}`)
-  const rowParts:string[] = headBranchRow.split(' ')
+  const rowParts: string[] = headBranchRow.split(' ')
   return rowParts[rowParts.length - 1]
 }
 
@@ -199,10 +202,11 @@ async function basePath(settingBase: string | undefined, settingName: string): P
   if (!settingBase) throw new Error(`${settingName} is not defined`)
   if (settingBase.endsWith('/')) throw new Error(`${settingName} must NOT end with /`)
   const homeDirPath = await homeDir();
-  return settingBase.replace(/^~\//, homeDirPath)
+  if (!settingBase.startsWith(homeDirPath)) throw new Error(`'${settingBase}' does not start with your home directory '${homeDirPath}'`)
+  return settingBase
 }
 
 async function getCloneDir(settings: MegaSettingsType, searchHit: SearchHit) {
   const fullKeepPath = await basePath(settings.clonePath, 'clonePath')
-  return await join(fullKeepPath, searchHit.searchHost, searchHit.codeHost,searchHit.owner, searchHit.repo)
+  return await join(fullKeepPath, searchHit.searchHost, searchHit.codeHost, searchHit.owner, searchHit.repo)
 }

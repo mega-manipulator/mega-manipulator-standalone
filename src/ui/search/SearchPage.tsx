@@ -27,6 +27,7 @@ export const SearchPage: React.FC = () => {
   const {searchClient, searchClientInitError} = useSearchClient(selected)
   const [searchText, setSearchText] = useState('tauri language:typescript')
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
+  const [searchError, setSearchError] = useState<string | null>(null)
   const cloneModalPropsWrapper: CloneModalPropsWrapper = useCloneModalProps()
   const cloneModalProps = cloneModalPropsWrapper.cloneModalPropsWrapper
   useEffect(() => {
@@ -81,12 +82,17 @@ export const SearchPage: React.FC = () => {
       onClick={() => {
         if (searchClient !== undefined) {
           setState('searching')
+          setSearchError(null)
           searchClient.searchCode(searchText, max)
             .then((hits) => {
               setSearchHits(hits)
               info(`Found ${hits.length} hits`)
             })
-            .catch((e) => error(`Failed searching ${selected} '${asString(e)}'`))
+            .catch((e) => {
+              const msg = `Failed searching '${selected}' '${asString(e)}'`
+              setSearchError(msg)
+              error(msg)
+            })
             .then(_ => info('Done'))
             .then(_ => setState("ready"))
         } else {
@@ -97,6 +103,7 @@ export const SearchPage: React.FC = () => {
     {searchClientInitError !== undefined ?
       <Alert variant={"filled"} color={"error"}>Failed setting up search client: {searchClientInitError}</Alert>
       : null}
+    {searchError !== null && <Alert variant={"filled"} color={"error"}>{searchError}</Alert>}
     {state === 'searching' ? <Alert severity={"info"}
       >Search in progress</Alert> :
       <Button

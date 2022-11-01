@@ -5,44 +5,20 @@ import {debug, error, trace, warn} from "tauri-plugin-log-api";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
 import {SearchHit} from "../../ui/search/types";
 
-export async function listClones(settings: MegaSettingsType): Promise<string[]> {
-  trace('listClones')
-  if (!settings.clonePath) {
-    warn('listClones bailed, no clonePath in settings')
+export async function listRepos(basePath?:string): Promise<string[]> {
+  if (!basePath) {
+    warn('listRepos bailed, one or more GitDir not defined in settings')
     return [];
   }
   try {
-    return await listClonesRecursive(4, settings.clonePath)
+    return await listClonesRecursive(3, basePath)
   } catch (e) {
-    error('listClones encountered an exception: ' + asString(e))
+    error('listRepos encountered an exception: ' + asString(e))
     return []
   }
 }
 
-export async function listKeeps(settings: MegaSettingsType): Promise<string[]> {
-  if (!settings.keepLocalReposPath) {
-    warn('listKeeps bailed, no keepLocalReposPath in settings')
-    return [];
-  }
-  try {
-    return await listClonesRecursive(2, settings.keepLocalReposPath)
-  } catch (e) {
-    error('listKeeps encountered an exception: ' + asString(e))
-    return []
-  }
-}
-
-export async function keepPathToSearchHit(searchHost:string, repoPath:string):Promise<SearchHit>{
-  const repo = await path.basename(repoPath)
-  const ownerPath = await path.dirname(repoPath)
-  const owner = await path.basename(ownerPath)
-  const cloneAddr = await cloneAddress(repoPath)
-  // TODO Guess codeHost from cloneAddress
-  const codeHost = 'github.com'
-
-  return new SearchHit(searchHost, codeHost, owner, repo, cloneAddr, cloneAddr)
-}
-export async function clonePathToSearchHit(repoPath:string):Promise<SearchHit>{
+export async function pathToSearchHit(searchHostKey:string | null, repoPath:string):Promise<SearchHit>{
   const repo = await path.basename(repoPath)
   const ownerPath = await path.dirname(repoPath)
   const owner = await path.basename(ownerPath)
@@ -50,12 +26,9 @@ export async function clonePathToSearchHit(repoPath:string):Promise<SearchHit>{
   const codePath = await path.dirname(ownerPath)
   const code = await path.basename(codePath)
 
-  const searchPath = await path.dirname(codePath)
-  const search = await path.basename(searchPath)
-
   const cloneAddr = await cloneAddress(repoPath)
 
-  return new SearchHit(search, code, owner, repo, cloneAddr, cloneAddr)
+  return new SearchHit(searchHostKey, code, owner, repo, cloneAddr, cloneAddr)
 }
 
 async function cloneAddress(repoPath:string):Promise<string> {
@@ -103,7 +76,6 @@ export class RepoBadStatesReport {
   readonly uncommittedChanges: ReportSate = 'loading';
   readonly onDefaultBranch: ReportSate = 'loading';
   readonly noDiffWithOriginHead: ReportSate = 'loading';
-  readonly noSearchHostConfig: ReportSate = 'loading';
   readonly noCodeHostConfig: ReportSate = 'loading';
 
   constructor(repoPath: string) {
@@ -133,7 +105,6 @@ export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPa
       uncommittedChanges,
       onDefaultBranch,
       noDiffWithOriginHead,
-      noSearchHostConfig,
       noCodeHostConfig,
     };
   } catch (e) {
@@ -143,7 +114,6 @@ export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPa
       uncommittedChanges: "failed to execute",
       onDefaultBranch: "failed to execute",
       noDiffWithOriginHead: "failed to execute",
-      noSearchHostConfig: "failed to execute",
       noCodeHostConfig: "failed to execute",
     }
   }

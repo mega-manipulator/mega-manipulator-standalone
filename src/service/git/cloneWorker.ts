@@ -64,8 +64,8 @@ export async function clone(
     };
     result.result[i].output.meta = meta;
     try {
-      const keepPath = await getKeepDir(settings, hit);
-      const clonePath = await getCloneDir(settings, hit);
+      const keepPath = await getGitDir(settings.keepLocalReposPath, hit);
+      const clonePath = await getGitDir(settings.clonePath, hit);
       await info(`Clone ${hit.sshClone}, keepPath:${keepPath}, clonePath:${clonePath}`);
       const cloneResult = await cloneIfNeeded(keepPath, hit.sshClone, fetchIfLocal, meta);
       if (!onlyKeep) {
@@ -121,7 +121,7 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: 
   await createDir(clonePath, {recursive: true});
   const keepFsList: FileEntry[] = await fs.readDir(keepPath)
   if (keepFsList.some(e => e.name === '.git')) {
-    await copyDir(await join(keepPath, '.git'), await join(clonePath, '.git'))
+    await copyDir(await join(keepPath, '.git'), clonePath)
     await setupSparse(keepPath, meta, sparseCheckout)
     const mainBranch = await getMainBranchName(keepPath, meta)
     await debug(`Main branch of ${keepPath} is ${mainBranch}`)
@@ -200,20 +200,9 @@ async function getMainBranchName(repoDir: string, meta: CloneWorkMeta): Promise<
   return rowParts[rowParts.length - 1]
 }
 
-async function getKeepDir(settings: MegaSettingsType, searchHit: SearchHit) {
-  const fullKeepPath = await basePath(settings.keepLocalReposPath, 'keepLocalReposPath')
-  return await join(fullKeepPath, searchHit.owner, searchHit.repo)
-}
-
-async function basePath(settingBase: string | undefined, settingName: string): Promise<string> {
-  if (!settingBase) throw new Error(`${settingName} is not defined`)
-  if (settingBase.endsWith('/')) throw new Error(`${settingName} must NOT end with /`)
+export async function getGitDir(basePath:string | undefined, searchHit: SearchHit) {
+  if (!basePath) throw new Error(`Git directory not defined. WorkDir and KeepDir are necessary.`)
   const homeDirPath = await homeDir();
-  if (!settingBase.startsWith(homeDirPath)) throw new Error(`'${settingBase}' does not start with your home directory '${homeDirPath}'`)
-  return settingBase
-}
-
-async function getCloneDir(settings: MegaSettingsType, searchHit: SearchHit) {
-  const fullKeepPath = await basePath(settings.clonePath, 'clonePath')
-  return await join(fullKeepPath, searchHit.searchHost, searchHit.codeHost, searchHit.owner, searchHit.repo)
+  if (!basePath.startsWith(homeDirPath)) throw new Error(`'${basePath}' does not start with your home directory '${homeDirPath}'`)
+  return  await path.join(basePath, searchHit.codeHost, searchHit.owner, searchHit.repo)
 }

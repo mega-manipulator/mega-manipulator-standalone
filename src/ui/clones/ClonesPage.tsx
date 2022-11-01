@@ -1,6 +1,6 @@
 import {Alert, Backdrop, Box, CircularProgress, Typography} from "@mui/material";
 import React, {useEffect, useState} from "react";
-import {analyzeRepoForBadStates, listClones, RepoBadStatesReport, ReportSate} from "../../service/file/cloneDir";
+import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, ReportSate} from "../../service/file/cloneDir";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {MegaSettingsType} from "../../hooks/MegaContext";
 import {DataGrid, GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
@@ -10,13 +10,13 @@ const renderBoolCell = (params: GridRenderCellParams) => {
   if (isTruthy === 'loading')
     return <CircularProgress/>
   if (isTruthy === "failed to execute")
-    return <Alert variant={"filled"} severity={"error"} icon={<span>🧨</span>}>Failed to execute</Alert>
+    return <Alert variant={"outlined"} severity={"error"} icon={<span>🧨</span>}>Failed to execute</Alert>
   else if (isTruthy === "bad")
-    return <Alert variant={"outlined"} severity={"success"} icon={<span>💩</span>}>Bad</Alert>
+    return <Alert variant={"outlined"} severity={"warning"} icon={<span>💩</span>}>Bad</Alert>
   else if (isTruthy === "good")
     return <Alert variant={"outlined"} severity={"success"} icon={<span>👍</span>}>Good</Alert>
   else
-    return <Alert variant={"filled"} severity={"error"} icon={<span>🧨</span>}>Unknown state</Alert>
+    return <Alert variant={"outlined"} severity={"error"} icon={<span>🧨</span>}>Unknown state</Alert>
 }
 const boolCellProps = {
   width: 160,
@@ -28,7 +28,6 @@ const boolCellProps = {
 const columns: GridColDef[] = [
   {field: 'id', hideable: true, width: 100, hide: true},
   {field: 'repoPath', headerName: 'Repo Path', width: 600, editable: false, resizable: true},
-  {field: 'noSearchHostConfig', headerName: 'Has Search Host Config', ...boolCellProps,},
   {field: 'noCodeHostConfig', headerName: 'Has Code Host Config', ...boolCellProps,},
   {field: 'uncommittedChanges', headerName: 'Uncommitted Changes', ...boolCellProps,},
   {field: 'onDefaultBranch', headerName: 'Not On Default Branch', ...boolCellProps,},
@@ -46,7 +45,7 @@ export const ClonesPage: React.FC = () => {
       setState('loading')
     } else {
       (async () => {
-        const paths = await listClones(settings);
+        const paths = await listRepos(settings.clonePath);
         setRepoStates(paths.map((path) => new RepoBadStatesReport(path)));
         const analysis = await Promise.all(paths.map((path) => analyzeRepoForBadStates(settings, path)))
         setRepoStates(analysis)

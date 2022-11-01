@@ -1,5 +1,5 @@
 export class SearchHit {
-  public readonly searchHost: string;
+  public readonly searchHost: string | null;
   public readonly codeHost: string;
   public readonly owner: string;
   public readonly repo: string;
@@ -7,7 +7,7 @@ export class SearchHit {
   public readonly description?: string;
 
   constructor(
-    searchHost: string,
+    searchHost: string | null,
     codeHost: string,
     owner: string,
     repo: string,

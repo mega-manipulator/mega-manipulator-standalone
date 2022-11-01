@@ -99,7 +99,6 @@ export class GithubClient implements SearchClient {
         owner,
         repo,
         this.sshCloneUrl(owner, repo),
-        this.httpsCloneUrl(owner, repo),
         codeItem.repository.description
       );
     }
@@ -107,12 +106,12 @@ export class GithubClient implements SearchClient {
   }
 
   async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, transformer: (data: GITHUB_TYPE) => TYPE): Promise<TYPE[]> {
-    const aggregator: TYPE[] = []
+    const aggregator: Set<TYPE> = new Set<TYPE>()
     let page = 1
     let attempt = 0
-    pagination: while (aggregator.length < max) {
+    pagination: while (aggregator.size < max) {
       await sleep(1000)
-      debug(`Fetching page ${page} with ${aggregator.length} found already`)
+      debug(`Fetching page ${page} with ${aggregator.size} found already`)
       const response = await this.api.get(url, {
         params: {
           ...params,
@@ -132,13 +131,17 @@ export class GithubClient implements SearchClient {
         case "ok":
           const data: GithubPage<GITHUB_TYPE> = response.data
           trace(`Got response from GitHub ${asString(data)}`)
-          data.items.map(transformer).forEach((item) => aggregator.push(item))
-          if (data.incomplete_results === false || data.items.length === 0) break pagination
+          const mapped = data.items.map(transformer)
+          for (const item of mapped) {
+            aggregator.add(item);
+            if(aggregator.size === max) break pagination;
+          }
+          if (data.items.length < 100) break pagination
           attempt = 0
           page++
       }
     }
-    return aggregator;
+    return Array.from(aggregator);
   }
 
   async retryOnThrottle(attempt: number, response: AxiosResponse<any>): Promise<ResponseStatus> {

@@ -17,6 +17,7 @@ tauri-build = { version = "1.0.2", features = [] }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
+fs_extra = "1.2.0"
 tauri = { version = "1.0.6", features = ["dialog-all", "fs-all", "http-all", "path-all", "shell-all"] }
 keyring = "1"
 log = "^0.4"

@@ -1,7 +1,7 @@
 import {LocalSearchHostSettings, MegaSettingsType} from "../../hooks/MegaContext";
 import {SearchClient, SearchHit} from "./types";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
-import {keepPathToSearchHit, listKeeps} from "../../service/file/cloneDir";
+import {pathToSearchHit, listRepos} from "../../service/file/cloneDir";
 import {debug, error, info} from "tauri-plugin-log-api";
 
 export class LocalSearchClient implements SearchClient {
@@ -15,14 +15,13 @@ export class LocalSearchClient implements SearchClient {
   }
 
   async searchCode(searchString: string, max: number): Promise<SearchHit[]> {
-    const keeps: string[] = await listKeeps(this.megaSettings)
+    const keeps: string[] = await listRepos(this.megaSettings.keepLocalReposPath)
     debug(`Search for '${searchString}' with the local client in ${keeps.length} dirs, using '${this.settings.program}'`)
-    const aggregate: Set<SearchHit> = new Set()
     const searchTokens: string[] = tokenizeString(searchString)
     if (searchTokens.length < 2) throw new Error('Need at least 2 args to run this program')
     const commands: (SearchHit | null)[] = await Promise.all(keeps.map((keep, i) => withTimeout(1000, new Command(this.settings.program, searchTokens, {cwd: keep})).then(async (c) => {
       if (c.code === 0)
-        return await keepPathToSearchHit('local', keep);
+        return await pathToSearchHit('local', keep);
       else
         return null
     })))

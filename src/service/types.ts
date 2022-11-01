@@ -45,18 +45,19 @@ export class WorkProgressTracker {
 
 export type WorkResultStatus = 'ok' | 'failed' | 'in-progress'
 
-interface WorkResultOutput<OUTPUT>{
+export interface WorkResultOutput<OUTPUT>{
   status: WorkResultStatus;
   meta?: OUTPUT;
 }
 
 export type WorkResultKind = 'clone'
 
-export interface WorkResult<INPUT, OUTPUT> {
+export interface WorkResult<INPUT_ARG, INPUT, OUTPUT> {
   time: number;
   kind: WorkResultKind;
   name: string;
   status: WorkResultStatus;
+  input: INPUT_ARG,
   result: {
     input: INPUT,
     output: WorkResultOutput<OUTPUT>,

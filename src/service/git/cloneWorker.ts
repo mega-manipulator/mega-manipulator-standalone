@@ -26,28 +26,31 @@ const BranchRegexp = /[/a-zA-Z0-9_-]/g
 const BranchStartRegexp = /^[a-zA-Z0-9_-]/
 const BranchEndRegexp = /[a-zA-Z0-9_-]$/
 
-/**
- * Returns the timestamp that marks the resulting worklog item, which can be used to navigate to it
- */
-export async function clone(
+
+export type CloneWorkInput = {
   hits: SearchHit[],
   /** Used as a human-readable ref for the WorkResult, search-string or some other user-input is recommended */
   sourceString: string,
   branch: string,
   cloneType: CloneType,
   settings: MegaSettingsType,
-  listener: (progress: WorkProgress) => void,
-  onlyKeep: boolean = false,
+  onlyKeep: boolean,
   fetchIfLocal: boolean,
-  sparseCheckout: string | null = null,
-): Promise<number> {
-  if (!branch || branch.length === 0 || !BranchRegexp.test(branch) || !BranchStartRegexp.test(branch) || !BranchEndRegexp.test(branch)) {
+  sparseCheckout: string | null,
+}
+
+/**
+ * Returns the timestamp that marks the resulting worklog item, which can be used to navigate to it
+ */
+export async function clone(input:CloneWorkInput,listener: (progress: WorkProgress) => void): Promise<number> {
+  if (!input.branch || input.branch.length === 0 || !BranchRegexp.test(input.branch) || !BranchStartRegexp.test(input.branch) || !BranchEndRegexp.test(input.branch)) {
     throw new Error('Branch name is not correct')
   }
   let time = new Date().getTime();
-  const result: WorkResult<SearchHit, CloneWorkMeta> = {
-    kind: "clone", name: sourceString, status: 'in-progress', time,
-    result: hits.map(h => ({
+  const result: WorkResult<CloneWorkInput, SearchHit, CloneWorkMeta> = {
+    kind: "clone", name: input.sourceString, status: 'in-progress', time,
+    input,
+    result: input.hits.map(h => ({
       input: h,
       output: {
         status: "in-progress"
@@ -55,7 +58,7 @@ export async function clone(
     }))
   }
   await debug(`Start work on ${asString(result)}`)
-  let progressTracker = new WorkProgressTracker(hits.length);
+  let progressTracker = new WorkProgressTracker(input.hits.length);
   listener({done: 0, total: result.result.length, breakdown: {}})
   for (let i = 0; i < result.result.length; i++) {
     const hit: SearchHit = result.result[i].input;
@@ -64,12 +67,12 @@ export async function clone(
     };
     result.result[i].output.meta = meta;
     try {
-      const keepPath = await getGitDir(settings.keepLocalReposPath, hit);
-      const clonePath = await getGitDir(settings.clonePath, hit);
+      const keepPath = await getGitDir(input.settings.keepLocalReposPath, hit);
+      const clonePath = await getGitDir(input.settings.clonePath, hit);
       await info(`Clone ${hit.sshClone}, keepPath:${keepPath}, clonePath:${clonePath}`);
-      const cloneResult = await cloneIfNeeded(keepPath, hit.sshClone, fetchIfLocal, meta);
-      if (!onlyKeep) {
-        await restoreRepoFromKeep(keepPath, clonePath, branch, meta, sparseCheckout);
+      const cloneResult = await cloneIfNeeded(keepPath, hit.sshClone, input.fetchIfLocal, meta);
+      if (!input.onlyKeep) {
+        await restoreRepoFromKeep(keepPath, clonePath, input.branch, meta, input.sparseCheckout);
       }
 
       result.result[i].output.status = "ok";

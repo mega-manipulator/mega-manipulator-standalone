@@ -90,7 +90,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
 
   return <Modal open={cloneModalPropsWrapper.isOpen} onClose={(_event) => {
     if (state !== "running") close()
-  }} >
+  }}>
     <Box sx={modalStyle}>
       {state === 'loading' && <CircularProgress/>}
       {state === 'ready' && <>
@@ -168,17 +168,19 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
               info('Start Cloning')
               setState("running")
               settings !== null && clone(
-                cloneModalPropsWrapper.searchHits,
-                cloneModalPropsWrapper.sourceString,
-                branch,
-                "SSH",
-                settings,
+                {
+                  hits: cloneModalPropsWrapper.searchHits,
+                  sourceString: cloneModalPropsWrapper.sourceString,
+                  branch,
+                  cloneType: "SSH",
+                  settings,
+                  onlyKeep,
+                  fetchIfLocal,
+                  sparseCheckout: doSparseCheckout ? sparseCheckout : null,
+                },
                 (progress) => {
                   setProgress(progress)
                 },
-                onlyKeep,
-                fetchIfLocal,
-                doSparseCheckout ? sparseCheckout : null,
               )
                 .then((ref) => setWorkRef(ref))
                 .catch(e => {

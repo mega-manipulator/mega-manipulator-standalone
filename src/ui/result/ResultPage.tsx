@@ -1,21 +1,22 @@
 import React, {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {getResultFromStorage} from "../../service/work/workLog";
-import {WorkResult} from "../../service/types";
+import {WorkResult, WorkResultOutput, WorkResultStatus} from "../../service/types";
 import {DataGrid, GridColDef} from "@mui/x-data-grid";
-import {Box, Modal, Typography} from "@mui/material";
+import {Alert, AlertColor, Box, Checkbox, FormControlLabel, Modal, Typography} from "@mui/material";
 import {locations} from "../route/locations";
 import {modalStyle} from "../modal/megaModal";
 
 export const ResultPage: React.FC = () => {
   const {ref} = useParams()
   const nav = useNavigate()
-  const [result, setResult] = useState<(WorkResult<any, any> & { id: number })[]>([])
+  const [resultList, setResultList] = useState<(WorkResult<any, any, any> & { id: number })[]>([])
+  const [result, setResult] = useState<WorkResult<any, any, any> | null>(null)
   useEffect(() => {
     if (typeof window.__TAURI_IPC__ === 'function') {
       (async () => {
         const r = await getResultFromStorage()
-        setResult(Object.values(r).reverse().map((d, i) => {
+        setResultList(Object.values(r).reverse().map((d, i) => {
           return {
             ...d,
             id: i,
@@ -23,9 +24,10 @@ export const ResultPage: React.FC = () => {
         }))
       })()
     } else {
-      setResult([{
+      setResultList([{
         id: new Date().getTime(),
         status: "ok",
+        input: {},
         result: [{
           input: {},
           output: {status: "ok", meta: {}}
@@ -36,6 +38,15 @@ export const ResultPage: React.FC = () => {
       }])
     }
   }, [])
+  useEffect(() => {
+    if (ref) {
+      const foo: (WorkResult<any, any, any> & { id: number }) | undefined = resultList.find((r) => `${r.time}` === ref)
+      setResult(foo ?? null)
+    } else {
+      setResult(null);
+    }
+  }, [resultList, ref])
+
   const columns: GridColDef[] = [
     {field: 'id', hideable: true, hide: true, width: 150},
     {
@@ -46,9 +57,19 @@ export const ResultPage: React.FC = () => {
       renderCell: (e) => <Typography style={{cursor: "pointer"}}
                                      onClick={() => nav(`${locations.result.link}/${e.value}`)}>{e.value}</Typography>
     },
-    {field: 'kind', hideable: true},
-    {field: 'status', hideable: true},
-    {field: 'name', hideable: true, width: 500},
+    {field: 'kind', hideable: true, filterable: true,},
+    {
+      field: 'status', hideable: true, filterable: true, renderCell: (c) => {
+        if (c.value === 'failed') {
+          return <Alert color={"warning"}>Failed</Alert>
+        } else if (c.value === 'ok') {
+          return <Alert color={"success"}>{c.value}</Alert>
+        } else {
+          return <Alert color={"info"}>{c.value}</Alert>
+        }
+      }
+    },
+    {field: 'name', hideable: true, filterable: true, width: 500},
   ]
   return <>
     <Typography variant={'h4'}>Result</Typography>
@@ -56,14 +77,14 @@ export const ResultPage: React.FC = () => {
     <Modal open={ref !== undefined} onClose={() => nav(locations.result.link)}>
       <Box sx={modalStyle}>
         <pre>
-          {result.filter((r) => `${r.time}` === ref).map((it) => JSON.stringify(it, null, 2))}
+          {result && <ResultTable work={result}/>}
         </pre>
       </Box>
     </Modal>
     <br/>
     <Box sx={{height: 400, width: '100%'}}>
       <DataGrid
-        rows={result}
+        rows={resultList}
         columns={columns}
         pageSize={15}
         rowsPerPageOptions={[5, 15, 100]}
@@ -72,4 +93,57 @@ export const ResultPage: React.FC = () => {
       />
     </Box>
   </>
+}
+
+type ResultTableProps = {
+  work: WorkResult<any, any, any>
+}
+
+function statusToColor(status: WorkResultStatus): AlertColor {
+  switch (status) {
+    case "ok":
+      return 'success'
+    case "failed":
+      return "warning"
+    case "in-progress":
+      return "info"
+  }
+}
+
+const ResultTable: React.FC<ResultTableProps> = ({work}: ResultTableProps) => {
+  const [showJson, setShowJson] = useState(false)
+
+  return <>
+    <div><Typography>What: {work.kind}, {work.name}</Typography></div>
+    <div><Typography>Status: {work.status}</Typography></div>
+    <FormControlLabel label={<Typography>Show raw JSON</Typography>}
+                      control={<Checkbox value={showJson} onClick={() => setShowJson(!showJson)}/>}/>
+    {showJson && <>
+      {work.input && <Typography>Input: {JSON.stringify(work.input)}</Typography>}
+        <Typography>Click the JSON to expand and collapse it</Typography>
+      {work.result.map((r) => <ResultItem {...r} />)}
+    </>}
+  </>
+}
+
+type ResultItemProps = {
+  input: any,
+  output: WorkResultOutput<any>,
+}
+
+const ResultItem: React.FC<ResultItemProps> = ({input, output}) => {
+  const [fatJson, setFatJson] = useState(false)
+  return <div onClick={() => setFatJson(!fatJson)}>
+    <Alert color={statusToColor(output.status)}>Result: {output.status}</Alert>
+    <div>Input:</div>
+    <Typography>
+      {JSON.stringify(input, null, fatJson ? 2 : undefined)}
+    </Typography>
+
+    <div>Output:</div>
+    <Typography>
+      {JSON.stringify(output.meta, null, fatJson ? 2 : undefined)}
+    </Typography>
+    <hr/>
+  </div>
 }

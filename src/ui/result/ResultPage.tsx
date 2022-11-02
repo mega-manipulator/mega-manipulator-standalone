@@ -114,13 +114,16 @@ const ResultTable: React.FC<ResultTableProps> = ({work}: ResultTableProps) => {
   const [showJson, setShowJson] = useState(false)
 
   return <>
-    <div><Typography>What: {work.kind}, {work.name}</Typography></div>
-    <div><Typography>Status: {work.status}</Typography></div>
+    <div><Typography><b><u>What:</u></b> {work.kind}, {work.name}</Typography></div>
+    <div><Alert color={statusToColor(work.status)}>Full Result: {work.status}</Alert></div>
     <FormControlLabel label={<Typography>Show raw JSON</Typography>}
                       control={<Checkbox value={showJson} onClick={() => setShowJson(!showJson)}/>}/>
     {showJson && <>
+      <hr/>
       {work.input && <Typography>Input: {JSON.stringify(work.input)}</Typography>}
-        <Typography>Click the JSON to expand and collapse it</Typography>
+        <Typography variant={'h4'}>Results:</Typography>
+        <Typography style={{fontStyle: 'italic', color: 'text.secondary'}}>Click the JSON to expand/collapse it</Typography>
+      <hr/>
       {work.result.map((r) => <ResultItem {...r} />)}
     </>}
   </>
@@ -134,7 +137,6 @@ type ResultItemProps = {
 const ResultItem: React.FC<ResultItemProps> = ({input, output}) => {
   const [fatJson, setFatJson] = useState(false)
   return <div onClick={() => setFatJson(!fatJson)}>
-    <Alert color={statusToColor(output.status)}>Result: {output.status}</Alert>
     <div>Input:</div>
     <Typography>
       {JSON.stringify(input, null, fatJson ? 2 : undefined)}
@@ -144,6 +146,7 @@ const ResultItem: React.FC<ResultItemProps> = ({input, output}) => {
     <Typography>
       {JSON.stringify(output.meta, null, fatJson ? 2 : undefined)}
     </Typography>
+    <Alert color={statusToColor(output.status)}>Result: {output.status}</Alert>
     <hr/>
   </div>
 }

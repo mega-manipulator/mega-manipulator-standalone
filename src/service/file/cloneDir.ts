@@ -28,7 +28,7 @@ export async function pathToSearchHit(searchHostKey:string | null, repoPath:stri
 
   const cloneAddr = await cloneAddress(repoPath)
 
-  return new SearchHit(searchHostKey, code, owner, repo, cloneAddr, cloneAddr)
+  return new SearchHit(searchHostKey, code, owner, repo, cloneAddr)
 }
 
 async function cloneAddress(repoPath:string):Promise<string> {
@@ -89,12 +89,7 @@ export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPa
     const [uncommittedChanges, onDefaultBranch, noDiffWithOriginHead] = await Promise.all([hasUncommittedChanges(repoPath), hasOnDefaultBranch(repoPath), hasNoDiffWithOriginHead(repoPath)])
     const codeHostPath = await path.resolve(repoPath, '..', '..')
     const codeHostDirName = await path.basename(codeHostPath)
-    const searchHostDirName = await path.basename(await path.dirname(codeHostPath))
 
-    const noSearchHostConfig = settings.searchHosts[searchHostDirName] !== undefined ? 'good' : 'bad';
-    if(noSearchHostConfig === 'bad'){
-      debug('searchHostDirName does not have matching searchHostConfig: '+searchHostDirName)
-    }
     const noCodeHostConfig = settings.codeHosts[codeHostDirName] != undefined ? 'good' : 'bad';
     if (noCodeHostConfig === 'bad') {
       debug('codeHostDirName does not have matching codeHostConfig: '+codeHostDirName)

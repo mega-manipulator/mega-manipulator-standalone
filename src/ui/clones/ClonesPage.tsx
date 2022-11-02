@@ -1,9 +1,10 @@
-import {Alert, Backdrop, CircularProgress, Typography} from "@mui/material";
+import {Alert, Backdrop, Box, CircularProgress, Typography} from "@mui/material";
 import React, {useEffect, useState} from "react";
 import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, ReportSate} from "../../service/file/cloneDir";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {MegaSettingsType} from "../../hooks/MegaContext";
 import {DataGrid, GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
+import {debug} from "tauri-plugin-log-api";
 
 const renderBoolCell = (params: GridRenderCellParams) => {
   const isTruthy = params.value as ReportSate
@@ -19,16 +20,16 @@ const renderBoolCell = (params: GridRenderCellParams) => {
     return <Alert variant={"outlined"} severity={"error"} icon={<span>🧨</span>}>Unknown state</Alert>
 }
 const boolCellProps = {
-  minWidth: 50,
-  maxWidth: 500,
+  minWidth:50,
+  maxWidth:500,
   editable: false,
   resizable: true,
   type: "object",
   renderCell: renderBoolCell
 }
 const columns: GridColDef[] = [
-  {field: 'id', hideable: true, width: 100, hide: true},
-  {field: 'repoPath', headerName: 'Repo Path', width: 600, editable: false, resizable: true},
+  {field: 'id', hideable: true, minWidth: 25, maxWidth:100, hide: true},
+  {field: 'repoPath', headerName: 'Repo Path', width: 800, maxWidth: 800, editable: false, resizable: true},
   {field: 'noCodeHostConfig', headerName: 'Has Code Host Config', ...boolCellProps,},
   {field: 'uncommittedChanges', headerName: 'Uncommitted Changes', ...boolCellProps,},
   {field: 'onDefaultBranch', headerName: 'Not On Default Branch', ...boolCellProps,},
@@ -54,29 +55,31 @@ export const ClonesPage: React.FC = () => {
     }
   }, [settings])
 
-
   return <>
     <Backdrop open={state === 'loading'} sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}>
       <CircularProgress/>
     </Backdrop>
     <Typography variant={'h4'}>Clones</Typography>
     {selectedRepos.length} selected
-    <DataGrid
-      autoHeight
-      rows={repoStates.map((d, i) => {
-        return {
-          id: i,
-          ...d
-        }
-      })}
-      onSelectionModelChange={(model: GridRowId[]) => {
-        setSelectedRepos(model.map((id) => repoStates[+id]))
-      }}
-      columns={columns}
-      autoPageSize
-      rowsPerPageOptions={[5, 15, 100]}
-      checkboxSelection
-      disableSelectionOnClick
-    />
+    <Box sx={{ width: '100%'}}>
+      <DataGrid
+        autoHeight
+        rows={repoStates.map((d, i) => {
+          return {
+            id: i,
+            ...d
+          }
+        })}
+        onSelectionModelChange={(model: GridRowId[]) => {
+          setSelectedRepos(model.map((id)=>repoStates[+id]))
+        }}
+        onResize={(s,e,d)=>{debug('Resize')}}
+        columns={columns}
+        autoPageSize
+        pageSize={15}
+        rowsPerPageOptions={[5, 15, 100]}
+        checkboxSelection
+      />
+    </Box>
   </>
 }

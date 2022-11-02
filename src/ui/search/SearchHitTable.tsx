@@ -19,8 +19,9 @@ export const SearchHitTable: React.FC<SearchHitTableProps> = ({data, selectionCa
   ];
 
   return (
-    <Box sx={{height: 400, width: '100%'}}>
+    <Box sx={{ width: '100%'}}>
       <DataGrid
+        autoHeight
         rows={data.map((d, i) => {
           return {
             id: i,
@@ -31,6 +32,7 @@ export const SearchHitTable: React.FC<SearchHitTableProps> = ({data, selectionCa
           selectionCallback(model.map((id) => data[+id]))
         }}
         columns={columns}
+        autoPageSize
         pageSize={15}
         rowsPerPageOptions={[5, 15, 100]}
         checkboxSelection

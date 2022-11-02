@@ -1,4 +1,4 @@
-import {Alert, Backdrop, Box, CircularProgress, Typography} from "@mui/material";
+import {Alert, Backdrop, CircularProgress, Typography} from "@mui/material";
 import React, {useEffect, useState} from "react";
 import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, ReportSate} from "../../service/file/cloneDir";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
@@ -19,7 +19,8 @@ const renderBoolCell = (params: GridRenderCellParams) => {
     return <Alert variant={"outlined"} severity={"error"} icon={<span>🧨</span>}>Unknown state</Alert>
 }
 const boolCellProps = {
-  width: 160,
+  minWidth: 50,
+  maxWidth: 500,
   editable: false,
   resizable: true,
   type: "object",
@@ -41,18 +42,18 @@ export const ClonesPage: React.FC = () => {
   const [repoStates, setRepoStates] = useState<RepoBadStatesReport[]>([])
   const [selectedRepos, setSelectedRepos] = useState<RepoBadStatesReport[]>([])
   useEffect(() => {
-    if (settings === null) {
-      setState('loading')
-    } else {
+    setState('loading')
+    if (settings !== null) {
       (async () => {
         const paths = await listRepos(settings.clonePath);
         setRepoStates(paths.map((path) => new RepoBadStatesReport(path)));
+        setState('ready')
         const analysis = await Promise.all(paths.map((path) => analyzeRepoForBadStates(settings, path)))
         setRepoStates(analysis)
-        setState('ready')
       })()
     }
   }, [settings])
+
 
   return <>
     <Backdrop open={state === 'loading'} sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}>
@@ -60,23 +61,22 @@ export const ClonesPage: React.FC = () => {
     </Backdrop>
     <Typography variant={'h4'}>Clones</Typography>
     {selectedRepos.length} selected
-    <Box sx={{height: 400, width: '100%'}}>
-      <DataGrid
-        rows={repoStates.map((d, i) => {
-          return {
-            id: i,
-            ...d
-          }
-        })}
-        onSelectionModelChange={(model: GridRowId[]) => {
-          setSelectedRepos(model.map((id)=>repoStates[+id]))
-        }}
-        columns={columns}
-        pageSize={15}
-        rowsPerPageOptions={[5, 15, 100]}
-        checkboxSelection
-        disableSelectionOnClick
-      />
-    </Box>
+    <DataGrid
+      autoHeight
+      rows={repoStates.map((d, i) => {
+        return {
+          id: i,
+          ...d
+        }
+      })}
+      onSelectionModelChange={(model: GridRowId[]) => {
+        setSelectedRepos(model.map((id) => repoStates[+id]))
+      }}
+      columns={columns}
+      autoPageSize
+      rowsPerPageOptions={[5, 15, 100]}
+      checkboxSelection
+      disableSelectionOnClick
+    />
   </>
 }

@@ -107,8 +107,10 @@ export const ClonesPage: React.FC = () => {
     <Drawer open={actionsMenuOpen} onClose={()=>setActionsMenuOpen(false)}>
       <Typography>Do stuff with {selectedRepos.length} repos</Typography>
       <List>
-        <ListItem>Foo</ListItem>
-        <ListItem>Bar</ListItem>
+        <ListItem>Stage</ListItem>
+        <ListItem>Changes</ListItem>
+        <ListItem>Commit</ListItem>
+        <ListItem>Push</ListItem>
       </List>
     </Drawer>
   </>

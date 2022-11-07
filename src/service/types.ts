@@ -44,13 +44,20 @@ export class WorkProgressTracker {
 }
 
 export type WorkResultStatus = 'ok' | 'failed' | 'in-progress'
-
+export type WorkHistoryItem = {
+  what: string,
+  result: any,
+  status: WorkResultStatus,
+}
+export type WorkMeta = {
+  workLog: WorkHistoryItem[]
+}
 export interface WorkResultOutput<OUTPUT>{
   status: WorkResultStatus;
   meta?: OUTPUT;
 }
 
-export type WorkResultKind = 'clone'
+export type WorkResultKind = 'clone' | 'commit'
 
 export interface WorkResult<INPUT_ARG, INPUT, OUTPUT> {
   time: number;

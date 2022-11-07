@@ -4,6 +4,9 @@ import {asString} from "../../hooks/logWrapper";
 import {debug, error, trace, warn} from "tauri-plugin-log-api";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
 import {SearchHit} from "../../ui/search/types";
+import {WorkMeta} from "../types";
+import {runCommand} from "../work/workLog";
+import {requireZeroStatus} from "./simpleActionWithResult";
 
 export async function listRepos(basePath?:string): Promise<string[]> {
   if (!basePath) {
@@ -115,7 +118,7 @@ export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPa
 }
 
 async function hasUncommittedChanges(repoPath: string): Promise<ReportSate> {
-  const result = await new Command('git', ['diff'], {cwd: repoPath}).execute()
+  const result = await new Command('git', ['diff', 'HEAD', '--names-only'], {cwd: repoPath}).execute()
   debug(`Ran 'git diff' in ${repoPath} with result: ${asString(result)}`)
   if (result.code !== 0) return "failed to execute"
   else if (result.stdout.length === 0 && result.stderr.length === 0) return "good"
@@ -157,9 +160,15 @@ async function getCurrentBranchName(repoDir: string): Promise<string> {
   return currentBranchLine.substring(2)
 }
 
-async function getMainBranchName(repoDir: string): Promise<string> {
-  const result: ChildProcess = await new Command('git', ['remote', 'show', 'origin'], {cwd: repoDir}).execute()
-  if (result.code !== 0) throw new Error(`Unable to determine head branch name of ${repoDir} due to ${asString(result)}`)
+export async function getMainBranchName(repoDir: string, meta?: WorkMeta): Promise<string> {
+  /** Local lookup up remotes head branch 💩 Because it's 100~ times faster */
+  const headBranchFile = await path.join(repoDir, '.git', 'refs', 'remotes', 'origin', 'HEAD');
+  const headBranchFileContent = await fs.readTextFile(headBranchFile);
+  if (headBranchFileContent.startsWith('ref: refs/remotes/origin/')) {
+    return headBranchFileContent.split('\n')[0].substring(25)
+  }
+
+  const result: ChildProcess = requireZeroStatus(await runCommand('git', ['remote', 'show', 'origin'], repoDir, meta), 'Fetch remote branches')
   const headBranchRow: string | undefined = result.stdout.split('\n').find(e => e.startsWith('  HEAD branch: '))
   if (!headBranchRow) throw new Error(`Unable to head branch of ${repoDir}`)
   const rowParts: string[] = headBranchRow.split(' ')

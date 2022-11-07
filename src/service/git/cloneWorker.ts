@@ -1,31 +1,24 @@
 import {SearchHit} from "../../ui/search/types";
-import {WorkProgress, WorkProgressTracker, WorkResult, WorkResultStatus} from "../types";
+import {WorkMeta, WorkProgress, WorkProgressTracker, WorkResult} from "../types";
 import {sleep} from "../delay";
 import {MegaSettingsType} from "../../hooks/MegaContext";
 import {homeDir, join} from '@tauri-apps/api/path';
 import {fs, path} from "@tauri-apps/api";
 import {createDir, FileEntry, removeDir} from "@tauri-apps/api/fs";
-import {ChildProcess, Command} from "@tauri-apps/api/shell";
+import {ChildProcess} from "@tauri-apps/api/shell";
 import {copyDir} from "../file/copyDirService";
-import {saveResultToStorage} from "../work/workLog";
+import {runCommand, saveResultToStorage} from "../work/workLog";
 import {debug, error, info} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
+import {getMainBranchName} from "../file/cloneDir";
+import {requireZeroStatus} from "../file/simpleActionWithResult";
 
 export type CloneState = 'cloned from remote' | 'cloned from local' | 'failed'
 export type CloneType = 'SSH' | 'HTTPS'
-export type CloneHistoryItem = {
-  what: string,
-  result: any,
-  status: WorkResultStatus,
-}
-export type CloneWorkMeta = {
-  workLog: CloneHistoryItem[]
-}
 
 const BranchRegexp = /[/a-zA-Z0-9_-]/g
 const BranchStartRegexp = /^[a-zA-Z0-9_-]/
 const BranchEndRegexp = /[a-zA-Z0-9_-]$/
-
 
 export type CloneWorkInput = {
   hits: SearchHit[],
@@ -42,12 +35,12 @@ export type CloneWorkInput = {
 /**
  * Returns the timestamp that marks the resulting worklog item, which can be used to navigate to it
  */
-export async function clone(input:CloneWorkInput,listener: (progress: WorkProgress) => void): Promise<number> {
+export async function clone(input: CloneWorkInput, listener: (progress: WorkProgress) => void): Promise<number> {
   if (!input.branch || input.branch.length === 0 || !BranchRegexp.test(input.branch) || !BranchStartRegexp.test(input.branch) || !BranchEndRegexp.test(input.branch)) {
     throw new Error('Branch name is not correct')
   }
   let time = new Date().getTime();
-  const result: WorkResult<CloneWorkInput, SearchHit, CloneWorkMeta> = {
+  const result: WorkResult<CloneWorkInput, SearchHit, WorkMeta> = {
     kind: "clone", name: input.sourceString, status: 'in-progress', time,
     input,
     result: input.hits.map(h => ({
@@ -62,9 +55,7 @@ export async function clone(input:CloneWorkInput,listener: (progress: WorkProgre
   listener({done: 0, total: result.result.length, breakdown: {}})
   for (let i = 0; i < result.result.length; i++) {
     const hit: SearchHit = result.result[i].input;
-    const meta: CloneWorkMeta = {
-      workLog: [],
-    };
+    const meta: WorkMeta = {workLog: []};
     result.result[i].output.meta = meta;
     try {
       const keepPath = await getGitDir(input.settings.keepLocalReposPath, hit);
@@ -91,7 +82,7 @@ export async function clone(input:CloneWorkInput,listener: (progress: WorkProgre
   return time;
 }
 
-async function cloneIfNeeded(clonePath: string, url: string, fetchIfLocal: boolean, meta: CloneWorkMeta): Promise<CloneState> {
+async function cloneIfNeeded(clonePath: string, url: string, fetchIfLocal: boolean, meta: WorkMeta): Promise<CloneState> {
   await createDir(clonePath, {recursive: true});
   const cloneFsList: FileEntry[] = await fs.readDir(clonePath)
   //TODO: Add retry here?? GitHub sometimes throttle cloning.
@@ -111,12 +102,8 @@ async function cloneIfNeeded(clonePath: string, url: string, fetchIfLocal: boole
   }
 }
 
-function requireZeroStatus(command: ChildProcess, errPhrase: string): ChildProcess {
-  if (command.code !== 0) throw errPhrase;
-  return command;
-}
 
-async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: string, meta: CloneWorkMeta, sparseCheckout: string | null): Promise<boolean> {
+async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: string, meta: WorkMeta, sparseCheckout: string | null): Promise<boolean> {
   try {
     await removeDir(clonePath, {recursive: true});
   } catch (e) {
@@ -134,7 +121,7 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: 
   return false
 }
 
-async function setupSparse(keepPath: string, meta: CloneWorkMeta, sparseCheckout: string | null) {
+async function setupSparse(keepPath: string, meta: WorkMeta, sparseCheckout: string | null) {
   if (sparseCheckout === null) {
     return;
   }
@@ -148,7 +135,7 @@ async function setupSparse(keepPath: string, meta: CloneWorkMeta, sparseCheckout
   await fs.writeTextFile(sparseConfFile, sparseCheckout);
 }
 
-async function gitFetch(repoDir: string, mainBranch: string, branch: string, meta: CloneWorkMeta) {
+async function gitFetch(repoDir: string, mainBranch: string, branch: string, meta: WorkMeta) {
   requireZeroStatus(
     await runCommand('git', ['checkout', '-f', mainBranch], repoDir, meta),
     'Checkout main branch'
@@ -175,37 +162,11 @@ async function gitFetch(repoDir: string, mainBranch: string, branch: string, met
   }
 }
 
-async function runCommand(program: string, args: string[], dir: string, meta: CloneWorkMeta): Promise<ChildProcess> {
-  const result: ChildProcess = await new Command(program, args, {cwd: dir}).execute()
-  const logEntry: CloneHistoryItem = {
-    what: `${program} ${JSON.stringify(args)}`,
-    result,
-    status: result.code === 0 ? 'ok' : 'failed'
-  }
-  meta.workLog.push(logEntry)
-  await debug(`=> Ran '${logEntry.what}' in ${dir} with result ${JSON.stringify(result)}`)
-  return result;
-}
 
-async function getMainBranchName(repoDir: string, meta: CloneWorkMeta): Promise<string> {
-  /** Local lookup up remotes head branch 💩 Because it's 100 times faster */
-  const headBranchFile = await path.join(repoDir, '.git', 'refs', 'remotes', 'origin', 'HEAD');
-  const headBranchFileContent = await fs.readTextFile(headBranchFile);
-  if (headBranchFileContent.startsWith('ref: refs/remotes/origin/')) {
-    return headBranchFileContent.split('\n')[0].substring(25)
-  }
 
-  const result: ChildProcess = requireZeroStatus(await runCommand('git', ['remote', 'show', 'origin'], repoDir, meta), 'Fetch remote branches')
-  if (result.code !== 0) throw new Error(`Unable to determine head branch name of ${repoDir} due to ${asString(result)}`)
-  const headBranchRow: string | undefined = result.stdout.split('\n').find(e => e.startsWith('  HEAD branch: '))
-  if (!headBranchRow) throw new Error(`Unable to head branch of ${repoDir}`)
-  const rowParts: string[] = headBranchRow.split(' ')
-  return rowParts[rowParts.length - 1]
-}
-
-export async function getGitDir(basePath:string | undefined, searchHit: SearchHit) {
+export async function getGitDir(basePath: string | undefined, searchHit: SearchHit) {
   if (!basePath) throw new Error(`Git directory not defined. WorkDir and KeepDir are necessary.`)
   const homeDirPath = await homeDir();
   if (!basePath.startsWith(homeDirPath)) throw new Error(`'${basePath}' does not start with your home directory '${homeDirPath}'`)
-  return  await path.join(basePath, searchHit.codeHost, searchHit.owner, searchHit.repo)
+  return await path.join(basePath, searchHit.codeHost, searchHit.owner, searchHit.repo)
 }

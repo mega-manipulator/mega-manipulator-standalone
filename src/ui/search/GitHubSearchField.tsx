@@ -54,8 +54,15 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
           searchFieldProps?.setState('searching')
           searchFieldProps?.setHits([])
           let promise;
-          if (searchType === 'CODE') {
-            promise = searchClient.searchCode(searchText, max);
+          switch (searchType) {
+            case "CODE":
+              promise = searchClient.searchCode(searchText, max);
+              break;
+            case "REPO":
+              promise = searchClient.searchRepo(searchText, max);
+              break;
+            default:
+              promise = Promise.reject(`Unknown search type: ${searchType}`)
           }
           if (promise !== undefined) {
             promise.then((hits) => {

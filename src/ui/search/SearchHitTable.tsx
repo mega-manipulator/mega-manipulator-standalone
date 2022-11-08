@@ -13,8 +13,8 @@ export const SearchHitTable: React.FC<SearchHitTableProps> = ({data, selectionCa
     {field: 'id', hideable: true, width: 100, hide: true},
     {field: 'searchHost', headerName: 'Search Host', width: 100, editable: false},
     {field: 'codeHost', headerName: 'Code Host', width: 100, editable: false},
-    {field: 'owner', headerName: 'Owner', width: 100, editable: false},
-    {field: 'repo', headerName: 'Repo', width: 100, editable: false},
+    {field: 'owner', headerName: 'Owner', width: 200, editable: false},
+    {field: 'repo', headerName: 'Repo', width: 200, editable: false},
     {field: 'description', headerName: 'Description', width: 100, editable: false},
   ];
 

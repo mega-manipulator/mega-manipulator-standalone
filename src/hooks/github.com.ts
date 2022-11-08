@@ -89,7 +89,7 @@ export class GithubClient implements SearchClient {
   }
 
   async searchCode(searchString: string, max: number): Promise<SearchHit[]> {
-    info(`Searching for '${searchString}' with the github client`)
+    info(`Searching for REPO '${searchString}' with the github client`)
     const transformer = (codeItem: GithubSearchCodeItem) => {
       let owner = codeItem.repository.owner.login;
       let repo = codeItem.repository.name;
@@ -103,6 +103,23 @@ export class GithubClient implements SearchClient {
       );
     }
     return this.paginate('/search/code', max, {q: searchString}, transformer)
+  }
+
+  async searchRepo(searchString: string, max: number): Promise<SearchHit[]> {
+    info(`Searching for REPO: '${searchString}' with the github client`)
+    const transformer = (repository: GithubSearchCodeRepository) => {
+      let owner = repository.owner.login;
+      let repo = repository.name;
+      return new SearchHit(
+        this.searchHostKey,
+        this.codeHostKey,
+        owner,
+        repo,
+        this.sshCloneUrl(owner, repo),
+        repository.description
+      );
+    }
+    return this.paginate('/search/repositories', max, {q: searchString}, transformer)
   }
 
   async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, transformer: (data: GITHUB_TYPE) => TYPE): Promise<TYPE[]> {

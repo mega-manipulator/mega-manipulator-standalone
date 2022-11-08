@@ -1,5 +1,15 @@
 import React, {useEffect, useState} from "react";
-import {Alert, Backdrop, Box, Button, CircularProgress, MenuItem, Select, Typography} from "@mui/material";
+import {
+  Alert,
+  Backdrop,
+  Box,
+  Button,
+  CircularProgress, FormControl,
+  FormHelperText,
+  MenuItem,
+  Select,
+  Typography
+} from "@mui/material";
 import {useSearchFieldProps} from "./types";
 import {SearchHitTable} from "./SearchHitTable";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
@@ -43,17 +53,19 @@ export const SearchPage: React.FC = () => {
 
     <CloneModal {...cloneModalPropsWrapper}/>
 
-    <Select
-      label='Search host'
-      labelId="demo-simple-select-label"
-      value={searchFieldProps?.searchHostKey}
-      onChange={(event) => {
-        searchFieldProps?.setSearchHostKey(event.target.value as string)
-        info(`onChange ${JSON.stringify(event)}`)
-      }}>
-      {settings && ['LOCAL', ...Object.keys(settings.searchHosts)]
-        .map((k,i) => <MenuItem key={i} value={k}>{k}</MenuItem>)}
-    </Select>
+    <FormControl>
+      <FormHelperText>Search host</FormHelperText>
+      <Select
+        value={searchFieldProps?.searchHostKey}
+        onChange={(event) => {
+          searchFieldProps?.setSearchHostKey(event.target.value as string)
+          info(`onChange ${JSON.stringify(event)}`)
+        }}>
+        {settings && ['LOCAL', ...Object.keys(settings.searchHosts)]
+          .map((k,i) => <MenuItem key={i} value={k}>{k}</MenuItem>)}
+      </Select>
+    </FormControl>
+
     {searchType === 'LOCAL' && <LocalSearchField searchFieldProps={searchFieldProps}/>}
     {searchType === 'GITHUB' && <GitHubSearchField searchFieldProps={searchFieldProps}/>}
 

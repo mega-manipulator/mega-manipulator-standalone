@@ -2,6 +2,7 @@ import {GithubClient} from "../../hooks/github.com";
 import {GitHubSearchHostSettings, MegaSettingsType} from "../../hooks/MegaContext";
 import {getPassword} from "../../hooks/usePassword";
 import {useEffect, useState} from "react";
+import {debug} from "tauri-plugin-log-api";
 
 export interface GithubClientWrapper {
   searchClient?: GithubClient,
@@ -52,9 +53,10 @@ export const useGitHubClient: (
       }
       const hostSetting: GitHubSearchHostSettings | undefined = settings.searchHosts[searchHostKey]?.github;
       if (!hostSetting) {
-        return {searchClientInitError: 'Undefined search host settings 🤔'}
+        setWrapper( {searchClientInitError: 'Undefined search host settings 🤔'})
+        return;
       }
-      return bakeGithubClient(searchHostKey, hostSetting)
+      setWrapper(await bakeGithubClient(searchHostKey, hostSetting))
     })()
   }, [searchHostKey, settings])
   return wrapper

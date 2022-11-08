@@ -1,12 +1,12 @@
 import {useGitHubClient} from "./useGitHubClient";
 import React, {useEffect, useState} from "react";
-import {Alert, Button, FormControlLabel, MenuItem, Select, TextField} from "@mui/material";
+import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
 import {error, info, warn} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 import {SearchFieldProps} from "./types";
 
-export class GitHubSearchFieldProps {
-  readonly searchFieldProps: SearchFieldProps | null | undefined;
+export interface GitHubSearchFieldProps {
+  readonly searchFieldProps: SearchFieldProps;
 }
 
 type SearchType = 'CODE' | 'REPO'
@@ -18,9 +18,7 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
     searchClientInitError
   } = useGitHubClient(searchFieldProps?.settings, searchFieldProps?.searchHostKey)
   useEffect(() => {
-    if (searchClient) {
-      searchFieldProps?.setState('ready')
-    }
+    searchFieldProps?.setState(searchClient ? 'ready' : 'loading')
   }, [searchClient])
   const [searchText, setSearchText] = useState('tauri language:typescript')
   const [max, setMax] = useState(100)
@@ -29,22 +27,25 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
     return <Alert variant={"filled"} color={"error"}>Failed setting up search client: {searchClientInitError}</Alert>
   }
   return <>
-    <FormControlLabel
-      label={'Search Type'}
-      control={<Select value={searchType} onChange={(event) => setSearchType(event.target.value as SearchType)}>
-        {allSearchTypes.map((t, i) => <option key={i} value={t}>{t}</option>)}
-      </Select>}
-    />
-    <TextField
-      fullWidth
-      InputLabelProps={{shrink: true}}
-      label={'Search String'}
-      value={searchText}
-      onChange={(event) => setSearchText(event.target.value)}
-    />
-    <Select label={'Max hits'} value={max} onChange={(event) => setMax(+event.target.value)}>
-      {[10, 50, 100, 1000].map((i: number) => <MenuItem value={i}>{i}</MenuItem>)}
-    </Select>
+    <FormControl>
+      <FormHelperText>Search Type</FormHelperText>
+      <Select
+        value={searchType}
+        onChange={(event) => setSearchType(event.target.value as SearchType)}
+      >
+        {allSearchTypes.map((t, i) => <MenuItem key={i} value={t}>{t}</MenuItem>)}
+      </Select>
+    </FormControl>
+
+    <FormControl>
+      <FormHelperText>Max hits</FormHelperText>
+      <Select
+        value={max}
+        onChange={(event) => setMax(+event.target.value)}
+      >
+        {[10, 50, 100, 1000].map((i: number) => <MenuItem value={i}>{i}</MenuItem>)}
+      </Select>
+    </FormControl>
     <Button
       variant={"contained"} color={"primary"}
       disabled={searchFieldProps?.state !== 'ready' || searchText.length === 0}
@@ -70,5 +71,13 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
         }
         info('Clicked')
       }}>Search</Button>
+
+    <TextField
+      fullWidth
+      InputLabelProps={{shrink: true}}
+      label={'Search String'}
+      value={searchText}
+      onChange={(event) => setSearchText(event.target.value)}
+    />
   </>
 }

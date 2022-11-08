@@ -32,7 +32,7 @@ export interface SearchClient {
 
 export type SearchPageState = 'loading' | 'ready' | 'searching'
 
-export function useSearchFieldProps(settings: MegaSettingsType | null | undefined): SearchFieldProps | undefined {
+export function useSearchFieldProps(settings: MegaSettingsType | null | undefined): SearchFieldProps {
   const [state, setState] = useState<SearchPageState>('loading')
   const [searchHostKey, setSearchHostKey] = useState<string>('LOCAL')
   const [hits, setHits] = useState<SearchHit[]>([])

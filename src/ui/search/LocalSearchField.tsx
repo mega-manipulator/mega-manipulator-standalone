@@ -1,12 +1,12 @@
 import {useLocalSearchClient} from "./LocalSearchClient";
 import React, {useEffect, useState} from "react";
-import {Alert, Button, CircularProgress, FormControlLabel, MenuItem, Select, TextField} from "@mui/material";
+import {Alert, Button, CircularProgress, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
 import {SearchFieldProps} from "./types";
 import {error} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 
-export class LocalSearchFieldProps {
-  readonly searchFieldProps: SearchFieldProps | null | undefined;
+export interface LocalSearchFieldProps {
+  readonly searchFieldProps: SearchFieldProps;
 }
 
 const programs = [
@@ -30,26 +30,40 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
   }
 
   return <>
-    <FormControlLabel
-      label={'Program'}
-      control={<Select value={program} onChange={(p) => setProgram(p.target.value)}>
+    <FormControl>
+      <FormHelperText>Program</FormHelperText>
+      <Select
+        label={'Program'}
+        value={program}
+        onChange={(p) => setProgram(p.target.value)}
+      >
         {programs.map((p, i) => <MenuItem key={i} value={p}>{p}</MenuItem>)}
-      </Select>}
-    />
-    <FormControlLabel
-      label={'Search term'}
-      control={<TextField value={search} onChange={(e) => setSearch(e.target.value)}/>}
-    />
-    <FormControlLabel
-      label={'FilePattern'}
-      control={<TextField value={file} onChange={(e) => setFile(e.target.value)}/>}
-    />
-    <FormControlLabel
-      label={'Max hits'}
-      control={<Select value={searchFieldProps.max} onChange={(e) => searchFieldProps.setMax(e.target.value as number)}>
+      </Select>
+    </FormControl>
+    <FormControl>
+      <FormHelperText>Search Term</FormHelperText>
+      <TextField
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+    </FormControl>
+    <FormControl>
+      <FormHelperText>File Pattern</FormHelperText>
+      <TextField
+        value={file}
+        onChange={(e) => setFile(e.target.value)}
+      />
+    </FormControl>
+    <FormControl>
+      <FormHelperText>Max hits</FormHelperText>
+      <Select
+        label={'Max hits'}
+        value={searchFieldProps.max}
+        onChange={(e) => searchFieldProps.setMax(e.target.value as number)}
+      >
         {[5, 10, 100, 1000, 10000].map((i, index) => <MenuItem key={index} value={i}>{i}</MenuItem>)}
-      </Select>}
-    />
+      </Select>
+    </FormControl>
     {searchError && <Alert color={"error"}>{searchError}</Alert>}
     <Button onClick={() => {
       searchFieldProps?.setState("searching")

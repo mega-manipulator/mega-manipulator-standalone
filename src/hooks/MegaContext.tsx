@@ -21,15 +21,10 @@ export class MegaSettingsType {
   }
 }
 
-export type SearchHostType = 'GITHUB' | 'LOCAL'
+export type SearchHostType = 'GITHUB'
 export type SearchHostSettings = {
   type: SearchHostType,
   github?: GitHubSearchHostSettings,
-  local?:LocalSearchHostSettings
-}
-
-export interface LocalSearchHostSettings {
-  program: 'ag' | 'grep' | 'ripgrep'
 }
 
 export interface GitHubSearchHostSettings extends UserLoginType {

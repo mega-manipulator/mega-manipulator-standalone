@@ -1,31 +1,61 @@
-import {LocalSearchHostSettings, MegaSettingsType} from "../../hooks/MegaContext";
-import {SearchClient, SearchHit} from "./types";
+import {MegaSettingsType} from "../../hooks/MegaContext";
+import {SearchHit} from "./types";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
-import {pathToSearchHit, listRepos} from "../../service/file/cloneDir";
-import {debug, error, info} from "tauri-plugin-log-api";
+import {listRepos, pathToSearchHit} from "../../service/file/cloneDir";
+import {debug, error} from "tauri-plugin-log-api";
+import {useEffect, useState} from "react";
 
-export class LocalSearchClient implements SearchClient {
+export interface LocalSearchClientWrapper {
+  client: LocalSearchClient | undefined;
+  error: string | undefined;
+}
+
+export const useLocalSearchClient: (settings: MegaSettingsType | null | undefined) => LocalSearchClientWrapper = (
+  settings: MegaSettingsType | null | undefined
+) => {
+  const [wrapper, setWrapper] = useState<LocalSearchClientWrapper>({client: undefined, error: 'Not yet initialized'})
+  useEffect(() => {
+    if (settings) {
+      setWrapper({client: new LocalSearchClient(settings), error: undefined})
+      setWrapper({client: new LocalSearchClient(settings), error: undefined})
+    } else {
+      setWrapper({client: undefined, error: 'No settings'})
+    }
+  }, [settings])
+  return wrapper;
+}
+
+export class LocalSearchClient {
 
   private readonly megaSettings: MegaSettingsType;
-  private readonly settings: LocalSearchHostSettings;
 
-  constructor(megaSettings: MegaSettingsType, settings: LocalSearchHostSettings) {
+  constructor(megaSettings: MegaSettingsType) {
     this.megaSettings = megaSettings;
-    this.settings = settings;
   }
 
-  async searchCode(searchString: string, max: number): Promise<SearchHit[]> {
+  async searchCode(program: string, searchString: string, fileString: string, max: number): Promise<SearchHit[]> {
     const keeps: string[] = await listRepos(this.megaSettings.keepLocalReposPath)
-    debug(`Search for '${searchString}' with the local client in ${keeps.length} dirs, using '${this.settings.program}'`)
-    const searchTokens: string[] = tokenizeString(searchString)
-    if (searchTokens.length < 2) throw new Error('Need at least 2 args to run this program')
-    const commands: (SearchHit | null)[] = await Promise.all(keeps.map((keep, i) => withTimeout(1000, new Command(this.settings.program, searchTokens, {cwd: keep})).then(async (c) => {
-      if (c.code === 0)
-        return await pathToSearchHit('local', keep);
-      else
-        return null
-    })))
-    return commands.filter((b) => b !== null) as SearchHit[]
+    debug(`Search for '${searchString}' with the local client in ${keeps.length} dirs, using '${program}'`)
+    const commands: (SearchHit | null)[] = await Promise.all(keeps.map((keep, i) => {
+      return withTimeout(1000, searchCommand(program, searchString, fileString, keep))
+        .then(async (c) => {
+          if (c.code === 0) {
+            return await pathToSearchHit('local', keep);
+          } else {
+            return null
+          }
+        });
+    }))
+    return (commands.filter((b) => b !== null) as SearchHit[]).slice(0, max)
+  }
+}
+
+function searchCommand(program:string, search:string, file:string, dir:string):Command {
+  switch (program){
+    case 'ag':
+      return new Command('ag', ['-m', '-L', search, file], {cwd: dir});
+    default:
+      throw new Error(`program ${program} is unknown`)
   }
 }
 

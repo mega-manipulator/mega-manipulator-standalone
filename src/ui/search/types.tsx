@@ -1,3 +1,6 @@
+import {MegaSettingsType} from "../../hooks/MegaContext";
+import {useEffect, useState} from "react";
+
 export class SearchHit {
   public readonly searchHost: string | null;
   public readonly codeHost: string;
@@ -29,6 +32,24 @@ export interface SearchClient {
 
 export type SearchPageState = 'loading' | 'ready' | 'searching'
 
+export function useSearchFieldProps(settings: MegaSettingsType | null | undefined): SearchFieldProps | undefined {
+  const [state, setState] = useState<SearchPageState>('loading')
+  const [searchHostKey, setSearchHostKey] = useState<string>('LOCAL')
+  const [hits, setHits] = useState<SearchHit[]>([])
+  const [max, setMax] = useState<number>(100)
+  return {
+    state,
+    setState,
+    searchHostKey,
+    setSearchHostKey,
+    hits,
+    setHits,
+    max,
+    setMax,
+    settings,
+  }
+}
+
 export class SearchFieldProps {
   readonly state: SearchPageState;
   readonly setState: (state: SearchPageState) => void;
@@ -36,6 +57,9 @@ export class SearchFieldProps {
   readonly setSearchHostKey: (searchHostKey: string) => void;
   readonly hits: SearchHit[];
   readonly setHits: (hits: SearchHit[]) => void;
+  readonly settings: MegaSettingsType | null | undefined;
+  readonly max: number;
+  readonly setMax: (max: number) => void;
 
   constructor(
     state: SearchPageState,
@@ -44,6 +68,9 @@ export class SearchFieldProps {
     setSearchHostKey: (searchHostKey: string) => void,
     hits: SearchHit[],
     setHits: (hits: SearchHit[]) => void,
+    settings: MegaSettingsType,
+    max: number,
+    setMax: (max: number) => void,
   ) {
     this.state = state;
     this.setState = setState;
@@ -51,5 +78,8 @@ export class SearchFieldProps {
     this.setSearchHostKey = setSearchHostKey;
     this.hits = hits;
     this.setHits = setHits;
+    this.settings = settings;
+    this.max = max;
+    this.setMax = setMax;
   }
 }

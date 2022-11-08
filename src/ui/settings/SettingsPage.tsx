@@ -58,13 +58,6 @@ function rowStyle(username?: string, baseUrl?: string): React.CSSProperties {
 const SearchHostRow: React.FC<SearchHostRowProps> = ({settings, searchHostKey}) => {
   const h = settings.searchHosts[searchHostKey];
   const nav = useNavigate()
-  if (h.type === 'LOCAL') {
-    return <TableRow>
-      <TableCell>{searchHostKey}</TableCell>
-      <TableCell>{h.type}</TableCell>
-      <TableCell>None 🤷</TableCell>
-    </TableRow>
-  }
   if (h.type === 'GITHUB') {
     return <TableRow
       style={rowStyle(h.github?.username, h?.github?.baseUrl)}

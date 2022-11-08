@@ -27,7 +27,7 @@ export const AppMenu: React.FC = () => {
     ><MenuIcon/></Avatar>
     <Drawer open={isOpen} onClose={() => setOpen(false)} anchor={"right"}>
       <List>
-        {items.map((item) => <ListItem selected={pathname === item.nav} onClick={() => {
+        {items.map((item, index) => <ListItem key={index} selected={pathname === item.nav} onClick={() => {
           info('Nav > ' + item.title)
           setOpen(false)
           navigate(item.nav)

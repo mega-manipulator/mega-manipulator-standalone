@@ -25,9 +25,10 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
   const [searchHostKeySame, setSearchHostKeySame] = useState(0)
   const [searchHost, updateSearchHost, setSearchHost] = useMutableState<GitHubSearchHostSettings>({
     username: '',
+    apiUrl: 'https://api.github.com',
+    baseUrl: 'https://github.com',
     hostType: "SEARCH",
     codeHostKey: 'github.com',
-    baseUrl: 'https://api.github.com'
   })
   useEffect(() => {
     if (settings !== null) {

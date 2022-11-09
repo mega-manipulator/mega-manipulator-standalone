@@ -29,23 +29,23 @@ type SearchHostRowProps = {
   settings: MegaSettingsType,
 }
 
-function rowStyle(username?: string, baseUrl?: string): React.CSSProperties {
+function rowStyle(args: { username?: string, baseUrl?: string }): React.CSSProperties {
   const baseCss: React.CSSProperties = {
     cursor: "pointer"
   }
-  if (username === undefined) {
+  if (args.username === undefined) {
+    return {
+      ...baseCss,
+      background: "orange",
+    };
+  }
+  if (args.baseUrl === undefined) {
     return {
       ...baseCss,
       background: "red",
     };
   }
-  if (baseUrl === undefined) {
-    return {
-      ...baseCss,
-      background: "red",
-    };
-  }
-  const [password] = usePassword(username, baseUrl)
+  const [password] = usePassword(args.username, args.baseUrl)
   if (password === undefined) {
     return {
       ...baseCss,
@@ -58,9 +58,21 @@ function rowStyle(username?: string, baseUrl?: string): React.CSSProperties {
 const SearchHostRow: React.FC<SearchHostRowProps> = ({settings, searchHostKey}) => {
   const h = settings.searchHosts[searchHostKey];
   const nav = useNavigate()
-  if (h.type === 'GITHUB') {
+  if (h.type === 'SOURCEGRAPH') {
     return <TableRow
-      style={rowStyle(h.github?.username, h?.github?.baseUrl)}
+      style={rowStyle({username: h.sourceGraph?.username, baseUrl: h?.sourceGraph?.baseUrl})}
+      onClick={() => {
+        info('Nav > Edit Search host ' + locations.settings.search.sourcegraph.link);
+        nav(`${locations.settings.search.sourcegraph.link}/${searchHostKey}`)
+      }
+      }>
+      <TableCell>{searchHostKey}</TableCell>
+      <TableCell>{h.type}</TableCell>
+      <TableCell>{h.sourceGraph?.username}</TableCell>
+    </TableRow>
+  } else if (h.type === 'GITHUB') {
+    return <TableRow
+      style={rowStyle({username: h.github?.username, baseUrl: h?.github?.baseUrl})}
       onClick={() => {
         info('Nav > Edit Search host ' + locations.settings.search.github.link);
         nav(`${locations.settings.search.github.link}/${searchHostKey}`)
@@ -86,7 +98,7 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
   const nav = useNavigate()
   if (h.type === 'GITHUB') {
     return <TableRow
-      style={rowStyle(h.github?.username, h?.github?.baseUrl)}
+      style={rowStyle({username: h.github?.username, baseUrl: h?.github?.baseUrl})}
       onClick={() => nav(`${locations.settings.code.github.link}/${codeHostKey}`)}>
       <TableCell>{codeHostKey} </TableCell>
       <TableCell>{h.type} </TableCell>

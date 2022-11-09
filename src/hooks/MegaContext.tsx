@@ -21,14 +21,23 @@ export class MegaSettingsType {
   }
 }
 
-export type SearchHostType = 'GITHUB'
+export type SearchHostType = 'GITHUB' | 'SOURCEGRAPH'
 export type SearchHostSettings = {
   type: SearchHostType,
   github?: GitHubSearchHostSettings,
+  sourceGraph?: SourceGraphSearchHostSettings,
 }
 
 export interface GitHubSearchHostSettings extends UserLoginType {
+  apiUrl: string;
   codeHostKey: string;
+}
+
+export interface SourceGraphSearchHostSettings extends UserLoginType {
+  baseUrl: string;
+  codeHosts: {
+    [sourceGraphKey:string]:string;
+  }
 }
 
 export type CodeHostType = 'GITHUB'

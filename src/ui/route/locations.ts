@@ -5,6 +5,9 @@ export const locations = {
     search: {
       github: {
         link: '/settings/search/github'
+      },
+      sourcegraph: {
+        link: '/settings/search/sourcegraph'
       }
     },
     code: {

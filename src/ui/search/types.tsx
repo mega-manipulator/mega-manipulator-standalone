@@ -1,5 +1,5 @@
 import {MegaSettingsType} from "../../hooks/MegaContext";
-import {useEffect, useState} from "react";
+import { useState} from "react";
 
 export class SearchHit {
   public readonly searchHost: string | null;

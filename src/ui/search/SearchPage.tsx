@@ -20,8 +20,12 @@ import {modalStyle} from "../modal/megaModal";
 import ErrorBoundary from "../error/ErrorBoundry";
 import {GitHubSearchField} from "./GitHubSearchField";
 import {LocalSearchField} from "./LocalSearchField";
+import {SourceGraphSearchField} from "./SourceGraphSearchField";
+import {useNavigate} from "react-router-dom";
+import {locations} from "../route/locations";
 
 export const SearchPage: React.FC = () => {
+  const nav = useNavigate()
   const settings: MegaSettingsType | null = useMegaSettings()
   const searchFieldProps = useSearchFieldProps(settings)
 
@@ -41,6 +45,19 @@ export const SearchPage: React.FC = () => {
     }
   }, [settings, searchFieldProps])
 
+  const searchHostSelect = <FormControl>
+    <FormHelperText>Search host</FormHelperText>
+    <Select
+      value={searchFieldProps?.searchHostKey}
+      onChange={(event) => {
+        searchFieldProps?.setSearchHostKey(event.target.value as string)
+        info(`onChange ${JSON.stringify(event)}`)
+      }}>
+      {settings && ['LOCAL', ...Object.keys(settings.searchHosts)]
+        .map((k,i) => <MenuItem key={i} value={k}>{k}</MenuItem>)}
+    </Select>
+  </FormControl>
+
   return <>
     <Typography variant={"h4"}>Search</Typography>
     <Backdrop open={searchFieldProps?.state === 'loading'}
@@ -48,26 +65,24 @@ export const SearchPage: React.FC = () => {
       {settings && settings.searchHosts && (Object.keys(settings.searchHosts).length > 0) ?
         <Box sx={modalStyle}>
           <CircularProgress/>
+          <div>
+            {searchHostSelect}
+          </div>
+          <Button
+            variant={"contained"}
+            color={"warning"}
+            onClick={()=> nav(locations.settings.link)}
+          >Take me back to the Settings page</Button>
         </Box> : <ErrorBoundary/>}
     </Backdrop>
 
     <CloneModal {...cloneModalPropsWrapper}/>
 
-    <FormControl>
-      <FormHelperText>Search host</FormHelperText>
-      <Select
-        value={searchFieldProps?.searchHostKey}
-        onChange={(event) => {
-          searchFieldProps?.setSearchHostKey(event.target.value as string)
-          info(`onChange ${JSON.stringify(event)}`)
-        }}>
-        {settings && ['LOCAL', ...Object.keys(settings.searchHosts)]
-          .map((k,i) => <MenuItem key={i} value={k}>{k}</MenuItem>)}
-      </Select>
-    </FormControl>
+    {searchHostSelect}
 
     {searchType === 'LOCAL' && <LocalSearchField searchFieldProps={searchFieldProps}/>}
     {searchType === 'GITHUB' && <GitHubSearchField searchFieldProps={searchFieldProps}/>}
+    {searchType === 'SOURCEGRAPH' && <SourceGraphSearchField searchFieldProps={searchFieldProps}/>}
 
     {searchFieldProps?.state === 'searching' ? <Alert severity={"info"}
       >Search in progress</Alert> :

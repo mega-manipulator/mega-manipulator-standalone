@@ -22,10 +22,21 @@ export async function defaultSettings(): Promise<MegaSettingsType> {
       github: {
         hostType: "SEARCH",
         username: 'jensim',
-        baseUrl: 'https://api.github.com',
+        baseUrl: 'https://github.com',
+        apiUrl: 'https://api.github.com',
         codeHostKey: 'github.com',
       }
     },
+    "sourcegraph.com": {
+      type: 'SOURCEGRAPH',
+      sourceGraph: {
+        hostType: "SEARCH",
+        baseUrl: "https://sourcegraph.com",
+        codeHosts: {
+          "github.com": "github.com"
+        }
+      }
+    }
   }
   settings.codeHosts = {
     "github.com": {

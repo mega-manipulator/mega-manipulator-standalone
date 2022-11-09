@@ -1,5 +1,5 @@
 import {Store} from "tauri-plugin-store-api";
-import {MegaSettingsType} from "./MegaContext";
+import {CodeHostSettings, GitHubCodeHostSettings, MegaSettingsType} from "./MegaContext";
 import {homeDir} from "@tauri-apps/api/path";
 import {path} from "@tauri-apps/api";
 
@@ -22,8 +22,7 @@ export async function defaultSettings(): Promise<MegaSettingsType> {
       github: {
         hostType: "SEARCH",
         username: 'jensim',
-        baseUrl: 'https://github.com',
-        apiUrl: 'https://api.github.com',
+        baseUrl: 'https://api.github.com',
         codeHostKey: 'github.com',
       }
     },
@@ -42,6 +41,7 @@ export async function defaultSettings(): Promise<MegaSettingsType> {
     "github.com": {
       type: 'GITHUB',
       github: {
+        cloneHost: 'github.com',
         hostType: "CODE",
         username: 'jensim',
         baseUrl: 'https://api.github.com',

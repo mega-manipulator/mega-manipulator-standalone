@@ -46,6 +46,15 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
         {[10, 50, 100, 1000].map((i: number) => <MenuItem value={i}>{i}</MenuItem>)}
       </Select>
     </FormControl>
+
+    <TextField
+      fullWidth
+      InputLabelProps={{shrink: true}}
+      label={'Search String'}
+      value={searchText}
+      onChange={(event) => setSearchText(event.target.value)}
+    />
+
     <Button
       variant={"contained"} color={"primary"}
       disabled={searchFieldProps?.state !== 'ready' || searchText.length === 0}
@@ -79,12 +88,5 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
         info('Clicked')
       }}>Search</Button>
 
-    <TextField
-      fullWidth
-      InputLabelProps={{shrink: true}}
-      label={'Search String'}
-      value={searchText}
-      onChange={(event) => setSearchText(event.target.value)}
-    />
   </>
 }

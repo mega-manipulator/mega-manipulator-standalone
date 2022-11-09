@@ -17,6 +17,7 @@ export class MegaSettingsType {
   clonePath?: string = undefined;
   searchHosts: { [key: string]: SearchHostSettings, } = {};
   codeHosts: { [key: string]: CodeHostSettings, } = {};
+
   constructor() {
   }
 }
@@ -29,14 +30,13 @@ export type SearchHostSettings = {
 }
 
 export interface GitHubSearchHostSettings extends UserLoginType {
-  apiUrl: string;
   codeHostKey: string;
 }
 
 export interface SourceGraphSearchHostSettings extends UserLoginType {
   baseUrl: string;
   codeHosts: {
-    [sourceGraphKey:string]:string;
+    [sourceGraphKey: string]: string;
   }
 }
 
@@ -46,5 +46,23 @@ export type CodeHostSettings = {
   github?: GitHubCodeHostSettings,
 }
 
+export function cloneUrl(settings: CodeHostSettings | undefined, owner: string, repo: string): string | undefined {
+  switch (settings?.type) {
+    case "GITHUB":
+      return ghCloneUrl(settings.github?.cloneHost ?? 'github.com', owner, repo)
+  }
+  return undefined
+}
+
 export interface GitHubCodeHostSettings extends UserLoginType {
+  baseUrl: string;
+  cloneHost: string;
+  hostType: HostType;
+  username: string;
+
+}
+
+function ghCloneUrl(host: string, owner: string, repo: string): string | undefined {
+  // TODO work with settings for location other than github.com
+  return `git@${host}:${owner}/${repo}.git`
 }

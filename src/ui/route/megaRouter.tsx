@@ -11,6 +11,7 @@ import {BasePage} from "./BasePage";
 import {ResultPage} from "../result/ResultPage";
 import {ClonesPage} from "../clones/ClonesPage";
 import {LogsPage} from "../LogsPage";
+import {SourceGraphSearchHostSettingsPage} from "../settings/SourceGraphSearchHostSettingsPage";
 
 export const megaRouter = createMemoryRouter([
   {
@@ -27,6 +28,18 @@ export const megaRouter = createMemoryRouter([
         element: <GitHubSearchHostSettingsPage/>,
         errorElement: <RoutingErrorBoundary/>
       },
+
+      {
+        path: locations.settings.search.sourcegraph.link,
+        element: <SourceGraphSearchHostSettingsPage/>,
+        errorElement: <RoutingErrorBoundary/>
+      },
+      {
+        path: `${locations.settings.search.sourcegraph.link}/:searchHostKey`,
+        element: <SourceGraphSearchHostSettingsPage/>,
+        errorElement: <RoutingErrorBoundary/>
+      },
+
       {
         path: locations.settings.code.github.link,
         element: <GitHubCodeHostSettingsPage/>,
@@ -37,6 +50,7 @@ export const megaRouter = createMemoryRouter([
         element: <GitHubCodeHostSettingsPage/>,
         errorElement: <RoutingErrorBoundary/>
       },
+
 
       {
         path: locations.result.link,

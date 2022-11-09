@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {SearchFieldProps} from "./types";
-import {Button, FormControl, FormHelperText, MenuItem, Select, TextField, Typography} from "@mui/material";
-import {info, warn} from "tauri-plugin-log-api";
+import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField, Typography} from "@mui/material";
+import {warn} from "tauri-plugin-log-api";
 import {SourceGraphSearchHandle, useSourceGraphClient} from "./SourceGraphClient";
 import {asString} from "../../hooks/logWrapper";
 
@@ -22,6 +22,9 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
   }, [clientWrapper])
   const [searchHandle, setSearchHandle] = useState<SourceGraphSearchHandle>()
 
+  if (clientWrapper.error) {
+    return <Alert severity={"warning"} variant={"filled"}>{clientWrapper.error}</Alert>
+  }
 
   return <>
     <FormControl>
@@ -34,25 +37,31 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
       </Select>
     </FormControl>
 
+    <div>
+      <TextField
+        label={'Search String'}
+        fullWidth
+        value={searchText}
+        onChange={(event) => setSearchText(event.target.value)}
+      />
+    </div>
+
+    {searchHandle && <Typography>{asString(searchHandle)}</Typography>}
     <Button
       variant={"contained"} color={"primary"}
       disabled={props?.searchFieldProps?.state !== 'ready' || searchText.length === 0}
       onClick={() => {
         searchHandle?.cancel()
         if (clientWrapper.client) {
-          setSearchHandle(clientWrapper.client.searchCode(searchText,max))
+          props.searchFieldProps.setState('searching')
+          clientWrapper.client.searchCode(searchText, max)
+            .then((hits) => {
+              props.searchFieldProps.setHits(hits)
+            })
+            .finally(() => props.searchFieldProps.setState('ready'))
         } else {
           warn('Search Client was undefined')
         }
-        info('Clicked')
       }}>Search</Button>
-
-    <TextField
-      InputLabelProps={{shrink: true}}
-      label={'Search String'}
-      value={searchText}
-      onChange={(event) => setSearchText(event.target.value)}
-    />
-    {searchHandle && <Typography>asString(searchHandle)</Typography>}
   </>
 }

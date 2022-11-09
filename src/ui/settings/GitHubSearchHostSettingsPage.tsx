@@ -23,13 +23,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
   }, [megaSettings])
   const [searchHostKeyVal, setSearchHostKeyVal] = useState<string>(searchHostKey ?? '')
   const [searchHostKeySame, setSearchHostKeySame] = useState(0)
-  const [searchHost, updateSearchHost, setSearchHost] = useMutableState<GitHubSearchHostSettings>({
-    username: '',
-    apiUrl: 'https://api.github.com',
-    baseUrl: 'https://github.com',
-    hostType: "SEARCH",
-    codeHostKey: 'github.com',
-  })
+  const [searchHost, updateSearchHost, setSearchHost] = useMutableState<GitHubSearchHostSettings>()
   useEffect(() => {
     if (settings !== null) {
       setSearchHost(settings)
@@ -47,7 +41,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     if (searchHostKey === undefined && searchHostKeySame > 0) errors.push('Search host key already defined')
     if (searchHostKey !== undefined && searchHostKeySame > 1) errors.push('Search host key already defined')
     if (searchHostKey !== undefined && searchHostKey !== searchHostKeyVal) errors.push('Search host key cannot be changed')
-    if (searchHost.username === undefined || searchHost.username.length < 1) errors.push('Username is undefined')
+    if (searchHost?.username === undefined || searchHost.username.length < 1) errors.push('Username is undefined')
     if (errors.length === 0) setValidationError(undefined); else setValidationError(errors.join(', '));
   }, [searchHost, searchHostKeyVal])
   const header = useMemo(() => searchHostKey === undefined ? 'Create' : `Edit ${searchHostKey}`, [searchHostKey])
@@ -66,7 +60,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
       <Grid item sm={12} lg={6}>
         <TextField variant={"outlined"} label={'Username'}
                    placeholder="Username"
-                   value={searchHost.username}
+                   value={searchHost?.username}
                    onChange={(event) => updateSearchHost((draft) => {
                      draft.username = event.target.value
                    })}/>

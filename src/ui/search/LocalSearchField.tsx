@@ -65,7 +65,10 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
       </Select>
     </FormControl>
     {searchError && <Alert color={"error"}>{searchError}</Alert>}
-    <Button onClick={() => {
+    <Button
+      variant={"contained"}
+      color={"primary"}
+      onClick={() => {
       searchFieldProps?.setState("searching")
       searchFieldProps?.setHits([])
       setSearchError(null)

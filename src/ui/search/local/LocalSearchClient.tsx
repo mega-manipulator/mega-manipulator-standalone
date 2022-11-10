@@ -1,16 +1,19 @@
-import {MegaSettingsType} from "../../hooks/MegaContext";
-import {SearchHit} from "./types";
+import {MegaSettingsType} from "../../../hooks/MegaContext";
+import {SearchHit} from "../types";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
-import {listRepos, pathToSearchHit} from "../../service/file/cloneDir";
+import {listRepos, pathToSearchHit} from "../../../service/file/cloneDir";
 import {debug, error} from "tauri-plugin-log-api";
 import {useEffect, useState} from "react";
+import {path} from "@tauri-apps/api";
 
 export interface LocalSearchClientWrapper {
   client: LocalSearchClient | undefined;
   error: string | undefined;
 }
 
-export const useLocalSearchClient: (settings: MegaSettingsType | null | undefined) => LocalSearchClientWrapper = (
+export const useLocalSearchClient: (
+  settings: MegaSettingsType | null | undefined,
+) => LocalSearchClientWrapper = (
   settings: MegaSettingsType | null | undefined
 ) => {
   const [wrapper, setWrapper] = useState<LocalSearchClientWrapper>({client: undefined, error: 'Not yet initialized'})
@@ -33,8 +36,26 @@ export class LocalSearchClient {
     this.megaSettings = megaSettings;
   }
 
-  async searchCode(program: string, searchString: string, fileString: string, max: number): Promise<SearchHit[]> {
-    const keeps: string[] = await listRepos(this.megaSettings.keepLocalReposPath)
+  async searchCode(
+    program: string,
+    searchString: string,
+    fileString: string,
+    max: number,
+    codeHost: string,
+    owner: string,
+    repo: string,
+  ): Promise<SearchHit[]> {
+    if(this.megaSettings.keepLocalReposPath === undefined) return [];
+    let pathParts: string[] = [this.megaSettings.keepLocalReposPath, codeHost, owner,repo]
+    const firstAsterisk=pathParts.indexOf('*')
+    if(firstAsterisk > 0) {
+      pathParts = pathParts.slice(0,firstAsterisk)
+    }
+    const allowedPrefix = await path.join(...pathParts)
+    debug('Allowed prefix: '+allowedPrefix)
+    const keeps: string[] = (await listRepos(this.megaSettings.keepLocalReposPath))
+      .filter((p) => p.startsWith(allowedPrefix))
+
     debug(`Search for '${searchString}' with the local client in ${keeps.length} dirs, using '${program}'`)
     const commands: (SearchHit | null)[] = await Promise.all(keeps.map((keep, i) => {
       return withTimeout(1000, searchCommand(program, searchString, fileString, keep))
@@ -97,8 +118,6 @@ async function withTimeout(timeLimit: number, command: Command): Promise<ChildPr
     );
   });
   command.on('error', err => error(`command error: "${err}"`));
-  // command.stdout.on('data', line => info(`command stdout: "${line}"`));
-  // command.stderr.on('data', line => info(`command stderr: "${line}"`));
   return Promise.race([command.execute(), timeoutPromise]).then(result => {
     timeoutHandle && clearTimeout(timeoutHandle);
     return result;

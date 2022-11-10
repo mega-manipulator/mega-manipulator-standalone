@@ -1,9 +1,10 @@
 import {useLocalSearchClient} from "./LocalSearchClient";
 import React, {useEffect, useState} from "react";
 import {Alert, Button, CircularProgress, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
-import {SearchFieldProps} from "./types";
+import {SearchFieldProps} from "../types";
 import {error} from "tauri-plugin-log-api";
-import {asString} from "../../hooks/logWrapper";
+import {asString} from "../../../hooks/logWrapper";
+import {useCodeHostFilter, useOwnerFilter, useRepoFilter} from "./useLocalHitFilters";
 
 export interface LocalSearchFieldProps {
   readonly searchFieldProps: SearchFieldProps;
@@ -25,11 +26,50 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
     searchFieldProps?.setState(localSearchClientWrapper ? 'ready' : 'loading')
   }, [localSearchClientWrapper])
 
+  const [codeHost, setCodeHost] = useState<string>('*')
+  const [owner, setOwner] = useState<string>('*')
+  const [repo, setRepo] = useState<string>('*')
+  const codeHosts = useCodeHostFilter(searchFieldProps.settings)
+  const owners = useOwnerFilter(searchFieldProps.settings, codeHost)
+  const repos = useRepoFilter(searchFieldProps.settings, codeHost, owner)
+
   if (!searchFieldProps?.settings) {
     return <CircularProgress/>
   }
-
   return <>
+    <FormControl>
+        <FormHelperText>Code Host</FormHelperText>
+        <Select
+            value={codeHost}
+            onChange={(p) => setCodeHost(p.target.value)}
+        >
+          {['*', ...(codeHosts ?? [])].map((p, i) => <MenuItem
+            key={i} value={p}>{p}</MenuItem>)}
+        </Select>
+    </FormControl>
+
+    <FormControl>
+        <FormHelperText>Owner</FormHelperText>
+        <Select
+            value={owner}
+            onChange={(p) => setOwner(p.target.value)}
+        >
+          {['*', ...(owners ?? [])].map((p, i) => <MenuItem
+            key={i} value={p}>{p}</MenuItem>)}
+        </Select>
+    </FormControl>
+
+    <FormControl>
+        <FormHelperText>Repo</FormHelperText>
+        <Select
+            value={repo}
+            onChange={(p) => setRepo(p.target.value)}
+        >
+          {['*', ...(repos ?? [])].map((p, i) => <MenuItem
+            key={i} value={p}>{p}</MenuItem>)}
+        </Select>
+    </FormControl>
+
     <FormControl>
       <FormHelperText>Program</FormHelperText>
       <Select
@@ -69,18 +109,18 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
       variant={"contained"}
       color={"primary"}
       onClick={() => {
-      searchFieldProps?.setState("searching")
-      searchFieldProps?.setHits([])
-      setSearchError(null)
-      localSearchClientWrapper.client?.searchCode(program, search, file, searchFieldProps.max)
-        .then((hits) => {
-          searchFieldProps?.setHits(hits)
-          searchFieldProps?.setState("ready")
-        }, (err) => {
-          const msg = `Failed searching due to '${asString(err)}'`
-          error(msg)
-          setSearchError(msg)
-        })
-    }}>Search</Button>
+        searchFieldProps?.setState("searching")
+        searchFieldProps?.setHits([])
+        setSearchError(null)
+        localSearchClientWrapper.client?.searchCode(program, search, file, searchFieldProps.max, codeHost, owner, repo)
+          .then((hits) => {
+            searchFieldProps?.setHits(hits)
+            searchFieldProps?.setState("ready")
+          }, (err) => {
+            const msg = `Failed searching due to '${asString(err)}'`
+            error(msg)
+            setSearchError(msg)
+          })
+      }}>Search</Button>
   </>
 }

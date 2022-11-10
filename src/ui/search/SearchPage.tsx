@@ -19,7 +19,7 @@ import {info} from "tauri-plugin-log-api";
 import {modalStyle} from "../modal/megaModal";
 import ErrorBoundary from "../error/ErrorBoundry";
 import {GitHubSearchField} from "./GitHubSearchField";
-import {LocalSearchField} from "./LocalSearchField";
+import {LocalSearchField} from "./local/LocalSearchField";
 import {SourceGraphSearchField} from "./SourceGraphSearchField";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";

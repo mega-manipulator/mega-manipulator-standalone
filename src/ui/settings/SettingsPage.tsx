@@ -145,7 +145,7 @@ export const SettingsPage = () => {
   }
   return <>
     <span>
-      <Typography variant={"h4"}>Settings {location.pathname}</Typography>
+      <Typography variant={"h4"}>Settings</Typography>
     </span>
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>

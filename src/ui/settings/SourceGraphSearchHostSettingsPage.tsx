@@ -1,13 +1,39 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
-import {SourceGraphSearchHostSettings} from "../../hooks/MegaContext";
+import {MegaSettingsType, SourceGraphSearchHostSettings} from "../../hooks/MegaContext";
 import {useMutableState} from "../../hooks/useMutableState";
-import {Alert, Button, FormControl, FormHelperText, Grid, TextField, Typography} from "@mui/material";
+import {
+  Alert,
+  Button,
+  FormControl,
+  FormHelperText,
+  Grid,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography
+} from "@mui/material";
 import {debug} from "tauri-plugin-log-api";
 import {locations} from "../route/locations";
 import {PasswordForm} from "./PasswordForm";
 import {asString} from "../../hooks/logWrapper";
+import DeleteIcon from '@mui/icons-material/Delete';
+
+function codeHostStyle(key: string, settings: MegaSettingsType | undefined | null): React.CSSProperties {
+  if (settings && !settings.codeHosts[key]) {
+    debug('ERGHT')
+    return {
+      background: "orange"
+    }
+  } else {
+    return {};
+  }
+}
 
 export const SourceGraphSearchHostSettingsPage: React.FC = () => {
   const nav = useNavigate()
@@ -15,6 +41,10 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
   const [newSearchHostKey, setNewSearchHostKey] = useState<string>()
   const {megaSettings, updateMegaSettings} = useMutableMegaSettings();
   const [settings, setSettings] = useState<SourceGraphSearchHostSettings>()
+
+  const [newMappingKey, setNewMappingKey] = useState<string>()
+  const [newMappingValue, setNewMappingValue] = useState<string>()
+
   useEffect(() => {
     if (searchHostKey && megaSettings) {
       setSettings(megaSettings.searchHosts[searchHostKey]?.sourceGraph)
@@ -66,10 +96,10 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
       })
     }
     setWarnings(warnAggregate)
-  }, [searchHost,searchHostKey])
+  }, [searchHost, searchHostKey])
   const validateSearchHost: boolean = useMemo(() => {
     return errors.length === 0;
-  },[errors])
+  }, [errors])
 
   const header = useMemo(() => `${searchHostKey === undefined ? 'Create' : `Edit ${searchHostKey}`} (SourceGraph Search Host)`, [searchHostKey])
 
@@ -107,6 +137,53 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
         }}/>
     </FormControl>
     <div>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>SourceGraph code host naming</TableCell>
+            <TableCell>Your code host naming</TableCell>
+            <TableCell></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {searchHost?.codeHosts && Object.keys(searchHost.codeHosts).map((key, index) => <TableRow key={index}>
+            <TableCell>{key}</TableCell>
+            <TableCell
+              style={codeHostStyle(searchHost.codeHosts[key], megaSettings)}
+            >{searchHost.codeHosts[key]}</TableCell>
+            <TableCell>
+              <IconButton onClick={() => {
+                updateSearchHost((draft) => {
+                  delete draft.codeHosts[key]
+                })
+              }}
+              ><DeleteIcon/></IconButton>
+            </TableCell>
+          </TableRow>)}
+        </TableBody>
+      </Table>
+      <TextField
+        label={'New Sourcegraph mapping name'}
+        value={newMappingKey}
+        onChange={(event) => setNewMappingKey(event.target.value)}
+      />
+      <TextField
+        label={'New Code Host mapping key'}
+        value={newMappingValue}
+        onChange={(event) => setNewMappingValue(event.target.value)}
+      />
+      <Button
+        variant={"outlined"}
+        onClick={() => {
+          updateSearchHost((draft) => {
+            if (newMappingKey && newMappingKey.length > 0 && newMappingValue && newMappingValue.length > 0) {
+              draft.codeHosts[newMappingKey] = newMappingValue
+            }
+          })
+        }}
+      >Add Mapping</Button>
+    </div>
+    <div>
       <Button
         variant={"outlined"}
         color={"primary"}
@@ -117,17 +194,16 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
               if (searchHostKey) {
                 draft.searchHosts[searchHostKey].type = "SOURCEGRAPH"
                 draft.searchHosts[searchHostKey].sourceGraph = searchHost
-              } else if(newSearchHostKey){
+              } else if (newSearchHostKey) {
                 draft.searchHosts[newSearchHostKey] = {
                   type: "SOURCEGRAPH",
                   sourceGraph: searchHost,
                 }
               }
             }).then((_) => nav(locations.settings.link))
-              .catch((e)=> setErrors([...errors, asString(e)]))
+              .catch((e) => setErrors([...errors, asString(e)]))
           }
         }}>Save</Button>
-
     </div>
     <div>
       {searchHostKey !== undefined && settings !== undefined ?
@@ -138,6 +214,6 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
         /></Grid> : null
       }
     </div>
-    <Button variant={"outlined"} color={"secondary"} onClick={()=>nav(locations.settings.link)}>Back</Button>
+    <Button variant={"outlined"} color={"secondary"} onClick={() => nav(locations.settings.link)}>Back</Button>
   </>
 };

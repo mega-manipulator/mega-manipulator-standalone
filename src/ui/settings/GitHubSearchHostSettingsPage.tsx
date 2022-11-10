@@ -44,7 +44,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     if (searchHost?.username === undefined || searchHost.username.length < 1) errors.push('Username is undefined')
     if (errors.length === 0) setValidationError(undefined); else setValidationError(errors.join(', '));
   }, [searchHost, searchHostKeyVal])
-  const header = useMemo(() => searchHostKey === undefined ? 'Create' : `Edit ${searchHostKey}`, [searchHostKey])
+  const header = useMemo(() => `${searchHostKey === undefined ? 'Create' : `Edit ${searchHostKey}`} (GitHub Search Host)`, [searchHostKey])
 
   return <>
     <Typography variant={"h4"}>{header}</Typography>

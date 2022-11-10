@@ -2,6 +2,8 @@ import React, {useEffect, useMemo, useState} from "react";
 import {joinServiceUserName, usePassword} from "../../hooks/usePassword";
 import {Alert, Button, FormControl, FormGroup, FormLabel, Input, Switch} from "@mui/material";
 import {asString} from "../../hooks/logWrapper";
+import {useNavigate} from "react-router-dom";
+import {locations} from "../route/locations";
 
 export type PasswordFormProps = {
   passwordPhrase: string,
@@ -9,8 +11,15 @@ export type PasswordFormProps = {
   hostname?: string,
 }
 
-export const PasswordForm: React.FC<PasswordFormProps> = ({username, hostname, passwordPhrase}) => {
+export const PasswordForm: React.FC<PasswordFormProps> = (
+    {
+      username,
+      hostname,
+      passwordPhrase,
+    }
+  ) => {
     const [err, setErr] = useState<string | null>(null)
+    const nav = useNavigate()
     const [password, updatePassword] = usePassword(username, hostname)
     const [formPassword, setFormPassword] = useState(password ?? '')
     useEffect(() => {
@@ -47,12 +56,15 @@ export const PasswordForm: React.FC<PasswordFormProps> = ({username, hostname, p
         <Switch checked={hidePassword} onClick={() => setHidePassword(!hidePassword)}/>
       </FormGroup>
       <span>
-        <Button color="primary"
-                onClick={() => updatePassword(formPassword).catch((e) => setErr(`Failed setting password: ${asString(e)}`))}>
-          Update password
-        </Button>&nbsp;
+      <Button
+        color="primary"
+        onClick={() => updatePassword(formPassword)
+          .then(() => nav(locations.settings.link))
+          .catch((e) => setErr(`Failed setting password: ${asString(e)}`))
+        }
+      >Update password</Button>&nbsp;
         <Button color={"error"} disabled={true}>Remove password</Button>
-      </span>
+    </span>
     </FormControl>
 
   }

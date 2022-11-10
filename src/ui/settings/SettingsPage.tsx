@@ -23,6 +23,7 @@ import {locations} from "../route/locations";
 import {createDefault} from "../../hooks/settings";
 import {error, info} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
+import {NewSearchHostButton} from "./NewSearchHostButton";
 
 type SearchHostRowProps = {
   searchHostKey: string,
@@ -46,7 +47,7 @@ function rowStyle(args: { username?: string, baseUrl?: string }): React.CSSPrope
     };
   }
   const [password] = usePassword(args.username, args.baseUrl)
-  if (password === undefined) {
+  if (!password) {
     return {
       ...baseCss,
       background: "orange",
@@ -200,8 +201,7 @@ export const SettingsPage = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <Button onClick={() => nav(locations.settings.search.github.link)} variant={"contained"}>Add new Search
-          host</Button>
+        <NewSearchHostButton/>
       </Grid>
       <Grid item sm={12} lg={6}>
         <TableContainer component={Paper}>

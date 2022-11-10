@@ -8,7 +8,7 @@ import {WorkMeta} from "../types";
 import {runCommand} from "../work/workLog";
 import {requireZeroStatus} from "./simpleActionWithResult";
 
-export async function listRepos(basePath?:string): Promise<string[]> {
+export async function listRepos(basePath?: string): Promise<string[]> {
   if (!basePath) {
     warn('listRepos bailed, one or more GitDir not defined in settings')
     return [];
@@ -21,7 +21,7 @@ export async function listRepos(basePath?:string): Promise<string[]> {
   }
 }
 
-export async function pathToSearchHit(searchHostKey:string | null, repoPath:string):Promise<SearchHit>{
+export async function pathToSearchHit(searchHostKey: string | null, repoPath: string): Promise<SearchHit> {
   const repo = await path.basename(repoPath)
   const ownerPath = await path.dirname(repoPath)
   const owner = await path.basename(ownerPath)
@@ -34,18 +34,18 @@ export async function pathToSearchHit(searchHostKey:string | null, repoPath:stri
   return new SearchHit(searchHostKey, code, owner, repo, cloneAddr)
 }
 
-async function cloneAddress(repoPath:string):Promise<string> {
-  try{
-    const remoteListing = await new Command('git', ['remote', '-v'], {cwd:repoPath}).execute()
-    if (remoteListing.code === 0){
+async function cloneAddress(repoPath: string): Promise<string> {
+  try {
+    const remoteListing = await new Command('git', ['remote', '-v'], {cwd: repoPath}).execute()
+    if (remoteListing.code === 0) {
       const originLine = remoteListing.stdout.split('\n')
         .find((line) => line.startsWith('origin') && line.endsWith('(push)'))
-      if (originLine){
-        return  originLine.split(/ */g)[1]
+      if (originLine) {
+        return originLine.split(/ */g)[1]
       }
     }
   } catch (e) {
-    error('Exception reverseEngineering clone address for repo '+asString(e))
+    error('Exception reverseEngineering clone address for repo ' + asString(e))
   }
   return 'unknown'
 }
@@ -72,14 +72,18 @@ async function listClonesRecursive(depth: number, path: string): Promise<string[
   }
 }
 
+export type Report = {
+  state: ReportSate,
+  error?: string,
+}
 export type ReportSate = 'good' | 'bad' | 'loading' | 'failed to execute'
 
 export class RepoBadStatesReport {
   readonly repoPath: string;
-  readonly uncommittedChanges: ReportSate = 'loading';
-  readonly onDefaultBranch: ReportSate = 'loading';
-  readonly noDiffWithOriginHead: ReportSate = 'loading';
-  readonly noCodeHostConfig: ReportSate = 'loading';
+  readonly uncommittedChanges: Report = {state: 'loading'};
+  readonly onDefaultBranch: Report = {state: 'loading'};
+  readonly noDiffWithOriginHead: Report = {state: 'loading'};
+  readonly noCodeHostConfig: Report = {state: 'loading'};
 
   constructor(repoPath: string) {
     this.repoPath = repoPath;
@@ -93,9 +97,12 @@ export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPa
     const codeHostPath = await path.resolve(repoPath, '..', '..')
     const codeHostDirName = await path.basename(codeHostPath)
 
-    const noCodeHostConfig = settings.codeHosts[codeHostDirName] != undefined ? 'good' : 'bad';
-    if (noCodeHostConfig === 'bad') {
-      debug('codeHostDirName does not have matching codeHostConfig: '+codeHostDirName)
+    const noCodeHostConfig: Report = settings.codeHosts[codeHostDirName] != undefined ? {state: 'good'} : {
+      state: 'bad',
+      error: `No code host config for '${codeHostDirName}'`
+    };
+    if (noCodeHostConfig.state === 'bad') {
+      debug('codeHostDirName does not have matching codeHostConfig: ' + codeHostDirName)
     }
 
     return {
@@ -109,46 +116,49 @@ export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPa
     error('Failed to execute: ' + asString(e))
     return {
       repoPath: trimmedRepoPath,
-      uncommittedChanges: "failed to execute",
-      onDefaultBranch: "failed to execute",
-      noDiffWithOriginHead: "failed to execute",
-      noCodeHostConfig: "failed to execute",
+      uncommittedChanges: {state: "failed to execute", error: asString(e)},
+      onDefaultBranch: {state: "failed to execute", error: asString(e)},
+      noDiffWithOriginHead: {state: "failed to execute", error: asString(e)},
+      noCodeHostConfig: {state: "failed to execute", error: asString(e)},
     }
   }
 }
 
-async function hasUncommittedChanges(repoPath: string): Promise<ReportSate> {
-  const result = await new Command('git', ['diff', 'HEAD', '--names-only'], {cwd: repoPath}).execute()
-  debug(`Ran 'git diff' in ${repoPath} with result: ${asString(result)}`)
-  if (result.code !== 0) return "failed to execute"
-  else if (result.stdout.length === 0 && result.stderr.length === 0) return "good"
-  else return "bad"
+async function hasUncommittedChanges(repoPath: string): Promise<Report> {
+  const result = await new Command('git', ['diff', '--name-only', 'HEAD'], {cwd: repoPath}).execute()
+  debug(`Ran 'git diff --name-only HEAD' in ${repoPath} with result: ${asString(result)}`)
+  if (result.code !== 0) return {state: "failed to execute", error: asString(result)}
+  else if (result.stdout.length === 0 && result.stderr.length === 0) return {state: "good"}
+  else return {state: "bad", error: asString(result)}
 }
 
-async function hasOnDefaultBranch(repoPath: string): Promise<ReportSate> {
+async function hasOnDefaultBranch(repoPath: string): Promise<Report> {
   try {
     const [current, main] = await Promise.all([
       getCurrentBranchName(repoPath),
       getMainBranchName(repoPath),
     ])
-    return current === main ? 'bad' : 'good';
+    return current === main ? {
+      state: 'bad',
+      error: `current branch '${current}' is same as the default branch`
+    } : {state: "good"};
   } catch (e) {
     error('Failed to get #hasOnDefaultBranch: ' + asString(e))
-    return 'failed to execute'
+    return {state: 'failed to execute', error: asString(e)}
   }
 }
 
-async function hasNoDiffWithOriginHead(repoPath: string): Promise<ReportSate> {
+async function hasNoDiffWithOriginHead(repoPath: string): Promise<Report> {
   try {
     const main = await getMainBranchName(repoPath);
     const diffResult = await new Command('git', ['diff', 'HEAD', `origin/${main}`, '--']).execute()
     if (diffResult.code !== 0) {
       debug(`Failed #hasNoDiffWithOriginHead ${asString(diffResult)}`)
-      return "failed to execute"
-    } else if (diffResult.stdout.length === 0) return "bad"
-    else return "good"
+      return {state: "failed to execute", error: asString(diffResult)}
+    } else if (diffResult.stdout.length === 0) return {state: "bad", error: 'No diff'}
+    else return {state: "good"}
   } catch (e) {
-    return 'failed to execute'
+    return {state: 'failed to execute', error: asString(e)}
   }
 }
 

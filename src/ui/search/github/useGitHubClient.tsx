@@ -1,6 +1,6 @@
-import {GithubClient} from "../../hooks/github.com";
-import {GitHubSearchHostSettings, MegaSettingsType} from "../../hooks/MegaContext";
-import {getPassword} from "../../hooks/usePassword";
+import {GithubClient} from "../../../hooks/github.com";
+import {GitHubSearchHostSettings, MegaSettingsType} from "../../../hooks/MegaContext";
+import {getPassword} from "../../../hooks/usePassword";
 import {useEffect, useState} from "react";
 import {debug} from "tauri-plugin-log-api";
 

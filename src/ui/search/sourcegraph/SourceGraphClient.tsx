@@ -1,11 +1,11 @@
-import {cloneUrl, SourceGraphSearchHostSettings} from "../../hooks/MegaContext";
+import {cloneUrl, SourceGraphSearchHostSettings} from "../../../hooks/MegaContext";
 import {SourceGraphSearchFieldProps} from "./SourceGraphSearchField";
 import {useEffect, useState} from "react";
-import {getPassword} from "../../hooks/usePassword";
+import {getPassword} from "../../../hooks/usePassword";
 import axios from "axios";
 import {debug, error, warn} from "tauri-plugin-log-api";
-import {asString} from "../../hooks/logWrapper";
-import {SearchHit} from "./types";
+import {asString} from "../../../hooks/logWrapper";
+import {SearchHit} from "../types";
 
 export interface SourceGraphClientWrapper {
   client: SourceGraphClient | undefined;

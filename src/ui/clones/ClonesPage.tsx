@@ -6,31 +6,32 @@ import {
   CircularProgress,
   Drawer,
   IconButton,
-  List, ListItem,
+  List,
+  ListItem, ListItemButton,
   Tooltip,
   Typography
 } from "@mui/material";
 import React, {useEffect, useState} from "react";
-import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, ReportSate} from "../../service/file/cloneDir";
+import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, Report, ReportSate} from "../../service/file/cloneDir";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {MegaSettingsType} from "../../hooks/MegaContext";
 import {DataGrid, GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
-import {debug} from "tauri-plugin-log-api";
 import MenuIcon from "@mui/icons-material/Menu";
 
 const renderBoolCell = (params: GridRenderCellParams) => {
-  const isTruthy = params.value as ReportSate
-  if (isTruthy === 'loading')
-    return <CircularProgress/>
-  if (isTruthy === "failed to execute")
-    return <Alert variant={"outlined"} severity={"error"} icon={<span>🧨</span>}>Failed to execute</Alert>
-  else if (isTruthy === "bad")
-    return <Alert variant={"outlined"} severity={"warning"} icon={<span>💩</span>}>Bad</Alert>
-  else if (isTruthy === "good")
-    return <Alert variant={"outlined"} severity={"success"} icon={<span>👍</span>}>Good</Alert>
-  else
-    return <Alert variant={"outlined"} severity={"error"} icon={<span>🧨</span>}>Unknown state</Alert>
-}
+  const report = params.value as Report
+  switch (report.state) {
+    case "loading":
+      return <CircularProgress/>
+    case "good":
+      return <Alert variant={"outlined"} severity={"success"} icon={<span>👍</span>}>Good</Alert>
+    case "bad":
+      return <Tooltip title={report.error}><Alert variant={"outlined"} severity={"warning"} icon={<span>💩</span>}>Bad</Alert></Tooltip>
+    case "failed to execute":
+      return <Tooltip title={report.error}><Alert variant={"outlined"} severity={"error"} icon={<span>🧨</span>}>Failed to execute</Alert></Tooltip>
+  }
+};
+
 const boolCellProps = {
   minWidth: 50,
   maxWidth: 500,
@@ -87,9 +88,6 @@ export const ClonesPage: React.FC = () => {
         onSelectionModelChange={(model: GridRowId[]) => {
           setSelectedRepos(model.map((id) => repoStates[+id]))
         }}
-        onResize={(s, e, d) => {
-          debug('Resize')
-        }}
         columns={columns}
         autoPageSize
         pageSize={15}
@@ -104,13 +102,13 @@ export const ClonesPage: React.FC = () => {
         </IconButton>
       </Avatar>
     </Tooltip>
-    <Drawer open={actionsMenuOpen} onClose={()=>setActionsMenuOpen(false)}>
+    <Drawer open={actionsMenuOpen} onClose={() => setActionsMenuOpen(false)}>
       <Typography>Do stuff with {selectedRepos.length} repos</Typography>
       <List>
-        <ListItem>Stage</ListItem>
-        <ListItem>Changes</ListItem>
-        <ListItem>Commit</ListItem>
-        <ListItem>Push</ListItem>
+        <ListItemButton disabled={true}>Stage</ListItemButton>
+        <ListItemButton disabled={true}>Make Changes</ListItemButton>
+        <ListItemButton disabled={true}>Commit</ListItemButton>
+        <ListItemButton disabled={true}>Push</ListItemButton>
       </List>
     </Drawer>
   </>

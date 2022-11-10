@@ -18,9 +18,9 @@ import {MegaSettingsType} from "../../hooks/MegaContext";
 import {info} from "tauri-plugin-log-api";
 import {modalStyle} from "../modal/megaModal";
 import ErrorBoundary from "../error/ErrorBoundry";
-import {GitHubSearchField} from "./GitHubSearchField";
+import {GitHubSearchField} from "./github/GitHubSearchField";
 import {LocalSearchField} from "./local/LocalSearchField";
-import {SourceGraphSearchField} from "./SourceGraphSearchField";
+import {SourceGraphSearchField} from "./sourcegraph/SourceGraphSearchField";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
 

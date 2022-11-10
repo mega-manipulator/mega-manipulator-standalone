@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from "react";
-import {SearchFieldProps} from "./types";
+import {SearchFieldProps} from "../types";
 import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField, Typography} from "@mui/material";
 import {warn} from "tauri-plugin-log-api";
 import {SourceGraphSearchHandle, useSourceGraphClient} from "./SourceGraphClient";
-import {asString} from "../../hooks/logWrapper";
+import {asString} from "../../../hooks/logWrapper";
 
 export type SourceGraphSearchFieldProps = {
   readonly searchFieldProps: SearchFieldProps;
@@ -20,7 +20,6 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
       props.searchFieldProps.setState('loading')
     }
   }, [clientWrapper])
-  const [searchHandle, setSearchHandle] = useState<SourceGraphSearchHandle>()
 
   if (clientWrapper.error) {
     return <Alert severity={"warning"} variant={"filled"}>{clientWrapper.error}</Alert>
@@ -33,7 +32,7 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
         value={max}
         onChange={(event) => setMax(+event.target.value)}
       >
-        {[10, 50, 100, 1000].map((i: number) => <MenuItem value={i}>{i}</MenuItem>)}
+        {[10, 50, 100, 1000].map((i: number, idx) => <MenuItem key={idx} value={i}>{i}</MenuItem>)}
       </Select>
     </FormControl>
 
@@ -46,12 +45,10 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
       />
     </div>
 
-    {searchHandle && <Typography>{asString(searchHandle)}</Typography>}
     <Button
       variant={"contained"} color={"primary"}
       disabled={props?.searchFieldProps?.state !== 'ready' || searchText.length === 0}
       onClick={() => {
-        searchHandle?.cancel()
         if (clientWrapper.client) {
           props.searchFieldProps.setState('searching')
           clientWrapper.client.searchCode(searchText, max)

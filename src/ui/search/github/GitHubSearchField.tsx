@@ -2,8 +2,8 @@ import {useGitHubClient} from "./useGitHubClient";
 import React, {useEffect, useState} from "react";
 import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
 import {error, info, warn} from "tauri-plugin-log-api";
-import {asString} from "../../hooks/logWrapper";
-import {SearchFieldProps} from "./types";
+import {asString} from "../../../hooks/logWrapper";
+import {SearchFieldProps} from "../types";
 
 export interface GitHubSearchFieldProps {
   readonly searchFieldProps: SearchFieldProps;
@@ -43,7 +43,7 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
         value={max}
         onChange={(event) => setMax(+event.target.value)}
       >
-        {[10, 50, 100, 1000].map((i: number) => <MenuItem value={i}>{i}</MenuItem>)}
+        {[10, 50, 100, 1000].map((i: number, idx) => <MenuItem key={idx} value={i}>{i}</MenuItem>)}
       </Select>
     </FormControl>
 

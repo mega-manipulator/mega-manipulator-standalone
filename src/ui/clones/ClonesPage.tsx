@@ -11,12 +11,13 @@ import {
   Tooltip,
   Typography
 } from "@mui/material";
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, Report, ReportSate} from "../../service/file/cloneDir";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {MegaSettingsType} from "../../hooks/MegaContext";
 import {DataGrid, GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
 import MenuIcon from "@mui/icons-material/Menu";
+import {DeleteMenuItem} from "./DeleteMenuItem";
 
 const renderBoolCell = (params: GridRenderCellParams) => {
   const report = params.value as Report
@@ -55,6 +56,7 @@ export const ClonesPage: React.FC = () => {
 
   const [repoStates, setRepoStates] = useState<RepoBadStatesReport[]>([])
   const [selectedRepos, setSelectedRepos] = useState<RepoBadStatesReport[]>([])
+  const [reloader, setReloader] = useState(0)
   useEffect(() => {
     setState('loading')
     if (settings !== null) {
@@ -66,7 +68,10 @@ export const ClonesPage: React.FC = () => {
         setRepoStates(analysis)
       })()
     }
-  }, [settings])
+  }, [settings, reloader])
+  const reloadTrigger = useCallback(()=>{
+    setReloader((reloader+1) % 10)
+  },[reloader, setReloader])
 
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
 
@@ -105,6 +110,7 @@ export const ClonesPage: React.FC = () => {
     <Drawer open={actionsMenuOpen} onClose={() => setActionsMenuOpen(false)}>
       <Typography>Do stuff with {selectedRepos.length} repos</Typography>
       <List>
+        <DeleteMenuItem reloadCallback={reloadTrigger} settings={settings} repos={selectedRepos}/>
         <ListItemButton disabled={true}>Stage</ListItemButton>
         <ListItemButton disabled={true}>Make Changes</ListItemButton>
         <ListItemButton disabled={true}>Commit</ListItemButton>

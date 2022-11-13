@@ -8,12 +8,16 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+import {LicenseInfo} from "@mui/x-data-grid-pro";
 
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
   },
 })
+
+const muiProLicence = import.meta.env.VITE_MUI_PRO_LICENCE;
+LicenseInfo.setLicenseKey(muiProLicence);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

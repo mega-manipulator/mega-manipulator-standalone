@@ -2,10 +2,11 @@ import React, {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {getResultFromStorage} from "../../service/work/workLog";
 import {WorkResult, WorkResultOutput, WorkResultStatus} from "../../service/types";
-import {DataGrid, GridColDef} from "@mui/x-data-grid";
+import {GridColDef} from "@mui/x-data-grid";
 import {Alert, AlertColor, Box, Checkbox, FormControlLabel, Modal, Typography} from "@mui/material";
 import {locations} from "../route/locations";
 import {modalStyle} from "../modal/megaModal";
+import {DataGridPro} from "@mui/x-data-grid-pro";
 
 export const ResultPage: React.FC = () => {
   const {ref} = useParams()
@@ -83,7 +84,7 @@ export const ResultPage: React.FC = () => {
     </Modal>
     <br/>
     <Box sx={{height: 400, width: '100%'}}>
-      <DataGrid
+      <DataGridPro
         rows={resultList}
         columns={columns}
         pageSize={15}

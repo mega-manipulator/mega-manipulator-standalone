@@ -1,7 +1,8 @@
 import React from "react";
 import {Box} from "@mui/material";
-import {DataGrid, GridColDef, GridRowId} from "@mui/x-data-grid";
+import {GridColDef, GridRowId} from "@mui/x-data-grid";
 import {SearchHit} from "./types";
+import {DataGridPro} from "@mui/x-data-grid-pro";
 
 export type SearchHitTableProps = {
   data: SearchHit[],
@@ -20,7 +21,7 @@ export const SearchHitTable: React.FC<SearchHitTableProps> = ({data, selectionCa
 
   return (
     <Box sx={{ width: '100%'}}>
-      <DataGrid
+      <DataGridPro
         autoHeight
         rows={data.map((d, i) => {
           return {

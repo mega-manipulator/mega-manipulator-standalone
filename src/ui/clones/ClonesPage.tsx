@@ -7,17 +7,18 @@ import {
   Drawer,
   IconButton,
   List,
-  ListItem, ListItemButton,
+  ListItemButton,
   Tooltip,
   Typography
 } from "@mui/material";
 import React, {useCallback, useEffect, useState} from "react";
-import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, Report, ReportSate} from "../../service/file/cloneDir";
+import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, Report} from "../../service/file/cloneDir";
 import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {MegaSettingsType} from "../../hooks/MegaContext";
-import {DataGrid, GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
+import {GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
 import MenuIcon from "@mui/icons-material/Menu";
 import {DeleteMenuItem} from "./DeleteMenuItem";
+import {DataGridPro} from "@mui/x-data-grid-pro";
 
 const renderBoolCell = (params: GridRenderCellParams) => {
   const report = params.value as Report
@@ -27,9 +28,11 @@ const renderBoolCell = (params: GridRenderCellParams) => {
     case "good":
       return <Alert variant={"outlined"} severity={"success"} icon={<span>👍</span>}>Good</Alert>
     case "bad":
-      return <Tooltip title={report.error}><Alert variant={"outlined"} severity={"warning"} icon={<span>💩</span>}>Bad</Alert></Tooltip>
+      return <Tooltip title={report.error}><Alert variant={"outlined"} severity={"warning"}
+                                                  icon={<span>💩</span>}>Bad</Alert></Tooltip>
     case "failed to execute":
-      return <Tooltip title={report.error}><Alert variant={"outlined"} severity={"error"} icon={<span>🧨</span>}>Failed to execute</Alert></Tooltip>
+      return <Tooltip title={report.error}><Alert variant={"outlined"} severity={"error"} icon={<span>🧨</span>}>Failed
+        to execute</Alert></Tooltip>
   }
 };
 
@@ -69,9 +72,10 @@ export const ClonesPage: React.FC = () => {
       })()
     }
   }, [settings, reloader])
-  const reloadTrigger = useCallback(()=>{
-    setReloader((reloader+1) % 10)
-  },[reloader, setReloader])
+  const reloadTrigger = useCallback(() => {
+    setReloader((reloader + 1) % 10)
+    setSelectedRepos([])
+  }, [reloader, setReloader])
 
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
 
@@ -82,7 +86,7 @@ export const ClonesPage: React.FC = () => {
     <Typography variant={'h4'}>Clones</Typography>
     {settings && <div>WorkDir: {settings?.clonePath}</div>}
     <Box sx={{width: '100%'}}>
-      <DataGrid
+      <DataGridPro
         autoHeight
         rows={repoStates.map((d, i) => {
           return {

@@ -162,8 +162,15 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
           .map((k) => <>{k}: {progress.breakdown[k]},&nbsp;</>)
         }
       </>}
-      <p>
+      {/* Buttons */}
+      <p style={{
+        display: "grid",
+        gridAutoFlow: "column",
+        gridColumnGap: '10px',
+      }}>
         {state === 'ready' && <Button
+            variant={"contained"}
+            color={"primary"}
             onClick={() => {
               info('Start Cloning')
               setState("running")
@@ -193,9 +200,21 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
                 });
             }}
         >Start clone</Button>}
-        {state !== "running" && <Button onClick={close}>Close</Button>}
-        {state === 'done' && workRef &&
-            <Button onClick={() => nav(`${locations.result.link}/${workRef}`)}>Show result</Button>}
+        {state !== "running" && <Button
+            variant={"outlined"}
+            color={"secondary"}
+            onClick={close}
+        >Close</Button>}
+        {state === 'done' && workRef && <>
+            <Button
+                variant={"contained"}
+                onClick={() => nav(`${locations.result.link}/${workRef}`)}
+            >Show Result</Button>
+            <Button
+                variant={"contained"}
+                onClick={() => nav(`${locations.clones.link}/${workRef}`)}
+            >Show Clones</Button>
+        </>}
         {err && <Alert variant={"filled"} color={"error"}>err</Alert>}
       </p>
     </Box>

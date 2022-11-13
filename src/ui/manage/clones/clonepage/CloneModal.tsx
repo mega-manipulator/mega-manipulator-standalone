@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {
   Alert,
   Box,
@@ -15,15 +15,14 @@ import {
   Typography
 } from "@mui/material";
 import {SearchHit} from "../../../search/types";
-import {useMegaSettings} from "../../../../hooks/useMegaSettings";
 import {modalStyle} from "../../../modal/megaModal";
 import {clone} from "../../../../service/git/cloneWorker";
 import {WorkProgress} from "../../../../service/types";
 import {asString} from "../../../../hooks/logWrapper";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../../../route/locations";
-import {MegaSettingsType} from "../../../../hooks/MegaContext";
 import {error, info} from "tauri-plugin-log-api";
+import {MegaContext} from "../../../../hooks/MegaContext";
 
 export type CloneModalPropsWrapper = {
   cloneModalPropsWrapper: CloneModalProps
@@ -70,7 +69,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
   const [err, setErr] = useState<string | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'running' | 'done'>('loading')
   const [workRef, setWorkRef] = useState<number | null>(null)
-  const settings: MegaSettingsType | null = useMegaSettings()
+  const {settings} = useContext(MegaContext)
   const [progress, setProgress] = useState<WorkProgress | null>(null)
   const [branch, setBranch] = useState('')
   useEffect(() => {
@@ -212,7 +211,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
             >Show Result</Button>
             <Button
                 variant={"contained"}
-                onClick={() => nav(`${locations.clones.link}/${workRef}`)}
+                onClick={() => nav(locations.clones.link)}
             >Show Clones</Button>
         </>}
         {err && <Alert variant={"filled"} color={"error"}>err</Alert>}

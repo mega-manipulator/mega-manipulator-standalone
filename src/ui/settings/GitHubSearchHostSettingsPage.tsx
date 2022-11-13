@@ -1,18 +1,18 @@
-import React, {useEffect, useMemo, useState} from "react";
-import {GitHubSearchHostSettings} from "../../hooks/MegaContext";
+import React, {useContext, useEffect, useMemo, useState} from "react";
+import {GitHubSearchHostSettings} from "../../hooks/settings";
 import {PasswordForm} from "./PasswordForm";
 import {useMutableState} from "../../hooks/useMutableState";
 import {confirm} from "@tauri-apps/api/dialog";
 import {Alert, Button, Grid, TextField, Typography} from "@mui/material";
 import {useNavigate, useParams} from "react-router-dom";
-import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
 import {locations} from "../route/locations";
 import {info, warn} from "tauri-plugin-log-api";
+import {MegaContext} from "../../hooks/MegaContext";
 
 export const GitHubSearchHostSettingsPage: React.FC = () => {
   const {searchHostKey} = useParams()
   const nav = useNavigate()
-  const {megaSettings, updateMegaSettings} = useMutableMegaSettings();
+  const {settings:megaSettings, updateSettings:updateMegaSettings} = useContext(MegaContext);
   const [settings, setSettings] = useState<GitHubSearchHostSettings | null>(null)
   useEffect(() => {
     if (searchHostKey && megaSettings) {
@@ -76,7 +76,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
             if (searchHostKey === undefined) {
               if (searchHostKeyVal.length > 0 && searchHostKeySame === 0) {
                 info('Creating new Search host config node')
-                updateMegaSettings((settingsDraft) => {
+                updateMegaSettings(async (settingsDraft) => {
                   settingsDraft.searchHosts[searchHostKeyVal] = {
                     type: 'GITHUB',
                     github: searchHost,
@@ -88,7 +88,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
               }
             } else if (searchHostKeyVal.length > 0 && searchHostKeySame === 1) {
               info('Updating old Search host config node')
-              updateMegaSettings((settingsDraft) => {
+              updateMegaSettings(async (settingsDraft) => {
                 settingsDraft.searchHosts[searchHostKeyVal] = {
                   type: 'GITHUB',
                   github: searchHost,
@@ -111,7 +111,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
             if (searchHostKey !== undefined) {
               confirm(`Delete ${searchHostKey}?`).then((ans) => {
                 if (ans) {
-                  updateMegaSettings(settingsDraft => {
+                  updateMegaSettings(async (settingsDraft) => {
                     delete settingsDraft.searchHosts[searchHostKey]
                   });
                   nav(locations.settings.link)

@@ -1,68 +1,25 @@
-import React from "react";
+import {createContext, useEffect, useState} from "react";
+import {baseSettings, loadFromDiskOrDefault, MegaSettingsType, saveToDisk} from "./settings";
 
-export type MegaTheme = 'dark' | 'light'
-
-export type HostType = 'SEARCH' | 'CODE';
-
-export interface UserLoginType {
-  hostType: HostType;
-  username?: string;
-  baseUrl?: string;
+export interface MegaContext {
+  settings: MegaSettingsType,
+  updateSettings: (fn:(draft:MegaSettingsType)=>Promise<void>) => Promise<void>
 }
 
-export class MegaSettingsType {
-  version: '1' = '1';
-  theme: MegaTheme = "dark";
-  keepLocalReposPath?: string = undefined;
-  clonePath?: string = undefined;
-  searchHosts: { [key: string]: SearchHostSettings, } = {};
-  codeHosts: { [key: string]: CodeHostSettings, } = {};
+export const MegaContext = createContext<MegaContext>({settings:baseSettings(), updateSettings:(fn:(draft:MegaSettingsType) => Promise<void>) => new Promise(()=>{})});
 
-  constructor() {
+export function newMegaContext():MegaContext {
+  const [settings, setSettings] = useState(baseSettings())
+  const [reload, setReload] = useState(0)
+  useEffect(() => {
+    loadFromDiskOrDefault().then((d) => setSettings(d))
+  }, [reload])
+  const updateSettings = async (fn: (draft: MegaSettingsType) => void) => {
+    const megaSettings = await loadFromDiskOrDefault()
+    fn(megaSettings)
+    setSettings(megaSettings)
+    saveToDisk(megaSettings)
+    setReload(reload + 1)
   }
-}
-
-export type SearchHostType = 'GITHUB' | 'SOURCEGRAPH'
-export type SearchHostSettings = {
-  type: SearchHostType,
-  github?: GitHubSearchHostSettings,
-  sourceGraph?: SourceGraphSearchHostSettings,
-}
-
-export interface GitHubSearchHostSettings extends UserLoginType {
-  codeHostKey: string;
-}
-
-export interface SourceGraphSearchHostSettings extends UserLoginType {
-  baseUrl: string;
-  codeHosts: {
-    [sourceGraphKey: string]: string;
-  }
-}
-
-export type CodeHostType = 'GITHUB'
-export type CodeHostSettings = {
-  type: CodeHostType,
-  github?: GitHubCodeHostSettings,
-}
-
-export function cloneUrl(settings: CodeHostSettings | undefined, owner: string, repo: string): string | undefined {
-  switch (settings?.type) {
-    case "GITHUB":
-      return ghCloneUrl(settings.github?.cloneHost ?? 'github.com', owner, repo)
-  }
-  return undefined
-}
-
-export interface GitHubCodeHostSettings extends UserLoginType {
-  baseUrl: string;
-  cloneHost: string;
-  hostType: HostType;
-  username: string;
-
-}
-
-function ghCloneUrl(host: string, owner: string, repo: string): string | undefined {
-  // TODO work with settings for location other than github.com
-  return `git@${host}:${owner}/${repo}.git`
+  return {settings, updateSettings}
 }

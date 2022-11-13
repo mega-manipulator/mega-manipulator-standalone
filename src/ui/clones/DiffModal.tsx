@@ -2,8 +2,8 @@ import {Box, Modal} from "@mui/material";
 import {modalStyle} from "../modal/megaModal";
 import {useEffect, useState} from "react";
 import {SearchHit} from "../search/types";
-import {gitChangedFiles, gitStage} from "../../service/file/gitCommit";
-import {MegaSettingsType} from "../../hooks/MegaContext";
+import {gitChangedFiles} from "../../service/file/gitCommit";
+import {MegaSettingsType} from "../../hooks/settings";
 
 export type DiffModalProps = {
   isOpen:boolean,

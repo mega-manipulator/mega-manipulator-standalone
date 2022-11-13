@@ -1,5 +1,5 @@
 import {fs, path} from "@tauri-apps/api";
-import {MegaSettingsType} from "../../hooks/MegaContext";
+import {MegaSettingsType} from "../../hooks/settings";
 import {asString} from "../../hooks/logWrapper";
 import {debug, error, trace, warn} from "tauri-plugin-log-api";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";

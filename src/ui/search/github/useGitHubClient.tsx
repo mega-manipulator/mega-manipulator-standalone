@@ -1,8 +1,7 @@
 import {GithubClient} from "../../../hooks/github.com";
-import {GitHubSearchHostSettings, MegaSettingsType} from "../../../hooks/MegaContext";
+import {GitHubSearchHostSettings, MegaSettingsType} from "../../../hooks/settings";
 import {getPassword} from "../../../hooks/usePassword";
 import {useEffect, useState} from "react";
-import {debug} from "tauri-plugin-log-api";
 
 export interface GithubClientWrapper {
   searchClient?: GithubClient,
@@ -37,7 +36,7 @@ async function bakeGithubClient(
 }
 
 export const useGitHubClient: (
-  settings: MegaSettingsType | null | undefined,
+  settings: MegaSettingsType,
   searchHostKey: string | null | undefined,
 ) => GithubClientWrapper = (settings, searchHostKey) => {
   const [wrapper, setWrapper] = useState<GithubClientWrapper>({searchClientInitError: 'Not initialized'})

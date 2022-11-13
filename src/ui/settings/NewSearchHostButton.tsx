@@ -1,7 +1,7 @@
 import React, {useState} from "react";
-import {Box, Button, FormControl, FormControlLabel, MenuItem, Modal, Select} from "@mui/material";
+import {Box, Button, FormControl, MenuItem, Modal, Select} from "@mui/material";
 import {modalStyle} from "../modal/megaModal";
-import {SearchHostType} from "../../hooks/MegaContext";
+import {SearchHostType} from "../../hooks/settings";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
 

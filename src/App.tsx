@@ -3,6 +3,7 @@ import ErrorBoundary from "./ui/error/ErrorBoundry";
 import {RouterProvider} from "react-router-dom";
 import {megaRouter} from "./ui/route/megaRouter";
 import {attachConsole} from "tauri-plugin-log-api";
+import {MegaContext, newMegaContext} from "./hooks/MegaContext";
 
 function App() {
   useEffect(() => {
@@ -10,8 +11,11 @@ function App() {
       await attachConsole()
     })()
   }, []);
+  const ctx = newMegaContext()
   return <ErrorBoundary>
-    <RouterProvider router={megaRouter}/>
+    <MegaContext.Provider value={ctx}>
+      <RouterProvider router={megaRouter}/>
+    </MegaContext.Provider>
   </ErrorBoundary>
 }
 

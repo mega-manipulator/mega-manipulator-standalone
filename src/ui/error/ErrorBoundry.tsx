@@ -1,8 +1,9 @@
 import React, {Component, ErrorInfo, ReactNode} from "react";
 import {Button, Typography} from "@mui/material";
 import {createDefault} from "../../hooks/settings";
-import {info, error} from "tauri-plugin-log-api";
+import {error, info} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
+import {process} from "@tauri-apps/api";
 
 interface Props {
   children?: ReactNode;
@@ -13,7 +14,7 @@ interface State {
 }
 
 function wipe() {
-  createDefault().then(_=>info('Settings wiped'))
+  createDefault().then(_ => info('Settings wiped')).then(() => process.relaunch())
 }
 
 class ErrorBoundary extends Component<Props, State> {

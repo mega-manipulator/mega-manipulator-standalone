@@ -1,4 +1,4 @@
-import {cloneUrl, SourceGraphSearchHostSettings} from "../../../hooks/MegaContext";
+import {cloneUrl, SourceGraphSearchHostSettings} from "../../../hooks/settings";
 import {SourceGraphSearchFieldProps} from "./SourceGraphSearchField";
 import {useEffect, useState} from "react";
 import {getPassword} from "../../../hooks/usePassword";

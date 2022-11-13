@@ -1,5 +1,4 @@
-import React, {useEffect, useState} from "react";
-import {MegaSettingsType} from "../../hooks/MegaContext";
+import React, {useContext, useEffect, useState} from "react";
 import {ResetAllSettings} from "./ResetAllSettings";
 import {usePassword} from "../../hooks/usePassword";
 
@@ -18,12 +17,12 @@ import {
   Typography
 } from "@mui/material";
 import {useLocation, useNavigate} from "react-router-dom";
-import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
 import {locations} from "../route/locations";
-import {createDefault} from "../../hooks/settings";
+import {createDefault, MegaSettingsType} from "../../hooks/settings";
 import {error, info} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 import {NewSearchHostButton} from "./NewSearchHostButton";
+import {MegaContext} from "../../hooks/MegaContext";
 
 type SearchHostRowProps = {
   searchHostKey: string,
@@ -112,12 +111,12 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
 }
 
 export const SettingsPage = () => {
-  const {megaSettings, updateMegaSettings} = useMutableMegaSettings()
+  const {settings:megaSettings, updateSettings:updateMegaSettings} = useContext(MegaContext)
   const nav = useNavigate()
   const location = useLocation()
 
-  const [keepLocalRepos, setKeepLocalRepos] = useState<string | undefined>(undefined)
-  const [clonePath, setClonePath] = useState<string | undefined>(undefined)
+  const [keepLocalRepos, setKeepLocalRepos] = useState<string >()
+  const [clonePath, setClonePath] = useState<string>()
 
   const [state, setState] = useState<'loading' | 'ready'>('loading')
   useEffect(() => {
@@ -172,9 +171,9 @@ export const SettingsPage = () => {
         <Button
           variant={"contained"}
           onClick={() => {
-            updateMegaSettings((draft) => {
-              draft.clonePath = clonePath;
-              draft.keepLocalReposPath = keepLocalRepos;
+            updateMegaSettings(async (draft) => {
+              if(clonePath) draft.clonePath = clonePath;
+              if(keepLocalRepos) draft.keepLocalReposPath = keepLocalRepos;
             }).then(_ => info('Updated settings'))
               .catch((e) => error(`Failed updating settings: ${asString(e)}`))
           }}

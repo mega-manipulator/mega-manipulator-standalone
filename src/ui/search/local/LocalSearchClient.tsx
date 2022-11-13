@@ -1,4 +1,4 @@
-import {MegaSettingsType} from "../../../hooks/MegaContext";
+import {MegaSettingsType} from "../../../hooks/settings";
 import {SearchHit} from "../types";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
 import {listRepos, pathToSearchHit} from "../../../service/file/cloneDir";
@@ -12,9 +12,9 @@ export interface LocalSearchClientWrapper {
 }
 
 export const useLocalSearchClient: (
-  settings: MegaSettingsType | null | undefined,
+  settings: MegaSettingsType,
 ) => LocalSearchClientWrapper = (
-  settings: MegaSettingsType | null | undefined
+  settings: MegaSettingsType,
 ) => {
   const [wrapper, setWrapper] = useState<LocalSearchClientWrapper>({client: undefined, error: 'Not yet initialized'})
   useEffect(() => {

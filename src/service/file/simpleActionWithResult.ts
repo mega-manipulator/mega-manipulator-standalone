@@ -1,5 +1,5 @@
 import {SearchHit} from "../../ui/search/types";
-import {MegaSettingsType} from "../../hooks/MegaContext";
+import {MegaSettingsType} from "../../hooks/settings";
 import {homeDir} from "@tauri-apps/api/path";
 import {WorkMeta, WorkResult, WorkResultKind, WorkResultStatus} from "../types";
 import {path} from "@tauri-apps/api";
@@ -15,13 +15,13 @@ export interface SimpleActionProps {
 /**
  * Run stuff in parallel
  */
-export async function simpleAction<T = any>(input: SimpleActionProps, action: (index: number, hit: SearchHit, path: string) => Promise<T>, errMapper:(hit:SearchHit, err:unknown) => Promise<T>): Promise<(T)[]> {
+export async function simpleAction<T = any>(input: SimpleActionProps, action: (index: number, hit: SearchHit, path: string) => Promise<T>, errMapper: (hit: SearchHit, err: unknown) => Promise<T>): Promise<(T)[]> {
   const clonePath = await validClonePath(input.settings)
   const promises: Promise<T>[] = input.hits.map((hit, i) => new Promise(async () => {
     const p = await path.join(clonePath, hit.codeHost, hit.owner, hit.repo);
     try {
       return await action(i, hit, p);
-    }catch (e) {
+    } catch (e) {
       await error('Failed action:' + e);
       return await errMapper(hit, e);
     }
@@ -29,7 +29,7 @@ export async function simpleAction<T = any>(input: SimpleActionProps, action: (i
   return await Promise.all(promises)
 }
 
-export interface SimpleActionWithResultProps extends SimpleActionProps{
+export interface SimpleActionWithResultProps extends SimpleActionProps {
   readonly workResultKind: WorkResultKind,
   readonly sourceString: string
 }
@@ -74,7 +74,7 @@ export async function simpleActionWithResult(input: SimpleActionWithResultProps,
   return {time};
 }
 
-async function validClonePath(settings: MegaSettingsType):Promise<string> {
+async function validClonePath(settings: MegaSettingsType): Promise<string> {
   const home: string = await homeDir();
   const clonePath = settings.clonePath
   if (!clonePath) throw new Error('Clone/work-path not set')

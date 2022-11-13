@@ -1,11 +1,10 @@
 import {SearchHit} from "../../ui/search/types";
 import {WorkMeta, WorkProgress, WorkProgressTracker, WorkResult} from "../types";
 import {sleep} from "../delay";
-import {MegaSettingsType} from "../../hooks/MegaContext";
+import {MegaSettingsType} from "../../hooks/settings";
 import {homeDir, join} from '@tauri-apps/api/path';
 import {fs, path} from "@tauri-apps/api";
 import {createDir, FileEntry, removeDir} from "@tauri-apps/api/fs";
-import {ChildProcess} from "@tauri-apps/api/shell";
 import {copyDir} from "../file/copyDirService";
 import {runCommand, saveResultToStorage} from "../work/workLog";
 import {debug, error, info} from "tauri-plugin-log-api";
@@ -161,7 +160,6 @@ async function gitFetch(repoDir: string, mainBranch: string, branch: string, met
     }
   }
 }
-
 
 
 export async function getGitDir(basePath: string | undefined, searchHit: SearchHit) {

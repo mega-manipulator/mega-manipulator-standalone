@@ -1,7 +1,5 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useContext, useEffect, useMemo, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
-import {useMutableMegaSettings} from "../../hooks/useMegaSettings";
-import {MegaSettingsType, SourceGraphSearchHostSettings} from "../../hooks/MegaContext";
 import {useMutableState} from "../../hooks/useMutableState";
 import {
   Alert,
@@ -23,8 +21,10 @@ import {locations} from "../route/locations";
 import {PasswordForm} from "./PasswordForm";
 import {asString} from "../../hooks/logWrapper";
 import DeleteIcon from '@mui/icons-material/Delete';
+import {MegaSettingsType, SourceGraphSearchHostSettings} from "../../hooks/settings";
+import {MegaContext} from "../../hooks/MegaContext";
 
-function codeHostStyle(key: string, settings: MegaSettingsType | undefined | null): React.CSSProperties {
+function codeHostStyle(key: string, settings: MegaSettingsType): React.CSSProperties {
   if (settings && !settings.codeHosts[key]) {
     debug('ERGHT')
     return {
@@ -39,7 +39,7 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
   const nav = useNavigate()
   const {searchHostKey} = useParams()
   const [newSearchHostKey, setNewSearchHostKey] = useState<string>()
-  const {megaSettings, updateMegaSettings} = useMutableMegaSettings();
+  const {settings:megaSettings, updateSettings:updateMegaSettings} = useContext(MegaContext);
   const [settings, setSettings] = useState<SourceGraphSearchHostSettings>()
 
   const [newMappingKey, setNewMappingKey] = useState<string>()
@@ -190,7 +190,7 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
         disabled={!validateSearchHost}
         onClick={() => {
           if (searchHost && validateSearchHost) {
-            updateMegaSettings((draft) => {
+            updateMegaSettings(async (draft) => {
               if (searchHostKey) {
                 draft.searchHosts[searchHostKey].type = "SOURCEGRAPH"
                 draft.searchHosts[searchHostKey].sourceGraph = searchHost

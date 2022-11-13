@@ -1,14 +1,10 @@
-import {info} from "tauri-plugin-log-api";
-import {type} from "@tauri-apps/api/os";
-
-// @ts-ignore
 export function asString(str: unknown): string {
-  if (str === null){
+  if (str === null) {
     return 'null'
   }
   switch (typeof str) {
     case "undefined":
-      return `undefined`
+      return 'undefined'
     case "boolean":
     case "number":
     case "bigint":
@@ -19,9 +15,11 @@ export function asString(str: unknown): string {
     case "symbol":
       return `SYMBOL:${str.description}`
     case "object":
-      if(Object.keys(str).length === 0 && typeof str.toString === 'function'){
+      if (Object.keys(str).length === 0 && typeof str.toString === 'function') {
         return str.toString()
       }
       return JSON.stringify(str)
+    default:
+      return '???'
   }
 }

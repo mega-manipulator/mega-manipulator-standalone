@@ -1,5 +1,5 @@
-import {MegaSettingsType} from "../../hooks/MegaContext";
-import { useState} from "react";
+import {MegaSettingsType} from "../../hooks/settings";
+import {useState} from "react";
 
 export class SearchHit {
   public readonly searchHost: string | null;
@@ -32,7 +32,7 @@ export interface SearchClient {
 
 export type SearchPageState = 'loading' | 'ready' | 'searching'
 
-export function useSearchFieldProps(settings: MegaSettingsType | null | undefined): SearchFieldProps {
+export function useSearchFieldProps(settings: MegaSettingsType): SearchFieldProps {
   const [state, setState] = useState<SearchPageState>('loading')
   const [searchHostKey, setSearchHostKey] = useState<string>('LOCAL')
   const [hits, setHits] = useState<SearchHit[]>([])
@@ -57,7 +57,7 @@ export class SearchFieldProps {
   readonly setSearchHostKey: (searchHostKey: string) => void;
   readonly hits: SearchHit[];
   readonly setHits: (hits: SearchHit[]) => void;
-  readonly settings: MegaSettingsType | null | undefined;
+  readonly settings: MegaSettingsType;
   readonly max: number;
   readonly setMax: (max: number) => void;
 

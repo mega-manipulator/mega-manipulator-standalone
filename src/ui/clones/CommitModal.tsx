@@ -2,7 +2,7 @@ import {Box, CircularProgress, FormControlLabel, Modal, TextField} from "@mui/ma
 import {SearchHit} from "../search/types";
 import {useState} from "react";
 import {modalStyle} from "../modal/megaModal";
-import {MegaSettingsType} from "../../hooks/MegaContext";
+import {MegaSettingsType} from "../../hooks/settings";
 
 export type CommitModalProps = {
   searchHits: SearchHit[],

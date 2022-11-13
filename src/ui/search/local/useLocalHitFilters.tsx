@@ -1,10 +1,10 @@
 import {useEffect, useState} from "react";
-import {MegaSettingsType} from "../../../hooks/MegaContext";
+import {MegaSettingsType} from "../../../hooks/settings";
 import {fs, path} from "@tauri-apps/api";
-import {debug} from "tauri-plugin-log-api";
+import {trace} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
 
-export function useCodeHostFilter(settings: MegaSettingsType | null | undefined): string[] {
+export function useCodeHostFilter(settings: MegaSettingsType): string[] {
   const [codeHosts, setCodeHosts] = useState<string[]>([])
   useEffect(() => {
     (async () => {
@@ -20,7 +20,7 @@ export function useCodeHostFilter(settings: MegaSettingsType | null | undefined)
 }
 
 export function useOwnerFilter(
-  settings: MegaSettingsType | null | undefined,
+  settings: MegaSettingsType,
   codeHost: string,
 ): string[] {
   const [owners, setOwners] = useState<string[]>([])
@@ -39,7 +39,7 @@ export function useOwnerFilter(
 }
 
 export function useRepoFilter(
-  settings: MegaSettingsType | null | undefined,
+  settings: MegaSettingsType,
   codeHost: string,
   owner: string,
 ): string[] {
@@ -64,6 +64,6 @@ async function getDirNames(p: string): Promise<string[]> {
     .filter((f) => f.children !== undefined && f.name !== undefined)
     .map((f) => f.name)
     .map((f) => f as string);
-  await debug(`Read dir ${p}. It had this content: ${asString(fileEntries)}, these are the dirs: ${asString(dirs)}`)
+  await trace(`Read dir ${p}. It had this content: ${asString(fileEntries)}, these are the dirs: ${asString(dirs)}`)
   return dirs;
 }

@@ -11,14 +11,13 @@ import {
   Tooltip,
   Typography
 } from "@mui/material";
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useContext, useEffect, useState} from "react";
 import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, Report} from "../../service/file/cloneDir";
-import {useMegaSettings} from "../../hooks/useMegaSettings";
-import {MegaSettingsType} from "../../hooks/MegaContext";
 import {GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
 import MenuIcon from "@mui/icons-material/Menu";
 import {DeleteMenuItem} from "./DeleteMenuItem";
 import {DataGridPro} from "@mui/x-data-grid-pro";
+import {MegaContext} from "../../hooks/MegaContext";
 
 const renderBoolCell = (params: GridRenderCellParams) => {
   const report = params.value as Report
@@ -54,7 +53,7 @@ const columns: GridColDef[] = [
 ];
 
 export const ClonesPage: React.FC = () => {
-  const settings: MegaSettingsType | null = useMegaSettings()
+  const {settings} = useContext(MegaContext)
   const [state, setState] = useState<'loading' | 'ready'>('loading')
 
   const [repoStates, setRepoStates] = useState<RepoBadStatesReport[]>([])

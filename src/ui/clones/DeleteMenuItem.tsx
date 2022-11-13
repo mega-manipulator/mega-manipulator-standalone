@@ -6,10 +6,10 @@ import {useNavigate} from "react-router-dom";
 import {fs, path} from "@tauri-apps/api";
 import {error} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
-import {MegaSettingsType} from "../../hooks/MegaContext";
+import {MegaSettingsType} from "../../hooks/settings";
 
 export type DeleteMenuItemProps = {
-  settings: MegaSettingsType | null,
+  settings: MegaSettingsType,
   repos: RepoBadStatesReport[],
   reloadCallback: ()=>void,
 }

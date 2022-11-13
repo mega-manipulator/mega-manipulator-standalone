@@ -1,10 +1,11 @@
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {
   Alert,
   Backdrop,
   Box,
   Button,
-  CircularProgress, FormControl,
+  CircularProgress,
+  FormControl,
   FormHelperText,
   MenuItem,
   Select,
@@ -12,9 +13,8 @@ import {
 } from "@mui/material";
 import {useSearchFieldProps} from "./types";
 import {SearchHitTable} from "./SearchHitTable";
-import {useMegaSettings} from "../../hooks/useMegaSettings";
 import {CloneModal, CloneModalPropsWrapper, useCloneModalProps} from "../manage/clones/clonepage/CloneModal";
-import {MegaSettingsType} from "../../hooks/MegaContext";
+import {MegaContext} from "../../hooks/MegaContext";
 import {info} from "tauri-plugin-log-api";
 import {modalStyle} from "../modal/megaModal";
 import ErrorBoundary from "../error/ErrorBoundry";
@@ -26,7 +26,7 @@ import {locations} from "../route/locations";
 
 export const SearchPage: React.FC = () => {
   const nav = useNavigate()
-  const settings: MegaSettingsType | null = useMegaSettings()
+  const {settings} = useContext(MegaContext)
   const searchFieldProps = useSearchFieldProps(settings)
 
   const cloneModalPropsWrapper: CloneModalPropsWrapper = useCloneModalProps()

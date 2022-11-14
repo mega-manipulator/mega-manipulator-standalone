@@ -1,9 +1,10 @@
 import {useGitHubClient} from "./useGitHubClient";
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
 import {error, info, warn} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
 import {SearchFieldProps} from "../types";
+import {MegaContext} from "../../../hooks/MegaContext";
 
 export interface GitHubSearchFieldProps {
   readonly searchFieldProps: SearchFieldProps;
@@ -13,10 +14,11 @@ type SearchType = 'CODE' | 'REPO'
 const allSearchTypes: SearchType[] = ['CODE', 'REPO']
 
 export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchFieldProps}) => {
+  const {search: {setHits: setSearchHits}} = useContext(MegaContext);
   const {
     searchClient,
     searchClientInitError
-  } = useGitHubClient(searchFieldProps?.settings, searchFieldProps?.searchHostKey)
+  } = useGitHubClient(searchFieldProps?.searchHostKey)
   useEffect(() => {
     searchFieldProps?.setState(searchClient ? 'ready' : 'loading')
   }, [searchClient])
@@ -61,7 +63,7 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
       onClick={() => {
         if (searchClient !== undefined) {
           searchFieldProps?.setState('searching')
-          searchFieldProps?.setHits([])
+          setSearchHits([])
           let promise;
           switch (searchType) {
             case "CODE":
@@ -75,7 +77,7 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
           }
           if (promise !== undefined) {
             promise.then((hits) => {
-              searchFieldProps?.setHits(hits)
+              setSearchHits(hits)
               info(`Found ${hits.length} hits`)
             })
               .catch((e) => error(`Failed searching ${asString(e)}`))

@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import {Alert, Box, Button, ListItemButton, Modal} from "@mui/material";
 import {RepoBadStatesReport} from "../../service/file/cloneDir";
 import {modalStyle} from "../modal/megaModal";
-import {useNavigate} from "react-router-dom";
 import {fs, path} from "@tauri-apps/api";
 import {error} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
@@ -15,7 +14,6 @@ export type DeleteMenuItemProps = {
 }
 
 export const DeleteMenuItem: React.FC<DeleteMenuItemProps> = ({settings, repos, reloadCallback}) => {
-  const nav = useNavigate()
   const [showModal, setShowModal] = useState(false)
   const [used, setUsed] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
@@ -31,7 +29,7 @@ export const DeleteMenuItem: React.FC<DeleteMenuItemProps> = ({settings, repos, 
         setErrors([])
         setShowModal(true)
       }}
-    >Delete</ListItemButton>
+    >Delete Clones</ListItemButton>
     <Modal open={showModal} onClose={() => {
       setShowModal(false)
       reloadCallback()

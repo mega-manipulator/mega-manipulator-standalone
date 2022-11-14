@@ -10,10 +10,11 @@ const items: {
   title: string;
 }[] = [
   {nav: locations.settings.link, title: 'Settings'},
-  {nav: locations.search.link, title: 'Search'},
+  {nav: locations.search.link, title: 'Search Code'},
   {nav: locations.clones.link, title: 'Clones'},
   {nav: locations.result.link, title: 'Result'},
   {nav: locations.logs.link, title: 'Logs'},
+  {nav: locations.pullRequests.link, title: 'Search Pull Requests'},
 ]
 
 export const AppMenu: React.FC = () => {

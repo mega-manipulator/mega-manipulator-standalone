@@ -1,4 +1,3 @@
-
 export const locations = {
   settings: {
     link: '/settings',
@@ -27,5 +26,8 @@ export const locations = {
   },
   logs: {
     link: '/logs'
+  },
+  pullRequests: {
+    link: '/pull-requests'
   }
 }

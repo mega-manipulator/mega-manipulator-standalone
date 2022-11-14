@@ -14,7 +14,6 @@ import {
   Tooltip,
   Typography
 } from "@mui/material";
-import {SearchHit} from "../../../search/types";
 import {modalStyle} from "../../../modal/megaModal";
 import {clone} from "../../../../service/git/cloneWorker";
 import {WorkProgress} from "../../../../service/types";
@@ -23,6 +22,7 @@ import {useNavigate} from "react-router-dom";
 import {locations} from "../../../route/locations";
 import {error, info} from "tauri-plugin-log-api";
 import {MegaContext} from "../../../../hooks/MegaContext";
+import {SearchHit} from "../../../search/types";
 
 export type CloneModalPropsWrapper = {
   cloneModalPropsWrapper: CloneModalProps

@@ -1,7 +1,8 @@
 import {GithubClient} from "../../../hooks/github.com";
-import {GitHubSearchHostSettings, MegaSettingsType} from "../../../hooks/settings";
+import {GitHubSearchHostSettings} from "../../../hooks/settings";
 import {getPassword} from "../../../hooks/usePassword";
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
+import {MegaContext} from "../../../hooks/MegaContext";
 
 export interface GithubClientWrapper {
   searchClient?: GithubClient,
@@ -36,9 +37,9 @@ async function bakeGithubClient(
 }
 
 export const useGitHubClient: (
-  settings: MegaSettingsType,
-  searchHostKey: string | null | undefined,
-) => GithubClientWrapper = (settings, searchHostKey) => {
+  searchHostKey: string | undefined,
+) => GithubClientWrapper = (searchHostKey) => {
+  const {settings} = useContext(MegaContext);
   const [wrapper, setWrapper] = useState<GithubClientWrapper>({searchClientInitError: 'Not initialized'})
   useEffect(() => {
     (async () => {

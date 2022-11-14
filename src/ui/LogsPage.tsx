@@ -1,15 +1,14 @@
-import {Avatar, Button, Checkbox, Fade, Grid, IconButton, Radio, Typography, useScrollTrigger} from "@mui/material";
+import {Avatar, Fade, Grid, Radio, Typography, useScrollTrigger} from "@mui/material";
 import React, {useEffect, useRef, useState} from "react";
 import {logDir} from "@tauri-apps/api/path";
 import {fs, path} from "@tauri-apps/api";
-import {debug, error, trace} from "tauri-plugin-log-api";
+import {debug, error} from "tauri-plugin-log-api";
 import {asString} from "../hooks/logWrapper";
 import {KeyboardDoubleArrowUpRounded} from "@mui/icons-material";
 
 type LogLevel = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE'
 
 export const LogsPage: React.FC = () => {
-  const [tail, setTail] = useState<boolean>(true)
   const bottomRef = useRef<HTMLSpanElement | null>(null)
   const topRef = useRef<HTMLSpanElement | null>(null)
   const trigger = useScrollTrigger({
@@ -28,7 +27,7 @@ export const LogsPage: React.FC = () => {
       setLogFiles(logFiles)
     })()
   }, [])
-  const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null)
+  const [selectedLogFile, setSelectedLogFile] = useState<string>()
   useEffect(() => {
     // Reset the selected logFile when the files change, for any reason
     if (logFiles.length > 0) {
@@ -40,44 +39,36 @@ export const LogsPage: React.FC = () => {
         return;
       }
     }
-    setSelectedLogFile(null);
+    setSelectedLogFile(undefined);
   }, [logFiles])
-  const [logFileContent, setLogFileContent] = useState<string | null>(null);
+  const [logFileContent, setLogFileContent] = useState<string>();
   useEffect(() => {
-    const refreshFileContent = (async (doScroll:boolean) => {
-      if (selectedLogFile !== null) {
+    const refreshFileContent = (async () => {
+      if (selectedLogFile) {
         try {
           const fullPath = await path.join(await logDir(), selectedLogFile)
           setLogFileContent(await fs.readTextFile(fullPath));
-          if(doScroll) {
-            bottomRef.current?.scrollIntoView()
-          }
-          trace('File content refreshed! ' + tail + ' logFileContent.length:' + logFileContent?.length)
         } catch (e) {
           error(asString(e))
         }
       } else {
-        setLogFileContent(null)
+        setLogFileContent(undefined)
       }
     });
-    refreshFileContent(tail)
-    if(tail) {
-      const id = setInterval(()=>refreshFileContent(true), 1000)
-      return () => clearInterval(id)
-    }
-  }, [selectedLogFile, tail]);
+    refreshFileContent()
+  }, [selectedLogFile]);
 
 
   return <>
     <span ref={topRef}/>
     <Typography variant={'h4'}>Logs</Typography>
-    <Fade in={trigger && !tail} style={{position: "fixed", bottom: 10, right: 10}}>
+    <Fade in={trigger} style={{position: "fixed", bottom: 10, right: 10}}>
 
       <Avatar onClick={() => {
         if (typeof topRef.current?.scrollIntoView === 'function') {
           debug('Scroll to top')
           topRef.current.scrollIntoView();
-        }else{
+        } else {
           debug('topRef.current.scrollIntoView not set')
         }
       }}><KeyboardDoubleArrowUpRounded/></Avatar>
@@ -94,8 +85,7 @@ export const LogsPage: React.FC = () => {
         />{f}
       </Grid>)}
     </Grid>
-    {}
-    <Checkbox checked={tail} onClick={(_) => setTail(!tail)}/> Tail
+
     <hr/>
     <div>
       <pre>
@@ -103,9 +93,7 @@ export const LogsPage: React.FC = () => {
           'Hello world, here I want to have the selected log file content'}
       </pre>
     </div>
-    <div>
-      <Checkbox checked={tail} onClick={(_) => setTail(!tail)}/> Tail
-    </div>
+
     <span ref={bottomRef}>&nbsp;</span>
   </>
 }

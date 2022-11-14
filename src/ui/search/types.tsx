@@ -32,21 +32,17 @@ export interface SearchClient {
 
 export type SearchPageState = 'loading' | 'ready' | 'searching'
 
-export function useSearchFieldProps(settings: MegaSettingsType): SearchFieldProps {
+export function useSearchFieldProps(): SearchFieldProps {
   const [state, setState] = useState<SearchPageState>('loading')
   const [searchHostKey, setSearchHostKey] = useState<string>('LOCAL')
-  const [hits, setHits] = useState<SearchHit[]>([])
   const [max, setMax] = useState<number>(100)
   return {
     state,
     setState,
     searchHostKey,
     setSearchHostKey,
-    hits,
-    setHits,
     max,
     setMax,
-    settings,
   }
 }
 
@@ -55,9 +51,6 @@ export class SearchFieldProps {
   readonly setState: (state: SearchPageState) => void;
   readonly searchHostKey: string;
   readonly setSearchHostKey: (searchHostKey: string) => void;
-  readonly hits: SearchHit[];
-  readonly setHits: (hits: SearchHit[]) => void;
-  readonly settings: MegaSettingsType;
   readonly max: number;
   readonly setMax: (max: number) => void;
 
@@ -76,9 +69,6 @@ export class SearchFieldProps {
     this.setState = setState;
     this.searchHostKey = searchHostKey;
     this.setSearchHostKey = setSearchHostKey;
-    this.hits = hits;
-    this.setHits = setHits;
-    this.settings = settings;
     this.max = max;
     this.setMax = setMax;
   }

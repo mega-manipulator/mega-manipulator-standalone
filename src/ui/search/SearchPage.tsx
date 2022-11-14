@@ -26,8 +26,8 @@ import {locations} from "../route/locations";
 
 export const SearchPage: React.FC = () => {
   const nav = useNavigate()
-  const {settings} = useContext(MegaContext)
-  const searchFieldProps = useSearchFieldProps(settings)
+  const {settings, search:{selected}} = useContext(MegaContext)
+  const searchFieldProps = useSearchFieldProps()
 
   const cloneModalPropsWrapper: CloneModalPropsWrapper = useCloneModalProps()
   const cloneModalProps = cloneModalPropsWrapper.cloneModalPropsWrapper
@@ -89,11 +89,9 @@ export const SearchPage: React.FC = () => {
       <Button
         variant={"contained"}
         color={"info"}
-        disabled={cloneModalProps.searchHits.length === 0}
+        disabled={selected.length === 0}
         onClick={cloneModalProps.open}
       >Clone</Button>}
-    <SearchHitTable
-      data={searchFieldProps?.hits ?? []}
-      selectionCallback={cloneModalProps.setSearchHits}/>
+    <SearchHitTable/>
   </>
 }

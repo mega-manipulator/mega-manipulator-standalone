@@ -1,11 +1,12 @@
-import {cloneUrl, SourceGraphSearchHostSettings} from "../../../hooks/settings";
+import {cloneUrl, MegaSettingsType, SourceGraphSearchHostSettings} from "../../../hooks/settings";
 import {SourceGraphSearchFieldProps} from "./SourceGraphSearchField";
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {getPassword} from "../../../hooks/usePassword";
 import axios from "axios";
 import {debug, error, warn} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
 import {SearchHit} from "../types";
+import {MegaContext} from "../../../hooks/MegaContext";
 
 export interface SourceGraphClientWrapper {
   client: SourceGraphClient | undefined;
@@ -64,19 +65,22 @@ const sourceGraphGraphQlString = `query Search($query: String!) {
 export class SourceGraphClient {
   readonly token: string;
   readonly baseUrl: string;
-  readonly settings: SourceGraphSearchHostSettings;
+  readonly searchSettings: SourceGraphSearchHostSettings;
   readonly props: SourceGraphSearchFieldProps;
+  readonly settings: MegaSettingsType;
 
   constructor(
     token: string,
     baseUrl: string,
-    settings: SourceGraphSearchHostSettings,
+    searchSettings: SourceGraphSearchHostSettings,
     props: SourceGraphSearchFieldProps,
+  settings: MegaSettingsType,
   ) {
     this.token = token;
     this.baseUrl = baseUrl;
-    this.settings = settings;
+    this.searchSettings = searchSettings;
     this.props = props;
+    this.settings = settings;
   }
 
   async searchCode(searchString: string, max?: number): Promise<SearchHit[]> {
@@ -95,7 +99,7 @@ export class SourceGraphClient {
       debug('Requesting data from sourcegraph')
       const response = await axios({
         method: "POST",
-        url: `${selfRef.settings.baseUrl}/.api/graphql`,
+        url: `${selfRef.searchSettings.baseUrl}/.api/graphql`,
         headers: {
           Authorization: `token ${this.token}`,
           Accept: 'application/json',
@@ -149,10 +153,10 @@ export class SourceGraphClient {
           // TODO: Get our code host from sourceGraph code host
           const sgCodeHost = parts[0];
           debug(`sgCodeHost: ${sgCodeHost}`)
-          const codeHostKey = this.settings.codeHosts[sgCodeHost]
-          if(!codeHostKey) throw new Error(`CodeHost '${sgCodeHost}->${codeHostKey}' not mapped, ${asString(this.settings.codeHosts)}`)
+          const codeHostKey = this.searchSettings.codeHosts[sgCodeHost]
+          if(!codeHostKey) throw new Error(`CodeHost '${sgCodeHost}->${codeHostKey}' not mapped, ${asString(this.searchSettings.codeHosts)}`)
 
-          const codeHost = this.props.searchFieldProps.settings?.codeHosts[codeHostKey]
+          const codeHost = this.settings.codeHosts[codeHostKey]
           const searchHost = this.props.searchFieldProps.searchHostKey;
           const owner = parts[1];
           const repoName = parts[2];
@@ -171,8 +175,9 @@ export class SourceGraphClient {
 }
 
 export function useSourceGraphClient(
-  props: SourceGraphSearchFieldProps | null | undefined,
+  props: SourceGraphSearchFieldProps,
 ): SourceGraphClientWrapper {
+  const {settings} = useContext(MegaContext);
   const [wrapper, setWrapper] = useState<SourceGraphClientWrapper>({error: 'Not yet initialized', client: undefined})
   useEffect(() => {
     (async () => {
@@ -182,11 +187,11 @@ export function useSourceGraphClient(
       } else if (!props) {
         setWrapper({error: 'props not set/initialized', client: undefined});
         return;
-      } else if (!props?.searchFieldProps?.settings) {
+      } else if (!settings) {
         setWrapper({error: 'settings not set/initialized', client: undefined});
         return;
       }
-      const sourceGraphSettings = props?.searchFieldProps?.settings?.searchHosts[props?.searchFieldProps?.searchHostKey]?.sourceGraph
+      const sourceGraphSettings = settings?.searchHosts[props?.searchFieldProps?.searchHostKey]?.sourceGraph
       if (!sourceGraphSettings) {
         setWrapper({error: 'sourceGraphSettings is not defined', client: undefined});
         return;
@@ -206,8 +211,8 @@ export function useSourceGraphClient(
         setWrapper({error: 'password is not defined', client: undefined});
         return;
       }
-      setWrapper({error: undefined, client: new SourceGraphClient(password, baseUrl, sourceGraphSettings, props)})
+      setWrapper({error: undefined, client: new SourceGraphClient(password, baseUrl, sourceGraphSettings, props, settings)})
     })()
-  }, [props, props?.searchFieldProps?.searchHostKey, props?.searchFieldProps?.settings])
+  }, [props, props?.searchFieldProps?.searchHostKey, settings])
   return wrapper;
 }

@@ -1,15 +1,16 @@
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {SearchFieldProps} from "../types";
-import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField, Typography} from "@mui/material";
+import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
 import {warn} from "tauri-plugin-log-api";
-import {SourceGraphSearchHandle, useSourceGraphClient} from "./SourceGraphClient";
-import {asString} from "../../../hooks/logWrapper";
+import {useSourceGraphClient} from "./SourceGraphClient";
+import {MegaContext} from "../../../hooks/MegaContext";
 
 export type SourceGraphSearchFieldProps = {
   readonly searchFieldProps: SearchFieldProps;
 }
 
 export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (props) => {
+  const {search: {setHits: setSearchHits}} = useContext(MegaContext);
   const [searchText, setSearchText] = useState('tauri count:all select:repo')
   const [max, setMax] = useState(100)
   const clientWrapper = useSourceGraphClient(props)
@@ -50,10 +51,11 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
       disabled={props?.searchFieldProps?.state !== 'ready' || searchText.length === 0}
       onClick={() => {
         if (clientWrapper.client) {
+          setSearchHits([])
           props.searchFieldProps.setState('searching')
           clientWrapper.client.searchCode(searchText, max)
             .then((hits) => {
-              props.searchFieldProps.setHits(hits)
+              setSearchHits(hits)
             })
             .finally(() => props.searchFieldProps.setState('ready'))
         } else {

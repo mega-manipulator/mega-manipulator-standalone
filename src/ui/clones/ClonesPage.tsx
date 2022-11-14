@@ -114,8 +114,8 @@ export const ClonesPage: React.FC = () => {
       <Typography>Do stuff with {selectedRepos.length} repos</Typography>
       <List>
         <DeleteMenuItem reloadCallback={reloadTrigger} settings={settings} repos={selectedRepos}/>
-        <ListItemButton disabled={true}>Stage</ListItemButton>
         <ListItemButton disabled={true}>Make Changes</ListItemButton>
+        <ListItemButton disabled={true}>Stage</ListItemButton>
         <ListItemButton disabled={true}>Commit</ListItemButton>
         <ListItemButton disabled={true}>Push</ListItemButton>
       </List>

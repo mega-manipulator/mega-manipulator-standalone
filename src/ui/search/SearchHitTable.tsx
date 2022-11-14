@@ -1,36 +1,32 @@
-import React from "react";
+import React, {useContext} from "react";
 import {Box} from "@mui/material";
 import {GridColDef, GridRowId} from "@mui/x-data-grid";
-import {SearchHit} from "./types";
 import {DataGridPro} from "@mui/x-data-grid-pro";
+import {MegaContext} from "../../hooks/MegaContext";
 
-export type SearchHitTableProps = {
-  data: SearchHit[],
-  selectionCallback: (selected: SearchHit[]) => void,
-}
+const columns: GridColDef[] = [
+  {field: 'id', hideable: true, width: 100, hide: true},
+  {field: 'searchHost', headerName: 'Search Host', width: 100, editable: false},
+  {field: 'codeHost', headerName: 'Code Host', width: 100, editable: false},
+  {field: 'owner', headerName: 'Owner', width: 200, editable: false},
+  {field: 'repo', headerName: 'Repo', width: 200, editable: false},
+  {field: 'description', headerName: 'Description', width: 100, editable: false},
+];
 
-export const SearchHitTable: React.FC<SearchHitTableProps> = ({data, selectionCallback}) => {
-  const columns: GridColDef[] = [
-    {field: 'id', hideable: true, width: 100, hide: true},
-    {field: 'searchHost', headerName: 'Search Host', width: 100, editable: false},
-    {field: 'codeHost', headerName: 'Code Host', width: 100, editable: false},
-    {field: 'owner', headerName: 'Owner', width: 200, editable: false},
-    {field: 'repo', headerName: 'Repo', width: 200, editable: false},
-    {field: 'description', headerName: 'Description', width: 100, editable: false},
-  ];
-
+export const SearchHitTable: React.FC = () => {
+  const {search: {hits, setSelected}} = useContext(MegaContext);
   return (
-    <Box sx={{ width: '100%'}}>
+    <Box sx={{width: '100%'}}>
       <DataGridPro
         autoHeight
-        rows={data.map((d, i) => {
+        rows={hits.map((d, i) => {
           return {
             id: i,
             ...d
           }
         })}
         onSelectionModelChange={(model: GridRowId[]) => {
-          selectionCallback(model.map((id) => data[+id]))
+          setSelected(model.map((id) => hits[+id]))
         }}
         columns={columns}
         autoPageSize

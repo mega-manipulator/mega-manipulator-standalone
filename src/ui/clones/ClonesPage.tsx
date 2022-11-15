@@ -18,6 +18,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import {DeleteMenuItem} from "./DeleteMenuItem";
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import {MegaContext} from "../../hooks/MegaContext";
+import {OpenProjectsMenuItem} from "./OpenProjectsMenuItem";
 
 const renderBoolCell = (params: GridRenderCellParams) => {
   const report = params.value as Report
@@ -45,7 +46,8 @@ const boolCellProps = {
 }
 const columns: GridColDef[] = [
   {field: 'id', hideable: true, minWidth: 25, maxWidth: 100, hide: true},
-  {field: 'repoPath', headerName: 'Repo Path', width: 800, maxWidth: 800, editable: false, resizable: true},
+  {field: 'repoPathShort', headerName: 'Repo Path', width: 800, maxWidth: 800, editable: false, resizable: true},
+  {field: 'repoPathLong', headerName: 'Repo Path (Long)', width: 800, maxWidth: 800, editable: false, resizable: true, hideable:true, hide:true},
   {field: 'noCodeHostConfig', headerName: 'Has Code Host Config', ...boolCellProps,},
   {field: 'uncommittedChanges', headerName: 'Uncommitted Changes', ...boolCellProps,},
   {field: 'onDefaultBranch', headerName: 'Not On Default Branch', ...boolCellProps,},
@@ -53,7 +55,7 @@ const columns: GridColDef[] = [
 ];
 
 export const ClonesPage: React.FC = () => {
-  const {settings} = useContext(MegaContext)
+  const {settings, clones: {setPaths, setSelected}} = useContext(MegaContext)
   const [state, setState] = useState<'loading' | 'ready'>('loading')
 
   const [repoStates, setRepoStates] = useState<RepoBadStatesReport[]>([])
@@ -64,7 +66,11 @@ export const ClonesPage: React.FC = () => {
     if (settings !== null) {
       (async () => {
         const paths = await listRepos(settings.clonePath);
-        setRepoStates(paths.map((path) => new RepoBadStatesReport(path)));
+        setPaths(paths)
+        setRepoStates(paths.map((path) => {
+          const trimmedRepoPath = path.substring((settings.clonePath?.length ?? -1) + 1)
+          return new RepoBadStatesReport(path, trimmedRepoPath);
+        }));
         setState('ready')
         const analysis = await Promise.all(paths.map((path) => analyzeRepoForBadStates(settings, path)))
         setRepoStates(analysis)
@@ -94,7 +100,9 @@ export const ClonesPage: React.FC = () => {
           }
         })}
         onSelectionModelChange={(model: GridRowId[]) => {
-          setSelectedRepos(model.map((id) => repoStates[+id]))
+          const selectedRepoBadStatesReports = model.map((id) => repoStates[+id]);
+          setSelectedRepos(selectedRepoBadStatesReports)
+          setSelected(selectedRepoBadStatesReports.map((r) => r.repoPathLong))
         }}
         columns={columns}
         autoPageSize
@@ -114,6 +122,7 @@ export const ClonesPage: React.FC = () => {
       <Typography>Do stuff with {selectedRepos.length} repos</Typography>
       <List>
         <DeleteMenuItem reloadCallback={reloadTrigger} settings={settings} repos={selectedRepos}/>
+        <OpenProjectsMenuItem/>
         <ListItemButton disabled={true}>Make Changes</ListItemButton>
         <ListItemButton disabled={true}>Stage</ListItemButton>
         <ListItemButton disabled={true}>Commit</ListItemButton>

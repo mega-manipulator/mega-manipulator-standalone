@@ -79,14 +79,16 @@ export type Report = {
 export type ReportSate = 'good' | 'bad' | 'loading' | 'failed to execute'
 
 export class RepoBadStatesReport {
-  readonly repoPath: string;
+  readonly repoPathShort: string;
+  readonly repoPathLong: string;
   readonly uncommittedChanges: Report = {state: 'loading'};
   readonly onDefaultBranch: Report = {state: 'loading'};
   readonly noDiffWithOriginHead: Report = {state: 'loading'};
   readonly noCodeHostConfig: Report = {state: 'loading'};
 
-  constructor(repoPath: string) {
-    this.repoPath = repoPath;
+  constructor(repoPathLong: string, repoPathShort: string) {
+    this.repoPathShort = repoPathShort;
+    this.repoPathLong = repoPathLong;
   }
 }
 
@@ -106,7 +108,8 @@ export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPa
     }
 
     return {
-      repoPath: trimmedRepoPath,
+      repoPathLong: repoPath,
+      repoPathShort: trimmedRepoPath,
       uncommittedChanges,
       onDefaultBranch,
       noDiffWithOriginHead,
@@ -115,7 +118,8 @@ export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPa
   } catch (e) {
     error('Failed to execute: ' + asString(e))
     return {
-      repoPath: trimmedRepoPath,
+      repoPathLong: repoPath,
+      repoPathShort: trimmedRepoPath,
       uncommittedChanges: {state: "failed to execute", error: asString(e)},
       onDefaultBranch: {state: "failed to execute", error: asString(e)},
       noDiffWithOriginHead: {state: "failed to execute", error: asString(e)},

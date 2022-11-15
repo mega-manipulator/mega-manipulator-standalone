@@ -16,7 +16,7 @@ import {
   TextField,
   Typography
 } from "@mui/material";
-import {useLocation, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
 import {createDefault, MegaSettingsType} from "../../hooks/settings";
 import {error, info} from "tauri-plugin-log-api";
@@ -113,10 +113,10 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
 export const SettingsPage = () => {
   const {settings:megaSettings, updateSettings:updateMegaSettings} = useContext(MegaContext)
   const nav = useNavigate()
-  const location = useLocation()
 
   const [keepLocalRepos, setKeepLocalRepos] = useState<string >()
   const [clonePath, setClonePath] = useState<string>()
+  const [editorApplicationPath, setEditorApplicationPath] = useState<string>();
 
   const [state, setState] = useState<'loading' | 'ready'>('loading')
   useEffect(() => {
@@ -124,9 +124,11 @@ export const SettingsPage = () => {
       setKeepLocalRepos(megaSettings.keepLocalReposPath)
       setClonePath(megaSettings.clonePath)
       setState('ready')
+      setEditorApplicationPath(megaSettings.editorApplication)
     } else {
       setKeepLocalRepos(undefined)
       setClonePath(undefined)
+      setEditorApplicationPath(undefined)
       setState('loading')
     }
   }, [megaSettings])
@@ -149,9 +151,9 @@ export const SettingsPage = () => {
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
         <TextField
-          id='keep-local-repos-location-text-field'
+          id='keep-local-repos-path-text-field'
           fullWidth
-          label='Keep Local Repos location'
+          label='Keep Local Repos path'
           variant="outlined"
           value={keepLocalRepos}
           onChange={(event) => setKeepLocalRepos(event.target.value)}
@@ -159,12 +161,22 @@ export const SettingsPage = () => {
       </Grid>
       <Grid item xs={12} md={6}>
         <TextField
-          id='clone-repo-location-text-field'
+          id='clone-repo-path-text-field'
           fullWidth
-          label={'Clone Repos location'}
+          label={'Clone Repos path'}
           variant={"outlined"}
           value={clonePath}
           onChange={(event) => setClonePath(event.target.value)}
+        />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <TextField
+          id='editorApplication-text-field'
+          fullWidth
+          label={'Editor Application path'}
+          variant={"outlined"}
+          value={editorApplicationPath}
+          onChange={(event) => setEditorApplicationPath(event.target.value)}
         />
       </Grid>
       <Grid item xs={12}>
@@ -174,6 +186,7 @@ export const SettingsPage = () => {
             updateMegaSettings(async (draft) => {
               if(clonePath) draft.clonePath = clonePath;
               if(keepLocalRepos) draft.keepLocalReposPath = keepLocalRepos;
+              if(editorApplicationPath) draft.editorApplication = editorApplicationPath;
             }).then(_ => info('Updated settings'))
               .catch((e) => error(`Failed updating settings: ${asString(e)}`))
           }}

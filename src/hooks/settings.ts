@@ -11,6 +11,7 @@ export const baseSettings: () => MegaSettingsType = () => {
 
     keepLocalReposPath: '~/vcs/mega-manipulator/keep',
     clonePath: '~/vcs/mega-manipulator/work',
+    editorApplication: '',
 
     searchHosts: {
       "github.com": {
@@ -99,6 +100,7 @@ export interface MegaSettingsType {
   version: '1';
   keepLocalReposPath: string;
   clonePath: string;
+  editorApplication: string,
   searchHosts: { [key: string]: SearchHostSettings, };
   codeHosts: { [key: string]: CodeHostSettings, };
 }

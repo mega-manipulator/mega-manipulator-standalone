@@ -14,7 +14,12 @@
     "allowlist": {
       "fs": {
         "all": true,
-        "scope": ["$HOME/**"]
+        "scope": [
+          "$HOME/**"
+        ]
+      },
+      "os": {
+        "all": true
       },
       "shell": {
         "all": true,
@@ -38,6 +43,19 @@
             "cmd": "ripgrep",
             "name": "ripgrep",
             "args": true
+          },
+          {
+            "name": "open-osx",
+            "cmd": "open",
+            "args": [
+              "-a",
+              {
+                "validator": ".*"
+              },
+              {
+                "validator": ".*"
+              }
+            ]
           }
         ]
       },

@@ -10,7 +10,7 @@ import {MegaSettingsType} from "../../hooks/settings";
 export type DeleteMenuItemProps = {
   settings: MegaSettingsType,
   repos: RepoBadStatesReport[],
-  reloadCallback: ()=>void,
+  reloadCallback: () => void,
 }
 
 export const DeleteMenuItem: React.FC<DeleteMenuItemProps> = ({settings, repos, reloadCallback}) => {
@@ -50,7 +50,7 @@ export const DeleteMenuItem: React.FC<DeleteMenuItemProps> = ({settings, repos, 
               const basePath = settings.clonePath
               if (!basePath) return
               for (const repo of repos) {
-                const repoPath = await path.join(basePath, repo.repoPath)
+                const repoPath = await path.join(basePath, repo.repoPathShort)
                 try {
                   await fs.removeDir(repoPath, {recursive: true});
                 } catch (e) {

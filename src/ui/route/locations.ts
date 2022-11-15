@@ -29,5 +29,8 @@ export const locations = {
   },
   pullRequests: {
     link: '/pull-requests'
+  },
+  thanks: {
+    link: '/thanks'
   }
 }

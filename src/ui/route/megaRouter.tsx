@@ -13,6 +13,7 @@ import {ClonesPage} from "../clones/ClonesPage";
 import {LogsPage} from "../LogsPage";
 import {SourceGraphSearchHostSettingsPage} from "../settings/SourceGraphSearchHostSettingsPage";
 import {PullRequestSearchPage} from "../pullrequests/PullRequestSearchPage";
+import {ThanksPage} from "../ThanksPage";
 
 export const megaRouter = createMemoryRouter([
   {
@@ -75,6 +76,12 @@ export const megaRouter = createMemoryRouter([
       {
         path: locations.pullRequests.link,
         element: <PullRequestSearchPage/>,
+        errorElement: <RoutingErrorBoundary/>,
+      },
+
+      {
+        path: locations.thanks.link,
+        element: <ThanksPage/>,
         errorElement: <RoutingErrorBoundary/>,
       },
 

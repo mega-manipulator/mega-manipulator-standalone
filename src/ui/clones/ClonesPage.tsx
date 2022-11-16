@@ -18,7 +18,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import {DeleteMenuItem} from "./DeleteMenuItem";
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import {MegaContext} from "../../hooks/MegaContext";
-import {OpenProjectsMenuItem} from "./OpenProjectsMenuItem";
+import {OpenProjectsMenuItem, OpenWorkdirMenuItem} from "./OpenProjectsMenuItem";
+import {ExecuteScriptedChangeMenuItem} from "./ExecuteScriptedChangeMenuItem";
 
 const renderBoolCell = (params: GridRenderCellParams) => {
   const report = params.value as Report
@@ -123,7 +124,8 @@ export const ClonesPage: React.FC = () => {
       <List>
         <DeleteMenuItem reloadCallback={reloadTrigger} settings={settings} repos={selectedRepos}/>
         <OpenProjectsMenuItem/>
-        <ListItemButton disabled={true}>Make Changes</ListItemButton>
+        <OpenWorkdirMenuItem/>
+        <ExecuteScriptedChangeMenuItem/>
         <ListItemButton disabled={true}>Stage</ListItemButton>
         <ListItemButton disabled={true}>Commit</ListItemButton>
         <ListItemButton disabled={true}>Push</ListItemButton>

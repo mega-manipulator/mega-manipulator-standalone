@@ -52,12 +52,13 @@ export type WorkHistoryItem = {
 export type WorkMeta = {
   workLog: WorkHistoryItem[]
 }
-export interface WorkResultOutput<OUTPUT>{
+
+export interface WorkResultOutput<OUTPUT> {
   status: WorkResultStatus;
   meta?: OUTPUT;
 }
 
-export type WorkResultKind = 'clone' | 'commit'
+export type WorkResultKind = 'clone' | 'commit' | 'scriptedChange'
 
 export interface WorkResult<INPUT_ARG, INPUT, OUTPUT> {
   time: number;

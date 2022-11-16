@@ -53,7 +53,26 @@
                 "validator": ".*"
               },
               {
-                "validator": ".*"
+                "validator": "$HOME.*"
+              }
+            ]
+          },
+          {
+            "name": "bash-run-script",
+            "cmd": "bash",
+            "args": [
+              {
+                "validator": "^$HOME.*mega-manipulator.bash$"
+              }
+            ]
+          },
+          {
+            "name": "chmod-script-file",
+            "cmd": "chmod",
+            "args": [
+              "+x",
+              {
+                "validator": "^$HOME.*mega-manipulator.bash$"
               }
             ]
           }

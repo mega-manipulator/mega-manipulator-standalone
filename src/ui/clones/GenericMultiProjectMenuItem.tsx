@@ -6,8 +6,9 @@ import {asString} from "../../hooks/logWrapper";
 
 type GenericMultiProjectMenuItemProps = {
   openButtonText: string;
-  confirmText: string,
+  confirm: string | JSX.Element,
   action: () => Promise<void>;
+  closeAction?: () => void,
   runButtonText?: string,
   cancelButtonText?: string,
   closeButtonText?: string,
@@ -17,11 +18,13 @@ type GenericMultiProjectMenuItemProps = {
 export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemProps> = (
   {
     openButtonText,
-    confirmText = `Really Run ${openButtonText}?`,
+    confirm = `Really Run ${openButtonText}?`,
     runButtonText = 'Yea! 🧨',
     cancelButtonText = 'Cancel',
     closeButtonText = 'Close',
     action,
+    closeAction = () => {
+    },
     isAvailable,
   }
 ) => {
@@ -36,6 +39,7 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
     if (state !== 'running') {
       setState('ready')
       setIsOpen(false)
+      closeAction()
     }
   }, [state]);
 
@@ -43,7 +47,7 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
     <ListItemButton disabled={!available} onClick={() => setIsOpen(true)}>{openButtonText}</ListItemButton>
     <Modal open={isOpen} onClose={close}>
       <Box sx={modalStyle}>
-        <Typography>{confirmText}</Typography>
+        {typeof confirm === 'string' ? <Typography>{confirm}</Typography> : confirm}
         <p style={{
           display: "grid",
           gridAutoFlow: "column",

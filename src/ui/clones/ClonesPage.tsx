@@ -20,6 +20,7 @@ import {DataGridPro} from "@mui/x-data-grid-pro";
 import {MegaContext} from "../../hooks/MegaContext";
 import {OpenProjectsMenuItem, OpenWorkdirMenuItem} from "./OpenProjectsMenuItem";
 import {ExecuteScriptedChangeMenuItem} from "./ExecuteScriptedChangeMenuItem";
+import {MakeChangesWizard} from "./MakeChangesWizard";
 
 const renderBoolCell = (params: GridRenderCellParams) => {
   const report = params.value as Report
@@ -122,6 +123,7 @@ export const ClonesPage: React.FC = () => {
     <Drawer open={actionsMenuOpen} onClose={() => setActionsMenuOpen(false)}>
       <Typography>Do stuff with {selectedRepos.length} repos</Typography>
       <List>
+        <MakeChangesWizard/>
         <DeleteMenuItem reloadCallback={reloadTrigger} settings={settings} repos={selectedRepos}/>
         <OpenProjectsMenuItem/>
         <OpenWorkdirMenuItem/>

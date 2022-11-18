@@ -60,26 +60,27 @@ type RunScriptInput = {
   filePaths: string[],
 }
 
-export async function runScriptSequentially(input: RunScriptInput, progressCallback: (path: string, result: WorkResultStatus) => void) {
+export async function runScriptSequentially(input: RunScriptInput, progressCallback?: (path: string, result: WorkResultStatus) => void): Promise<WorkResultStatus> {
   const scriptPath: string = await createScriptFileIfNotExists(input.settings)
   const workResult = newWorkResult(input);
   for (let index = 0; index < input.filePaths.length; index++) {
     await doWork(input, workResult, scriptPath, index, progressCallback)
   }
   await saveResultToStorage(workResult)
+  return workResult.result.some((w) => w.output.status !== "ok") ? "failed" : "ok"
 }
 
-async function doWork(input: RunScriptInput, workResult: WorkResult<RunScriptInput, string, any>, scriptPath: string, index: number, progressCallback: (path: string, result: WorkResultStatus) => void) {
+async function doWork(input: RunScriptInput, workResult: WorkResult<RunScriptInput, string, any>, scriptPath: string, index: number, progressCallback?: (path: string, result: WorkResultStatus) => void) {
   const filePath = input.filePaths[index];
   try {
     const commandResult = await new Command('bash-run-script', [scriptPath], {cwd: filePath}).execute()
     if (commandResult.code !== 0) await warn(`Failed running scripted change in '${filePath}', result was: ${asString(commandResult)}`)
     const status: WorkResultStatus = commandResult.code === 0 ? 'ok' : 'failed';
-    progressCallback(filePath, status)
+    progressCallback && progressCallback(filePath, status)
     workResult.result[index].output.status = status
     workResult.result[index].output.meta = commandResult
   } catch (e) {
-    progressCallback(filePath, 'failed')
+    progressCallback && progressCallback(filePath, 'failed')
     workResult.result[index].output.status = 'failed'
     const message1 = `Failed running scripted change in '${filePath}', error was: ${asString(e)}`;
     await error(message1)
@@ -104,11 +105,12 @@ function newWorkResult(input: RunScriptInput): WorkResult<RunScriptInput, string
   };
 }
 
-export async function runScriptInParallel(input: RunScriptInput, progressCallback: (path: string, result: WorkResultStatus) => void) {
+export async function runScriptInParallel(input: RunScriptInput, progressCallback?: (path: string, result: WorkResultStatus) => void): Promise<WorkResultStatus> {
   const scriptPath = await createScriptFileIfNotExists(input.settings)
   const workResult = newWorkResult(input);
   await Promise.all(workResult.result.map((_, index) => doWork(input, workResult, scriptPath, index, progressCallback)))
   await saveResultToStorage(workResult)
+  return workResult.result.some((w) => w.output.status !== "ok") ? "failed" : "ok"
 }
 
 export async function getScriptInfo(settings: MegaSettingsType): Promise<{ scriptPath: string, scriptContent: string }> {

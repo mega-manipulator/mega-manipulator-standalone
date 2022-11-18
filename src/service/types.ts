@@ -58,7 +58,7 @@ export interface WorkResultOutput<OUTPUT> {
   meta?: OUTPUT;
 }
 
-export type WorkResultKind = 'clone' | 'commit' | 'scriptedChange'
+export type WorkResultKind = 'clone' | 'commit' | 'scriptedChange' | 'gitStage' | 'gitUnStage'
 
 export interface WorkResult<INPUT_ARG, INPUT, OUTPUT> {
   time: number;

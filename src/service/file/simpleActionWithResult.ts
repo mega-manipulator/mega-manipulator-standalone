@@ -6,9 +6,11 @@ import {path} from "@tauri-apps/api";
 import {saveResultToStorage} from "../work/workLog";
 import {error} from "tauri-plugin-log-api";
 import {ChildProcess} from "@tauri-apps/api/shell";
+import {pathToSearchHit} from "./cloneDir";
 
 export interface SimpleActionProps {
-  readonly hits: SearchHit[],
+  /** Either a searchHit or a path */
+  readonly hits: SearchHit[] | string[],
   readonly settings: MegaSettingsType,
 }
 
@@ -18,15 +20,24 @@ export interface SimpleActionProps {
 export async function simpleAction<T = any>(input: SimpleActionProps, action: (index: number, hit: SearchHit, path: string) => Promise<T>, errMapper: (hit: SearchHit, err: unknown) => Promise<T>): Promise<(T)[]> {
   const clonePath = await validClonePath(input.settings)
   const promises: Promise<T>[] = input.hits.map((hit, i) => new Promise(async () => {
-    const p = await path.join(clonePath, hit.codeHost, hit.owner, hit.repo);
+    const _hit = await hitToSearchHit(hit);
+    const p = await path.join(clonePath, _hit.codeHost, _hit.owner, _hit.repo);
     try {
-      return await action(i, hit, p);
+      return await action(i, _hit, p);
     } catch (e) {
       await error('Failed action:' + e);
-      return await errMapper(hit, e);
+      return await errMapper(_hit, e);
     }
   }));
   return await Promise.all(promises)
+}
+
+async function hitToSearchHit(hit: SearchHit | string): Promise<SearchHit> {
+  if (typeof hit === "string") {
+    return pathToSearchHit(null, hit);
+  } else {
+    return hit;
+  }
 }
 
 export interface SimpleActionWithResultProps extends SimpleActionProps {
@@ -46,31 +57,36 @@ export interface SimpleGitActionReturn {
 export async function simpleActionWithResult(input: SimpleActionWithResultProps, action: (index: number, hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => Promise<void>): Promise<SimpleGitActionReturn> {
   const time: number = new Date().getTime()
   const clonePath: string = await validClonePath(input.settings)
-  const result: WorkResult<SimpleActionWithResultProps, SearchHit, WorkMeta> = {
+
+  const workResult: WorkResult<SimpleActionWithResultProps, SearchHit, WorkMeta> = {
     kind: input.workResultKind,
     name: input.sourceString,
     status: 'in-progress',
     time,
     input,
-    result: input.hits.map(h => ({
-      input: h,
+    result: [],
+  }
+  for (let i = 0; i < input.hits.length; i++) {
+    const hit = await hitToSearchHit(input.hits[i]);
+    workResult.result[i] = {
+      input: hit,
       output: {
         status: "in-progress"
       }
-    }))
+    }
   }
-  for (let i = 0; i < result.result.length; i++) {
-    const current = result.result[i].input
+  for (let i = 0; i < workResult.result.length; i++) {
+    const current = workResult.result[i].input
     const p = await path.join(clonePath, current.codeHost, current.owner, current.repo)
     const meta: WorkMeta = {workLog: []};
-    await action(i, current, p, meta, (sts: WorkResultStatus) => result.result[i].output.status = sts)
+    await action(i, current, p, meta, (sts: WorkResultStatus) => workResult.result[i].output.status = sts)
   }
-  if (result.result.some(r => r.output.status !== 'ok')) {
-    result.status = "failed"
+  if (workResult.result.some(r => r.output.status !== 'ok')) {
+    workResult.status = "failed"
   } else {
-    result.status = "ok"
+    workResult.status = "ok"
   }
-  await saveResultToStorage(result);
+  await saveResultToStorage(workResult);
   return {time};
 }
 

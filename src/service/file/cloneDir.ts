@@ -166,7 +166,7 @@ async function hasNoDiffWithOriginHead(repoPath: string): Promise<Report> {
   }
 }
 
-async function getCurrentBranchName(repoDir: string): Promise<string> {
+export async function getCurrentBranchName(repoDir: string): Promise<string> {
   const result: ChildProcess = await new Command('git', ['branch'], {cwd: repoDir}).execute()
   if (result.code !== 0) throw new Error(`Unable to determine current branch name of ${repoDir} due to ${asString(result)}`)
   const currentBranchLine: string | undefined = result.stdout.split('\n').find((line) => line.startsWith('* '))

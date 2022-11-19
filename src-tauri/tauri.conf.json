@@ -62,7 +62,7 @@
             "cmd": "bash",
             "args": [
               {
-                "validator": "^$HOME.*mega-manipulator.bash$"
+                "validator": "^.*mega-manipulator.bash$"
               }
             ]
           },

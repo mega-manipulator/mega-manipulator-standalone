@@ -9,11 +9,12 @@ import {
   GitStageInput,
   gitUnStage
 } from "../../service/file/gitCommit";
-import {debug, error} from "tauri-plugin-log-api";
+import {error} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 import {open} from "@tauri-apps/api/shell";
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 export const StageView: React.FC = () => {
   const {clones: {selected}, settings} = useContext(MegaContext);
@@ -27,16 +28,10 @@ export const StageView: React.FC = () => {
     if (!loaded) {
       setLoaded(true)
       gitGetStagedFiles({hits: selected, settings})
-        .then((diffs) => {
-          debug('Yay, staged files: ' + asString(diffs))
-          setStagedFiles(diffs.map((d) => d.diffFiles))
-        })
+        .then((diffs) => setStagedFiles(diffs.map((d) => d.diffFiles)))
         .catch((e) => error('Failed getting the stage info ' + asString(e)));
       gitGetUnStagedFiles({hits: selected, settings})
-        .then((diffs) => {
-          debug(`Yay, unstaged files: ${asString(diffs)}`)
-          setUnStagedFiles(diffs.map((d) => d.diffFiles))
-        })
+        .then((diffs) => setUnStagedFiles(diffs.map((d) => d.diffFiles)))
         .catch((e) => error('Failed getting the unstage info ' + asString(e)));
     }
   }, [stagedFiles, unStagedFiles, selected, loaded, showStage]);
@@ -70,6 +65,7 @@ export const StageView: React.FC = () => {
           ><RemoveIcon/>
           </IconButton>
         </Tooltip>
+        <Tooltip title={'Reset entire repo (TODO 🤦)'}><IconButton onClick={()=>window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
         {stagedFiles[idx]
           ? <>
             <Typography>Staged files ({stagedFiles[idx].length}): </Typography>
@@ -79,7 +75,9 @@ export const StageView: React.FC = () => {
                   onClick={() => gitUnStage(new GitStageInput(settings, [a], [s])).then(() => setLoaded(false))}
                 ><RemoveIcon/>
                 </IconButton>
-              </Tooltip> {s}
+              </Tooltip>
+              <Tooltip title={'Reset file (TODO 🤦)'}><IconButton onClick={()=>window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
+              {s}
             </>)}</>
           : <Typography>Nothing staged</Typography>}
         {unStagedFiles[idx]
@@ -90,7 +88,9 @@ export const StageView: React.FC = () => {
                   onClick={() => gitStage(new GitStageInput(settings, [a], [s])).then(() => setLoaded(false))}
                 ><AddIcon/>
                 </IconButton>
-              </Tooltip> {s}
+              </Tooltip>
+              <Tooltip title={'Reset file (TODO 🤦)'}><IconButton onClick={()=>window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
+              {s}
             </>)}</>
           : <Typography>Nothing unstaged</Typography>}
         <hr/>

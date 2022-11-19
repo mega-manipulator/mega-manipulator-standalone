@@ -1,9 +1,12 @@
 import React, {useContext, useState} from "react";
 import {WizardComponent} from "../wizard/WizardComponent";
-import {FormControlLabel, ListItemButton, Switch, Typography} from "@mui/material";
+import {FormControlLabel, IconButton, ListItemButton, Switch, Tooltip, Typography} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
-import {runScriptInParallel, runScriptSequentially} from "../../service/file/scriptFile";
+import {runScriptInParallel, runScriptSequentially, scriptFile} from "../../service/file/scriptFile";
 import {StageView} from "./StageView";
+import {open} from "@tauri-apps/api/shell";
+import FileOpenIcon from "@mui/icons-material/FileOpen";
+import {path} from "@tauri-apps/api";
 
 export const MakeChangesWizard: React.FC = () => {
   // Wizard
@@ -28,7 +31,8 @@ export const MakeChangesWizard: React.FC = () => {
         {
           name: 'Run Change Script',
           description: <>
-            <Typography>Run Scripted Change on {selected.length} projects</Typography>
+            <Typography>Run Scripted Change on {selected.length} projects?</Typography>
+            <Typography>The script will execute in the root of every project folder, and can be run in sequence or in parallel.</Typography>
             <FormControlLabel
               control={
                 <Switch
@@ -38,6 +42,9 @@ export const MakeChangesWizard: React.FC = () => {
               }
               label={runMode}
             />
+            <Tooltip title={'Open change-script'}><IconButton
+              onClick={() => path.join(settings.clonePath, scriptFile).then((file) => open(file))}
+            ><FileOpenIcon/></IconButton></Tooltip>
           </>,
           action: () => {
             switch (runMode) {

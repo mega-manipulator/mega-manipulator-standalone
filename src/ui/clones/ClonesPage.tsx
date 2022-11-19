@@ -21,6 +21,7 @@ import {MegaContext} from "../../hooks/MegaContext";
 import {OpenProjectsMenuItem, OpenWorkdirMenuItem} from "./OpenProjectsMenuItem";
 import {ExecuteScriptedChangeMenuItem} from "./ExecuteScriptedChangeMenuItem";
 import {MakeChangesWizard} from "./MakeChangesWizard";
+import ReplayIcon from '@mui/icons-material/Replay';
 
 const renderBoolCell = (params: GridRenderCellParams) => {
   const report = params.value as Report
@@ -80,8 +81,8 @@ export const ClonesPage: React.FC = () => {
     }
   }, [settings, reloader])
   const reloadTrigger = useCallback(() => {
-    setReloader((reloader + 1) % 10)
     setSelectedRepos([])
+    setReloader((reloader + 1) % 10)
   }, [reloader, setReloader])
 
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
@@ -91,7 +92,8 @@ export const ClonesPage: React.FC = () => {
       <CircularProgress/>
     </Backdrop>
     <Typography variant={'h4'}>Clones</Typography>
-    {settings && <div>WorkDir: {settings?.clonePath}</div>}
+    <div>WorkDir: {settings.clonePath}</div>
+    <Tooltip title={'Reload repos'}><IconButton onClick={reloadTrigger}><ReplayIcon/></IconButton></Tooltip>
     <Box sx={{width: '100%'}}>
       <DataGridPro
         autoHeight

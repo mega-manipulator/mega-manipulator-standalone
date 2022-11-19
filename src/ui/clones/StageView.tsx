@@ -12,58 +12,91 @@ import {
 import {debug, error} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 import {open} from "@tauri-apps/api/shell";
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 
 export const StageView: React.FC = () => {
   const {clones: {selected}, settings} = useContext(MegaContext);
   const [stagedFiles, setStagedFiles] = useState<string[][]>([] as (string[][]));
   const [unStagedFiles, setUnStagedFiles] = useState<string[][]>([] as (string[][]));
+  const [showStage, setShowStage] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
   const loadStagingInfo = useCallback(() => {
+    setShowStage(!showStage)
     if (!loaded) {
       setLoaded(true)
       gitGetStagedFiles({hits: selected, settings})
         .then((diffs) => {
-          debug('Yay, staged files: '+asString(diffs))
+          debug('Yay, staged files: ' + asString(diffs))
           setStagedFiles(diffs.map((d) => d.diffFiles))
         })
-        .catch((e) => error('Failed getting the stage info '+asString(e)));
+        .catch((e) => error('Failed getting the stage info ' + asString(e)));
       gitGetUnStagedFiles({hits: selected, settings})
         .then((diffs) => {
           debug(`Yay, unstaged files: ${asString(diffs)}`)
           setUnStagedFiles(diffs.map((d) => d.diffFiles))
         })
-        .catch((e) => error('Failed getting the unstage info '+asString(e)));
+        .catch((e) => error('Failed getting the unstage info ' + asString(e)));
     }
-  }, [stagedFiles, unStagedFiles, selected, loaded]);
+  }, [stagedFiles, unStagedFiles, selected, loaded, showStage]);
   useEffect(() => {
     setLoaded(false)
+    setShowStage(false)
     setStagedFiles([])
     setUnStagedFiles([])
   }, [selected]);
 
-
   return <>
     <FormControlLabel
-      control={<Switch checked={loaded} onClick={loadStagingInfo}/>}
+      control={<Switch checked={showStage} onClick={loadStagingInfo}/>}
       label={'Show staging info'}
     />
 
     {/* Staging info */}
-    {loaded && <p>
+    {showStage && <p>
       {selected.map((a, idx) => <>
-        <Typography>{a} </Typography><Tooltip title={'Open project'}><IconButton onClick={()=> open(a)}><FileOpenIcon/></IconButton></Tooltip>
+        <Typography>{a} </Typography>
+        <Tooltip title={'Open project'}><IconButton onClick={() => open(a)}><FileOpenIcon/></IconButton></Tooltip>
+        <Tooltip title={'Stage all'}>
+          <IconButton
+            onClick={() => gitStage(new GitStageInput(settings, [a])).then(() => setLoaded(false))}
+          ><AddIcon/>
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={'UnStage all'}>
+          <IconButton
+            onClick={() => gitUnStage(new GitStageInput(settings, [a])).then(() => setLoaded(false))}
+          ><RemoveIcon/>
+          </IconButton>
+        </Tooltip>
         {stagedFiles[idx]
-          ? <><Typography>Staged files ({stagedFiles[idx].length}): </Typography>
-            {stagedFiles[idx].map((s) => <>{s}</>)}</>
+          ? <>
+            <Typography>Staged files ({stagedFiles[idx].length}): </Typography>
+            {stagedFiles[idx].map((s) => <>
+              <Tooltip title={`UnStage ${s}`}>
+                <IconButton
+                  onClick={() => gitUnStage(new GitStageInput(settings, [a], [s])).then(() => setLoaded(false))}
+                ><RemoveIcon/>
+                </IconButton>
+              </Tooltip> {s}
+            </>)}</>
           : <Typography>Nothing staged</Typography>}
         {unStagedFiles[idx]
           ? <><Typography>UnStaged files ({unStagedFiles[idx].length}): </Typography>
-            {unStagedFiles[idx].map((s) => <>{s}</>)}</>
+            {unStagedFiles[idx].map((s) => <>
+              <Tooltip title={`Stage ${s}`}>
+                <IconButton
+                  onClick={() => gitStage(new GitStageInput(settings, [a], [s])).then(() => setLoaded(false))}
+                ><AddIcon/>
+                </IconButton>
+              </Tooltip> {s}
+            </>)}</>
           : <Typography>Nothing unstaged</Typography>}
         <hr/>
       </>)}
     </p>}
+
 
     {/* Buttons */}
     <p style={{
@@ -86,7 +119,7 @@ export const StageView: React.FC = () => {
             .catch((e) => error(`Something failed staging files: ${asString(e)}`))
             .then(() => setIsStaging(false))
         }}
-      >Stage all</Button>
+      ><AddIcon/>Stage all</Button>
       <Button
         disabled={isStaging}
         variant={"outlined"}
@@ -97,7 +130,7 @@ export const StageView: React.FC = () => {
             .catch((e) => error(`Something failed un-staging files: ${asString(e)}`))
             .then(() => setIsStaging(false))
         }}
-      >Un-Stage all</Button>
+      ><RemoveIcon/> Un-Stage all</Button>
     </p>
   </>
 }

@@ -4,10 +4,9 @@ import {homeDir} from "@tauri-apps/api/path";
 import {WorkMeta, WorkResult, WorkResultKind, WorkResultStatus} from "../types";
 import {path} from "@tauri-apps/api";
 import {saveResultToStorage} from "../work/workLog";
-import {debug, error} from "tauri-plugin-log-api";
+import {error} from "tauri-plugin-log-api";
 import {ChildProcess} from "@tauri-apps/api/shell";
 import {pathToSearchHit} from "./cloneDir";
-import {asString} from "../../hooks/logWrapper";
 
 export interface SimpleActionProps {
   /** Either a searchHit or a path */
@@ -20,19 +19,17 @@ export interface SimpleActionProps {
  */
 export async function simpleAction<T = any>(input: SimpleActionProps, action: (index: number, hit: SearchHit, path: string) => Promise<T>, errMapper: (hit: SearchHit, err: unknown) => Promise<T>): Promise<(T)[]> {
   const clonePath = await validClonePath(input.settings)
-  const promises: Promise<T>[] = input.hits.map((hit, i) => new Promise(async () => {
+  const promises: Promise<T>[] = input.hits.map(async (hit, i): Promise<T> => {
     const _hit = await hitToSearchHit(hit);
     const p = await path.join(clonePath, _hit.codeHost, _hit.owner, _hit.repo);
     try {
-      const result = await action(i, _hit, p);
-      debug('Result of simple action: ' + asString(result))
-      return result;
+      return await action(i, _hit, p);
     } catch (e) {
       await error('Failed action:' + e);
       return await errMapper(_hit, e);
     }
-  }));
-  return await Promise.all(promises)
+  });
+  return await Promise.all(promises);
 }
 
 async function hitToSearchHit(hit: SearchHit | string): Promise<SearchHit> {

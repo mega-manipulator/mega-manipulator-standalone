@@ -11,15 +11,18 @@ export function asString(str: unknown): string {
     case "string":
       return str as string;
     case "function":
-      return `FUNCTION:${str.name}`
+      return `FUNCTION:${str.name}`;
     case "symbol":
-      return `SYMBOL:${str.description}`
+      return `SYMBOL:${str.description}`;
     case "object":
-      if (Object.keys(str).length === 0 && typeof str.toString === 'function') {
-        return str.toString()
+      if (Array.isArray(str) && str.length === 0) {
+        return '[]';
       }
-      return JSON.stringify(str)
+      if (Object.keys(str).length === 0 && typeof str.toString === 'function') {
+        return str.toString();
+      }
+      return JSON.stringify(str);
     default:
-      return '???'
+      return '???';
   }
 }

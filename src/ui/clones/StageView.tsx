@@ -9,7 +9,7 @@ import {
   GitStageInput,
   gitUnStage
 } from "../../service/file/gitCommit";
-import {error} from "tauri-plugin-log-api";
+import {debug, error} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 import {open} from "@tauri-apps/api/shell";
 
@@ -23,10 +23,16 @@ export const StageView: React.FC = () => {
     if (!loaded) {
       setLoaded(true)
       gitGetStagedFiles({hits: selected, settings})
-        .then((diffs) => setStagedFiles(diffs.map((d) => d.diffFiles)))
+        .then((diffs) => {
+          debug('Yay, staged files: '+asString(diffs))
+          setStagedFiles(diffs.map((d) => d.diffFiles))
+        })
         .catch((e) => error('Failed getting the stage info '+asString(e)));
       gitGetUnStagedFiles({hits: selected, settings})
-        .then((diffs) => setUnStagedFiles(diffs.map((d) => d.diffFiles)))
+        .then((diffs) => {
+          debug(`Yay, unstaged files: ${asString(diffs)}`)
+          setUnStagedFiles(diffs.map((d) => d.diffFiles))
+        })
         .catch((e) => error('Failed getting the unstage info '+asString(e)));
     }
   }, [stagedFiles, unStagedFiles, selected, loaded]);
@@ -46,7 +52,7 @@ export const StageView: React.FC = () => {
     {/* Staging info */}
     {loaded && <p>
       {selected.map((a, idx) => <>
-        <Typography variant={'h6'}>{a} </Typography> <Tooltip title={'Open project'}><IconButton onClick={()=> open(a)}><FileOpenIcon/></IconButton></Tooltip>
+        <Typography>{a} </Typography><Tooltip title={'Open project'}><IconButton onClick={()=> open(a)}><FileOpenIcon/></IconButton></Tooltip>
         {stagedFiles[idx]
           ? <><Typography>Staged files ({stagedFiles[idx].length}): </Typography>
             {stagedFiles[idx].map((s) => <>{s}</>)}</>
@@ -55,6 +61,7 @@ export const StageView: React.FC = () => {
           ? <><Typography>UnStaged files ({unStagedFiles[idx].length}): </Typography>
             {unStagedFiles[idx].map((s) => <>{s}</>)}</>
           : <Typography>Nothing unstaged</Typography>}
+        <hr/>
       </>)}
     </p>}
 

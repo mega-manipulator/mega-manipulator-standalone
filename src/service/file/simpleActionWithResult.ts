@@ -4,9 +4,10 @@ import {homeDir} from "@tauri-apps/api/path";
 import {WorkMeta, WorkResult, WorkResultKind, WorkResultStatus} from "../types";
 import {path} from "@tauri-apps/api";
 import {saveResultToStorage} from "../work/workLog";
-import {error} from "tauri-plugin-log-api";
+import {debug, error} from "tauri-plugin-log-api";
 import {ChildProcess} from "@tauri-apps/api/shell";
 import {pathToSearchHit} from "./cloneDir";
+import {asString} from "../../hooks/logWrapper";
 
 export interface SimpleActionProps {
   /** Either a searchHit or a path */
@@ -23,7 +24,9 @@ export async function simpleAction<T = any>(input: SimpleActionProps, action: (i
     const _hit = await hitToSearchHit(hit);
     const p = await path.join(clonePath, _hit.codeHost, _hit.owner, _hit.repo);
     try {
-      return await action(i, _hit, p);
+      const result = await action(i, _hit, p);
+      debug('Result of simple action: ' + asString(result))
+      return result;
     } catch (e) {
       await error('Failed action:' + e);
       return await errMapper(_hit, e);

@@ -11,7 +11,7 @@ import {Command} from "@tauri-apps/api/shell";
 import {getCurrentBranchName, getMainBranchName} from "./cloneDir";
 import {asString} from "../../hooks/logWrapper";
 import {MegaSettingsType} from "../../hooks/settings";
-import {debug} from "tauri-plugin-log-api";
+import {debug, error} from "tauri-plugin-log-api";
 
 export class GitStageInput implements SimpleActionWithResultProps {
   readonly files?: string[];
@@ -78,30 +78,36 @@ interface GitDiff {
   diffFiles: string[];
 }
 
-export async function gitGetStagedFiles(input: SimpleActionProps): Promise<GitDiff[]> {
-  return await gitDiffyFiles(input, ['diff', '--staged', '--name-only'])
+export function gitGetStagedFiles(input: SimpleActionProps): Promise<GitDiff[]> {
+  return gitDiffyFiles(input, ['diff', '--staged', '--name-only'])
 }
 
-export async function gitGetUnStagedFiles(input: SimpleActionProps): Promise<GitDiff[]> {
-  return await gitDiffyFiles(input, ['diff', '--name-only']);
+export function gitGetUnStagedFiles(input: SimpleActionProps): Promise<GitDiff[]> {
+  return gitDiffyFiles(input, ['diff', '--name-only']);
 }
 
 /**
  * See the un-committed difference, pre commit
  */
-export async function gitChangedFiles(input: SimpleActionProps): Promise<GitDiff[]> {
-  return await gitDiffyFiles(input, ['diff', 'HEAD', '--name-only'])
+export function gitChangedFiles(input: SimpleActionProps): Promise<GitDiff[]> {
+  return gitDiffyFiles(input, ['diff', 'HEAD', '--name-only'])
 }
 
 async function gitDiffyFiles(input: SimpleActionProps, gitArgs: string[]): Promise<GitDiff[]> {
-  return await simpleAction(input, async (index, hit: SearchHit, path: string) => {
-    const process = await new Command('git', gitArgs, {cwd: path}).execute()
-    const diffFiles = process.stdout.split('\n')
-    await debug('Diff result is: ' + asString(diffFiles)) // TODO
-    return {path, hit, diffFiles}
-  }, (hit, err) => new Promise(() => {
-    return {path: '??', hit, diffFiles: ['Error: ' + asString(err)]};
-  }));
+  return await simpleAction(
+    input,
+    async (index, hit: SearchHit, path: string) => {
+      try {
+        const process = await new Command('git', gitArgs, {cwd: path}).execute()
+        const diffFiles = process.stdout.split('\n').filter((f) => f !== '')
+        await debug('Diff result is: ' + asString(diffFiles)) // TODO
+        return {path, hit, diffFiles}
+      } catch (e) {
+        error('FAILED°!!') // TODO
+        throw e;
+      }
+    }, async (hit, err) => ({path: '??', hit, diffFiles: ['Error: ' + asString(err)]})
+  );
 }
 
 /**

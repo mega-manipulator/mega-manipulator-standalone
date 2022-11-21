@@ -142,7 +142,6 @@ export interface GitHubCodeHostSettings extends UserLoginType {
   cloneHost: string;
   hostType: HostType;
   username: string;
-
 }
 
 function ghCloneUrl(host: string, owner: string, repo: string): string | undefined {

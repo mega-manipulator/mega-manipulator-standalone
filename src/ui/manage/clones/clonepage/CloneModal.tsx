@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   Checkbox,
-  CircularProgress,
   FormControlLabel,
   LinearProgress,
   Modal,
@@ -22,14 +21,11 @@ import {useNavigate} from "react-router-dom";
 import {locations} from "../../../route/locations";
 import {error, info} from "tauri-plugin-log-api";
 import {MegaContext} from "../../../../hooks/MegaContext";
-import {SearchHit} from "../../../search/types";
 
 export type CloneModalPropsWrapper = {
   cloneModalPropsWrapper: CloneModalProps
 }
 export type CloneModalProps = {
-  searchHits: SearchHit[]
-  setSearchHits: (hits: SearchHit[]) => void,
   sourceString: string,
   setSourceString: (sourceString: string) => void,
   open: () => void,
@@ -39,12 +35,10 @@ export type CloneModalProps = {
 }
 
 export const useCloneModalProps: () => CloneModalPropsWrapper = () => {
-  const [searchHits, setSearchHits] = useState<SearchHit[]>([])
   const [isOpen, setOpen] = useState(false)
   const [sourceString, setSourceString] = useState('')
   return {
     cloneModalPropsWrapper: {
-      searchHits, setSearchHits,
       sourceString, setSourceString,
       open: () => {
         setOpen(true)
@@ -67,34 +61,30 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
   const [doSparseCheckout, setDoSpaseCheckout] = useState<boolean>(false)
   const [sparseCheckout, setSpaseCheckout] = useState<string>('README.md')
   const [err, setErr] = useState<string | null>(null)
-  const [state, setState] = useState<'loading' | 'ready' | 'running' | 'done'>('loading')
+  const [state, setState] = useState<'ready' | 'running' | 'done'>('ready')
   const [workRef, setWorkRef] = useState<number | null>(null)
-  const {settings} = useContext(MegaContext)
+  const {settings, search:{selected}} = useContext(MegaContext)
   const [progress, setProgress] = useState<WorkProgress | null>(null)
   const [branch, setBranch] = useState('')
   useEffect(() => {
     setBranch('batch_' + (new Date().toISOString().replaceAll(/[^a-zA-Z0-9-]/g, '_')))
   }, [])
-  const normalise = (value: number) => ((value) * 100) / (cloneModalPropsWrapper.searchHits.length);
+  const normalise = (value: number) => ((value) * 100) / (selected.length);
   const close = () => {
     cloneModalPropsWrapper.setOpen(false)
-    if (settings === null) setState("loading"); else setState('ready');
     setProgress(null)
     setWorkRef(null)
     setErr(null)
   };
-  useEffect(() => {
-    if (settings === null) setState("loading"); else setState('ready');
-  }, [settings])
 
   return <Modal open={cloneModalPropsWrapper.isOpen} onClose={(_event) => {
     if (state !== "running") close()
   }}>
     <Box sx={modalStyle}>
-      {state === 'loading' && <CircularProgress/>}
-      {state === 'ready' && <>
+      {selected.length === 0 && <Typography>Nothing selected 🤦</Typography>}
+      {selected.length !== 0 && state === 'ready' && <>
           <div>
-              <Typography>Clone {cloneModalPropsWrapper.searchHits.length} things
+              <Typography>Clone {selected.length} things
                   into {settings?.clonePath}?</Typography>
           </div>
           <div>
@@ -155,7 +145,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
               <LinearProgress
                   variant="determinate"
                   value={progress ? normalise(progress.done) : 0}
-              />{progress?.done ?? 0}/{cloneModalPropsWrapper.searchHits.length} done.
+              />{progress?.done ?? 0}/{selected.length} done.
           </Box>
         {progress?.breakdown && Object.keys(progress?.breakdown)
           .map((k) => <>{k}: {progress.breakdown[k]},&nbsp;</>)
@@ -173,9 +163,9 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
             onClick={() => {
               info('Start Cloning')
               setState("running")
-              settings !== null && clone(
+              settings && clone(
                 {
-                  hits: cloneModalPropsWrapper.searchHits,
+                  hits: selected,
                   sourceString: cloneModalPropsWrapper.sourceString,
                   branch,
                   cloneType: "SSH",

@@ -7,6 +7,9 @@ import {StageView} from "./StageView";
 import {open} from "@tauri-apps/api/shell";
 import FileOpenIcon from "@mui/icons-material/FileOpen";
 import {path} from "@tauri-apps/api";
+import {CommitView} from "./CommitView";
+import {PushView} from "./PushView";
+import {PullRequestView} from "./PullRequestView";
 
 export const MakeChangesWizard: React.FC = () => {
   // Wizard
@@ -64,19 +67,19 @@ export const MakeChangesWizard: React.FC = () => {
         // Commit
         {
           name: 'Commit',
-          description: <></>,
+          description: <CommitView/>,
         },
 
         // Push
         {
           name: 'Push',
-          description: <></>,
+          description: <PushView/>,
         },
 
         // Pull request
         {
           name: 'Pull Request',
-          description: <></>,
+          description: <PullRequestView/>,
         }
       ]}
     />

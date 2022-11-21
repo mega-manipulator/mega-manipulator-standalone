@@ -1,4 +1,4 @@
-import {useGitHubClient} from "./useGitHubClient";
+import {useGitHubSearchClient} from "./useGitHubSearchClient";
 import React, {useContext, useEffect, useState} from "react";
 import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
 import {error, info, warn} from "tauri-plugin-log-api";
@@ -17,16 +17,16 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
   const {search: {setHits: setSearchHits}} = useContext(MegaContext);
   const {
     searchClient,
-    searchClientInitError
-  } = useGitHubClient(searchFieldProps?.searchHostKey)
+    clientInitError
+  } = useGitHubSearchClient(searchFieldProps?.searchHostKey)
   useEffect(() => {
     searchFieldProps?.setState(searchClient ? 'ready' : 'loading')
   }, [searchClient])
   const [searchText, setSearchText] = useState('tauri language:typescript')
   const [max, setMax] = useState(100)
   const [searchType, setSearchType] = useState<SearchType>('CODE')
-  if (searchClientInitError) {
-    return <Alert variant={"filled"} color={"error"}>Failed setting up search client: {searchClientInitError}</Alert>
+  if (clientInitError) {
+    return <Alert variant={"filled"} color={"error"}>Failed setting up search client: {clientInitError}</Alert>
   }
   return <>
     <FormControl>

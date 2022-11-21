@@ -79,6 +79,7 @@ export async function simpleActionWithResult(input: SimpleActionWithResultProps,
     const current = workResult.result[i].input
     const p = await path.join(clonePath, current.codeHost, current.owner, current.repo)
     const meta: WorkMeta = {workLog: []};
+    workResult.result[i].output.meta = meta;
     await action(i, current, p, meta, (sts: WorkResultStatus) => workResult.result[i].output.status = sts)
   }
   if (workResult.result.some(r => r.output.status !== 'ok')) {

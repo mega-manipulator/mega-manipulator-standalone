@@ -1,22 +1,36 @@
 import React, {useCallback, useContext, useEffect, useState} from "react";
-import {Alert, Box, Button, TextField} from "@mui/material";
+import {Alert, Box, Button, LinearProgress, TextField, Tooltip} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
 import {pathToSearchHit} from "../../service/file/cloneDir";
 import {SearchHit} from "../search/types";
 import {asString} from "../../hooks/logWrapper";
-import {groupToMap} from "../../service/partition";
 import {useGitHubCodeClient} from "../search/github/useGitHubSearchClient";
+import {useNavigate} from "react-router-dom";
+import {locations} from "../route/locations";
+import {debug, error} from "tauri-plugin-log-api";
 
 export const PullRequestView: React.FC = () => {
-  const {settings, clones: {selected}} = useContext(MegaContext);
+  const [title, setTitle] = useState<string>();
+  const [body, setBody] = useState<string>();
+
+  const nav = useNavigate()
+  const {clones: {selected}} = useContext(MegaContext);
   const [hits, setHits] = useState<SearchHit[]>();
   const [err, setErr] = useState<string>();
+  const [progress, setProgress] = useState<number>();
   const [workRef, setWorkRef] = useState<number>();
-  const [codeHostKeys, setCodeHostKeys] = useState<string[]>();
-  const {ghClient} = useGitHubCodeClient(codeHostKeys ? codeHostKeys[0] : undefined)
+  const [codeHostKey, setCodeHostKey] = useState<string>();
+  const {ghClient, clientInitError} = useGitHubCodeClient(codeHostKey)
   useEffect(() => {
-    const codeHostKeySet = new Set(hits?.map((h) => h.codeHost))
-    setCodeHostKeys(Array.from(codeHostKeySet.values()))
+    const codeHostKeySet = new Set(hits?.map((h) => h.codeHost));
+    if (codeHostKeySet.size === 1) {
+      codeHostKeySet.forEach((k) => setCodeHostKey(k))
+    } else if (codeHostKeySet.size === 0) {
+      setCodeHostKey(undefined)
+    } else {
+      setCodeHostKey(undefined)
+      setErr('Clones from more than 1 code host selected')
+    }
   }, [hits]);
   useEffect(() => {
     if (!selected) {
@@ -28,32 +42,78 @@ export const PullRequestView: React.FC = () => {
     }
   }, [selected]);
   const trigger = useCallback(() => {
-    // TODO!!
-    // Code Hosts eval - make sure to split and send with the correct clients
-    if (hits) {
-      const m = groupToMap(hits, (e) => e.codeHost)
-      const codeHostKeys = Object.keys(m)
-      for (const codeHostKey of codeHostKeys) {
-
-      }
+    if (!title || title.length === 0) {
+      setErr('PR Title not set')
+      return
     }
-    // githubClient Create PR
-  }, [hits])
+    if (!body || body.length === 0) {
+      setErr('PR Body not set')
+      return
+    }
+    if (hits)
+      ghClient?.createPullRequests({title, body, hits}, (i) => {
+        debug(`Made progress: ${i}`)
+        setProgress(100.0 * i / hits.length)
+      })
+        .then((t) => setWorkRef(t.time))
+        .catch((e) => {
+          const msg = asString(e)
+          error(`Failed create pull requests: ${msg}`)
+          setErr(msg)
+        })
+  }, [hits, title, body])
 
   // Render
+  if (clientInitError) {
+    return <Alert
+      color={"error"}
+      variant={"filled"}
+    >{clientInitError}</Alert>
+  } else if (hits?.length === 0) {
+    return <Alert
+      color={"error"}
+      variant={"filled"}
+    >No repos selected</Alert>
+  }
+
   return <Box style={{display: "block", marginTop: '5px'}}>
+    {/* Notifications*/}
     <div>
-      {
-        codeHostKeys === undefined ? <Alert severity={"warning"} variant={"filled"}>No clones selected</Alert> :
-          codeHostKeys.length === 0 ? <Alert severity={"warning"} variant={"filled"}>No clones selected</Alert> :
-            codeHostKeys.length > 1 && <Alert severity={"warning"} variant={"filled"}>Clones from more than 1 code host selected</Alert>
-      }
+      {err && <Alert
+          color={"error"}
+          variant={"filled"}
+          onClose={() => setErr(undefined)}
+      >{err}</Alert>}
+      {workRef && <Tooltip title={'Click me to go to the result'}>
+          <Alert
+              color={"info"}
+              variant={"filled"}
+              onClose={() => setWorkRef(undefined)}
+              onClick={() => nav(`${locations.result.link}/${workRef}`)}
+          >Work done</Alert>
+      </Tooltip>}
+      {!workRef && progress && <Box sx={{width: '100%'}}>
+          <LinearProgress
+              value={progress}
+              variant={"determinate"}
+              color={"primary"}
+          /> {progress} % done.
+      </Box>}
     </div>
+
+    {/* Form */}
     <div>
-      <TextField fullWidth label={'Title'}/>
+      <TextField
+        value={title}
+        onChange={(evt) => setTitle(evt.target.value)}
+        fullWidth
+        label={'Title'}
+      />
     </div>
     <div>
       <TextField
+        value={body}
+        onChange={(evt) => setBody(evt.target.value)}
         fullWidth
         label={'Body'}
         multiline
@@ -61,10 +121,12 @@ export const PullRequestView: React.FC = () => {
         placeholder="Body"
       />
     </div>
-    <Button
-      color={"primary"}
-      variant={"contained"}
-      onClick={trigger}
-    >Create PRs 🚀</Button>
+
+    {ghClient && <Button
+        disabled={!title || !body}
+        color={"primary"}
+        variant={"contained"}
+        onClick={trigger}
+    >Create PRs 🚀</Button>}
   </Box>
 };

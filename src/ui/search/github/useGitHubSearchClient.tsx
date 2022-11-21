@@ -1,5 +1,5 @@
 import {GithubClient} from "../../../hooks/github.com";
-import {GitHubCodeHostSettings, GitHubSearchHostSettings} from "../../../hooks/settings";
+import {GitHubCodeHostSettings, GitHubSearchHostSettings, MegaSettingsType} from "../../../hooks/settings";
 import {getPassword} from "../../../hooks/usePassword";
 import {useContext, useEffect, useState} from "react";
 import {MegaContext} from "../../../hooks/MegaContext";
@@ -12,6 +12,7 @@ export interface GithubClientWrapper {
 async function bakeGithubClient(
   searchHostKey: string,
   codeHostKey: string,
+  megaSettings: MegaSettingsType,
   settings: GitHubSearchHostSettings | GitHubCodeHostSettings,
 ): Promise<GithubClientWrapper> {
   const baseUrl = settings.baseUrl
@@ -33,6 +34,7 @@ async function bakeGithubClient(
       token,
       searchHostKey,
       codeHostKey,
+      megaSettings,
     )
   }
 }
@@ -57,7 +59,7 @@ export const useGitHubSearchClient: (
         setWrapper( {clientInitError: 'Undefined search host settings 🤔'})
         return;
       }
-      setWrapper(await bakeGithubClient(searchHostKey, hostSetting.codeHostKey, hostSetting))
+      setWrapper(await bakeGithubClient(searchHostKey, hostSetting.codeHostKey, settings, hostSetting))
     })()
   }, [searchHostKey, settings])
   return wrapper
@@ -84,7 +86,7 @@ export const useGitHubCodeClient: (
         setWrapper( {clientInitError: 'Undefined search host settings 🤔'})
         return;
       }
-      setWrapper(await bakeGithubClient('??', codeHostKey, hostSetting))
+      setWrapper(await bakeGithubClient('??', codeHostKey, settings, hostSetting))
     })()
   }, [codeHostKey, settings])
   return wrapper

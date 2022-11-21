@@ -3,6 +3,10 @@ import axios, {AxiosInstance, AxiosResponse} from "axios";
 import {SearchHit} from "../ui/search/types";
 import {sleep, sleepUntilEpocSecond} from "../service/delay";
 import {debug, info, trace, warn} from "tauri-plugin-log-api";
+import {MegaSettingsType} from "./settings";
+import {getCurrentBranchName, getMainBranchName} from "../service/file/cloneDir";
+import {simpleActionWithResult, SimpleGitActionReturn} from "../service/file/simpleActionWithResult";
+import {WorkMeta, WorkResultStatus} from "../service/types";
 
 export interface GitHubClientWrapper {
   gitHubClient?: GithubClient;
@@ -29,6 +33,11 @@ interface GithubSearchCodeItem {
   repository: GithubSearchCodeRepository
 }
 
+interface GitHubPullRequestInput {
+  hits: SearchHit[];
+  title: string;
+  body: string;
+}
 
 type ResponseStatus = 'ok' | 'retryable' | 'failed'
 
@@ -64,6 +73,7 @@ export class GithubClient {
   private readonly searchHostKey: string;
   private readonly codeHostKey: string;
   private readonly api: AxiosInstance;
+  private readonly settings: MegaSettingsType;
 
   constructor(
     baseUrl: string,
@@ -71,12 +81,14 @@ export class GithubClient {
     token: string,
     searchHostKey: string,
     codeHostKey: string,
+    settings: MegaSettingsType,
   ) {
     this.baseUrl = baseUrl;
     this.username = username;
     this.token = token;
     this.searchHostKey = searchHostKey;
     this.codeHostKey = codeHostKey;
+    this.settings = settings;
     this.api = axiosInstance(username, token, baseUrl)
   }
 
@@ -122,7 +134,58 @@ export class GithubClient {
     return this.paginate('/search/repositories', max, {q: searchString}, transformer)
   }
 
-  async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, transformer: (data: GITHUB_TYPE) => TYPE): Promise<TYPE[]> {
+  createPullRequests(input: GitHubPullRequestInput, progressCallback: (done: number) => void): Promise<SimpleGitActionReturn> {
+    progressCallback(0)
+    return simpleActionWithResult({
+      ...input,
+      settings: this.settings,
+      sourceString: 'Create pullRequests',
+      workResultKind: "gitStage",
+    }, async (index: number, hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
+      try {
+        const main = await getMainBranchName(path, meta)
+        const head = await getCurrentBranchName(path)
+        await this.createPullRequest(hit, input.title, input.body, head, main, meta)
+        statusReport('ok')
+      } catch (e) {
+        statusReport('failed')
+      } finally {
+        progressCallback(index + 1)
+      }
+    })
+  }
+
+  private async createPullRequest(hit: SearchHit, title: string, body: string, head: string, base: string, meta: WorkMeta) {
+    let attempt = 0;
+    outer_loop: while (true) {
+      await sleep(1000)
+      const response = await this.api.post(`${this.baseUrl}/repos/${hit.owner}/${hit.repo}/pulls`, {
+        title,
+        body,
+        head,
+        base,
+      })
+      const retryStatus = await this.retryOnThrottle(attempt, response);
+      meta.workLog.push({
+        status: retryStatus === "ok" ? "ok" : "failed",
+        result: response,
+        what: 'POST Create PullRequest',
+      })
+      switch (retryStatus) {
+        case "ok":
+          info('Created PullRequest')
+          break outer_loop;
+        case "retryable":
+          debug('Failed creating PullRequest, will retry in a sec')
+          break;
+        case "failed":
+          throw new Error('Giving up on creating pull request')
+      }
+      attempt++;
+    }
+  }
+
+  private async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, transformer: (data: GITHUB_TYPE) => TYPE): Promise<TYPE[]> {
     const aggregator: Set<TYPE> = new Set<TYPE>()
     let page = 1
     let attempt = 0
@@ -161,7 +224,7 @@ export class GithubClient {
     return Array.from(aggregator);
   }
 
-  async retryOnThrottle(attempt: number, response: AxiosResponse<any>): Promise<ResponseStatus> {
+  private async retryOnThrottle(attempt: number, response: AxiosResponse<any>): Promise<ResponseStatus> {
     if (response.status < 300) {
       return 'ok'
     }

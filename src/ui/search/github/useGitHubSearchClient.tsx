@@ -5,7 +5,7 @@ import {useContext, useEffect, useState} from "react";
 import {MegaContext} from "../../../hooks/MegaContext";
 
 export interface GithubClientWrapper {
-  searchClient?: GithubClient,
+  ghClient?: GithubClient,
   clientInitError?: string,
 }
 
@@ -27,7 +27,7 @@ async function bakeGithubClient(
     return {clientInitError: 'Token not saved, go back to settings to set it'}
   }
   return {
-    searchClient: new GithubClient(
+    ghClient: new GithubClient(
       baseUrl,
       username,
       token,

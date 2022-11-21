@@ -13,7 +13,7 @@ export const PullRequestView: React.FC = () => {
   const [err, setErr] = useState<string>();
   const [workRef, setWorkRef] = useState<number>();
   const [codeHostKeys, setCodeHostKeys] = useState<string[]>();
-  const client = useGitHubCodeClient(codeHostKeys ? codeHostKeys[0] : undefined)
+  const {ghClient} = useGitHubCodeClient(codeHostKeys ? codeHostKeys[0] : undefined)
   useEffect(() => {
     const codeHostKeySet = new Set(hits?.map((h) => h.codeHost))
     setCodeHostKeys(Array.from(codeHostKeySet.values()))

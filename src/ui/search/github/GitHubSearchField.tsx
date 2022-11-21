@@ -16,12 +16,12 @@ const allSearchTypes: SearchType[] = ['CODE', 'REPO']
 export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchFieldProps}) => {
   const {search: {setHits: setSearchHits}} = useContext(MegaContext);
   const {
-    searchClient,
+    ghClient,
     clientInitError
   } = useGitHubSearchClient(searchFieldProps?.searchHostKey)
   useEffect(() => {
-    searchFieldProps?.setState(searchClient ? 'ready' : 'loading')
-  }, [searchClient])
+    searchFieldProps?.setState(ghClient ? 'ready' : 'loading')
+  }, [ghClient])
   const [searchText, setSearchText] = useState('tauri language:typescript')
   const [max, setMax] = useState(100)
   const [searchType, setSearchType] = useState<SearchType>('CODE')
@@ -61,16 +61,16 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
       variant={"contained"} color={"primary"}
       disabled={searchFieldProps?.state !== 'ready' || searchText.length === 0}
       onClick={() => {
-        if (searchClient !== undefined) {
+        if (ghClient !== undefined) {
           searchFieldProps?.setState('searching')
           setSearchHits([])
           let promise;
           switch (searchType) {
             case "CODE":
-              promise = searchClient.searchCode(searchText, max);
+              promise = ghClient.searchCode(searchText, max);
               break;
             case "REPO":
-              promise = searchClient.searchRepo(searchText, max);
+              promise = ghClient.searchRepo(searchText, max);
               break;
             default:
               promise = Promise.reject(`Unknown search type: ${searchType}`)

@@ -1,6 +1,6 @@
 import {asString} from "./logWrapper";
 import axios, {AxiosInstance, AxiosResponse} from "axios";
-import {SearchClient, SearchHit} from "../ui/search/types";
+import {SearchHit} from "../ui/search/types";
 import {sleep, sleepUntilEpocSecond} from "../service/delay";
 import {debug, info, trace, warn} from "tauri-plugin-log-api";
 
@@ -56,7 +56,7 @@ function axiosInstance(username: string, token: string, baseURL: string): AxiosI
   return instance
 }
 
-export class GithubClient implements SearchClient {
+export class GithubClient {
 
   private readonly baseUrl: string;
   private readonly username: string;
@@ -151,7 +151,7 @@ export class GithubClient implements SearchClient {
           const mapped = data.items.map(transformer)
           for (const item of mapped) {
             aggregator.add(item);
-            if(aggregator.size === max) break pagination;
+            if (aggregator.size === max) break pagination;
           }
           if (data.items.length < 100) break pagination
           attempt = 0

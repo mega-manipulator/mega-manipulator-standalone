@@ -26,10 +26,6 @@ export class SearchHit {
   }
 }
 
-export interface SearchClient {
-  searchCode(searchString: string, max: number): Promise<SearchHit[]>;
-}
-
 export type SearchPageState = 'loading' | 'ready' | 'searching'
 
 export function useSearchFieldProps(): SearchFieldProps {

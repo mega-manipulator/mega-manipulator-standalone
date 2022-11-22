@@ -21,6 +21,12 @@ export interface MegaContext {
     selected: string[],
     setSelected: (paths: string[]) => void,
   }
+  pullRequests: {
+    hits: SearchHit[],
+    setHits: (hits: SearchHit[]) => void,
+    selected: SearchHit[],
+    setSelected: (selected: SearchHit[]) => void,
+  }
 }
 
 export const MegaContext = createContext<MegaContext>({
@@ -44,6 +50,14 @@ export const MegaContext = createContext<MegaContext>({
     setSelected: (selected: string[]) => {
     },
   },
+  pullRequests: {
+    hits: [],
+    setHits: (hits: SearchHit[]) => {
+    },
+    selected: [],
+    setSelected: (selected: SearchHit[]) => {
+    },
+  }
 });
 
 export function newMegaContext(): MegaContext {
@@ -51,9 +65,14 @@ export function newMegaContext(): MegaContext {
   const [reload, setReload] = useState(0)
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
   const [searchHitsSelected, setSearchHitsSelected] = useState<SearchHit[]>([])
+
   useEffect(() => {
     setSearchHitsSelected([])
   }, [searchHits, reload]);
+
+  const [prHits, setPrHits] = useState<SearchHit[]>([])
+  const [prHitsSelected, setPrHitsSelected] = useState<SearchHit[]>([])
+
   const [homedir, setHomeDir] = useState<string>('~');
   useEffect(() => {
     homeDir().then((d)=>setHomeDir(d))
@@ -86,6 +105,12 @@ export function newMegaContext(): MegaContext {
       setPaths: setClonePaths,
       selected: selectedClonePaths,
       setSelected: setSelectedClonePaths,
+    },
+    pullRequests: {
+      hits: prHits,
+      setHits: setPrHits,
+      selected: prHitsSelected,
+      setSelected: setPrHitsSelected,
     },
   }
 }

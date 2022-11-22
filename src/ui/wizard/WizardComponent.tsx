@@ -3,6 +3,7 @@ import {modalStyle} from "../modal/megaModal";
 import React, {useCallback, useState} from "react";
 import {WorkResultStatus} from "../../service/types";
 import {asString} from "../../hooks/logWrapper";
+import {ButtonRow} from "../ButtonRow";
 
 type WizardStepProps = {
   name: string,
@@ -57,11 +58,7 @@ export const WizardComponent: React.FC<WizardComponentProps> = (props) => {
       </div>
 
       {/* BUTTONS */}
-      <p style={{
-        display: "grid",
-        gridAutoFlow: "column",
-        gridColumnGap: '10px',
-      }}>
+      <ButtonRow>
         <Button
           disabled={status === 'in-progress'}
           variant={"outlined"}
@@ -95,7 +92,7 @@ export const WizardComponent: React.FC<WizardComponentProps> = (props) => {
             }
           }}
         >{status === 'ready' ? 'Skip' : 'Next'}</Button>
-      </p>
+      </ButtonRow>
     </Box>
   </Modal>
 }

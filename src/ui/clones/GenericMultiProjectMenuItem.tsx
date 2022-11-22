@@ -3,6 +3,7 @@ import {Box, Button, ListItemButton, Modal, Typography} from "@mui/material";
 import {modalStyle} from "../modal/megaModal";
 import {error} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
+import {ButtonRow} from "../ButtonRow";
 
 type GenericMultiProjectMenuItemProps = {
   openButtonText: string;
@@ -48,11 +49,7 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
     <Modal open={isOpen} onClose={close}>
       <Box sx={modalStyle}>
         {typeof confirm === 'string' ? <Typography>{confirm}</Typography> : confirm}
-        <p style={{
-          display: "grid",
-          gridAutoFlow: "column",
-          gridColumnGap: '10px',
-        }}>
+        <ButtonRow>
           {state === 'ready' && <Button
               variant={"outlined"}
               color={"secondary"}
@@ -72,7 +69,7 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
                 .then(close)
                 .catch((e) => error(`Failed '${openButtonText}' due to: ${asString(e)}`).then((_) => setState('done')))
             }}>{runButtonText}</Button>
-        </p>
+        </ButtonRow>
       </Box>
     </Modal>
   </>

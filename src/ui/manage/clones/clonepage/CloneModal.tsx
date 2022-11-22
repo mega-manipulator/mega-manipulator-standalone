@@ -21,6 +21,7 @@ import {useNavigate} from "react-router-dom";
 import {locations} from "../../../route/locations";
 import {error, info} from "tauri-plugin-log-api";
 import {MegaContext} from "../../../../hooks/MegaContext";
+import {ButtonRow} from "../../../ButtonRow";
 
 export type CloneModalPropsWrapper = {
   cloneModalPropsWrapper: CloneModalProps
@@ -152,11 +153,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
         }
       </>}
       {/* Buttons */}
-      <p style={{
-        display: "grid",
-        gridAutoFlow: "column",
-        gridColumnGap: '10px',
-      }}>
+      <ButtonRow>
         {state === 'ready' && <Button
             variant={"contained"}
             color={"primary"}
@@ -205,7 +202,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
             >Show Clones</Button>
         </>}
         {err && <Alert variant={"filled"} color={"error"}>err</Alert>}
-      </p>
+      </ButtonRow>
     </Box>
   </Modal>
 };

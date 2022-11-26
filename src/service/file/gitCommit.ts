@@ -72,7 +72,7 @@ export async function gitPush(input: SimpleActionWithResultProps): Promise<numbe
   return res.time
 }
 
-interface GitDiff {
+export interface GitDiff {
   hit: SearchHit;
   path: string;
   diffFiles: string[];

@@ -39,10 +39,8 @@ async function bakeGithubClient(
   }
 }
 
-export const useGitHubSearchClient: (
-  searchHostKey: string | undefined,
-) => GithubClientWrapper = (searchHostKey) => {
-  const {settings} = useContext(MegaContext);
+export const useGitHubSearchClient: () => GithubClientWrapper = () => {
+  const {settings, search: {searchHostKey}} = useContext(MegaContext);
   const [wrapper, setWrapper] = useState<GithubClientWrapper>({clientInitError: 'Not initialized'})
   useEffect(() => {
     (async () => {
@@ -56,7 +54,7 @@ export const useGitHubSearchClient: (
       }
       const hostSetting: GitHubSearchHostSettings | undefined = settings.searchHosts[searchHostKey]?.github;
       if (!hostSetting) {
-        setWrapper( {clientInitError: 'Undefined search host settings 🤔'})
+        setWrapper({clientInitError: 'Undefined search host settings 🤔'})
         return;
       }
       setWrapper(await bakeGithubClient(searchHostKey, hostSetting.codeHostKey, settings, hostSetting))
@@ -66,10 +64,8 @@ export const useGitHubSearchClient: (
 }
 
 
-export const useGitHubCodeClient: (
-  codeHostKey: string | undefined,
-) => GithubClientWrapper = (codeHostKey) => {
-  const {settings} = useContext(MegaContext);
+export const useGitHubCodeClient: () => GithubClientWrapper = () => {
+  const {settings, code: {codeHostKey}} = useContext(MegaContext);
   const [wrapper, setWrapper] = useState<GithubClientWrapper>({clientInitError: 'Not initialized'})
   useEffect(() => {
     (async () => {
@@ -83,7 +79,7 @@ export const useGitHubCodeClient: (
       }
       const hostSetting: GitHubCodeHostSettings | undefined = settings.codeHosts[codeHostKey]?.github;
       if (!hostSetting) {
-        setWrapper( {clientInitError: 'Undefined search host settings 🤔'})
+        setWrapper({clientInitError: 'Undefined search host settings 🤔'})
         return;
       }
       setWrapper(await bakeGithubClient('??', codeHostKey, settings, hostSetting))

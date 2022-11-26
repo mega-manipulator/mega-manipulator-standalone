@@ -10,6 +10,8 @@ export interface MegaContext {
   homeDir: string,
 
   search: {
+    searchHostKey: string,
+    setSearchHostKey: (codeHostKey: string) => void,
     hits: SearchHit[],
     setHits: (hits: SearchHit[]) => void,
     selected: SearchHit[],
@@ -21,6 +23,10 @@ export interface MegaContext {
     selected: string[],
     setSelected: (paths: string[]) => void,
   }
+  code: {
+    codeHostKey: string,
+    setCodeHostKey: (codeHostKey: string) => void,
+  },
   pullRequests: {
     hits: SearchHit[],
     setHits: (hits: SearchHit[]) => void,
@@ -35,6 +41,9 @@ export const MegaContext = createContext<MegaContext>({
   }),
   homeDir: '~',
   search: {
+    searchHostKey: 'string',
+    setSearchHostKey: (codeHostKey: string) => {
+    },
     hits: [],
     setHits: (hits: SearchHit[]) => {
     },
@@ -48,6 +57,11 @@ export const MegaContext = createContext<MegaContext>({
     },
     selected: [],
     setSelected: (selected: string[]) => {
+    },
+  },
+  code: {
+    codeHostKey: 'string',
+    setCodeHostKey: (codeHostKey: string) => {
     },
   },
   pullRequests: {
@@ -75,7 +89,7 @@ export function newMegaContext(): MegaContext {
 
   const [homedir, setHomeDir] = useState<string>('~');
   useEffect(() => {
-    homeDir().then((d)=>setHomeDir(d))
+    homeDir().then((d) => setHomeDir(d))
   }, []);
 
   useEffect(() => {
@@ -88,13 +102,17 @@ export function newMegaContext(): MegaContext {
     saveToDisk(megaSettings)
     setReload(reload + 1)
   }
+  const [searchHostKey, setSearchHostKey] = useState<string>('local');
+  const [codeHostKey, setCodeHostKey] = useState<string>('github.com');
   const [clonePaths, setClonePaths] = useState<string[]>([]);
   const [selectedClonePaths, setSelectedClonePaths] = useState<string[]>([]);
   return {
     settings,
     updateSettings,
-    homeDir:homedir,
+    homeDir: homedir,
     search: {
+      searchHostKey,
+      setSearchHostKey,
       hits: searchHits,
       setHits: setSearchHits,
       selected: searchHitsSelected,
@@ -105,6 +123,10 @@ export function newMegaContext(): MegaContext {
       setPaths: setClonePaths,
       selected: selectedClonePaths,
       setSelected: setSelectedClonePaths,
+    },
+    code: {
+      codeHostKey,
+      setCodeHostKey,
     },
     pullRequests: {
       hits: prHits,

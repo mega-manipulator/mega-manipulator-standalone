@@ -2,7 +2,7 @@ import {Box, Modal} from "@mui/material";
 import {modalStyle} from "../modal/megaModal";
 import {useEffect, useState} from "react";
 import {SearchHit} from "../search/types";
-import {gitChangedFiles} from "../../service/file/gitCommit";
+import {gitChangedFiles, GitDiff} from "../../service/file/gitCommit";
 import {MegaSettingsType} from "../../hooks/settings";
 
 export type DiffModalProps = {
@@ -15,10 +15,10 @@ export type DiffModalProps = {
 export const DiffModal = (
   {isOpen, setIsOpen, searchHits, settings}:DiffModalProps
 ) => {
-  const [diffs, setDiffs] = useState<{ hit: SearchHit, path: string, diff: string[] }[]>([])
+  const [diffs, setDiffs] = useState<GitDiff[]>([])
   useEffect(()=>{
     (async ()=>{
-      const newVar: { hit: SearchHit; path: string; diff: string[] }[] = await gitChangedFiles({hits:searchHits, settings});
+      const newVar: GitDiff[] = await gitChangedFiles({hits:searchHits, settings});
       setDiffs(newVar)
     })()
   },[])

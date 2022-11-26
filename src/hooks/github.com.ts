@@ -33,6 +33,31 @@ interface GithubSearchCodeItem {
   repository: GithubSearchCodeRepository
 }
 
+interface GithubUser {
+  login: string,
+  avatar_url?: string,
+}
+
+interface IssueSearchPullRequest {
+  merged_at?: string,
+  html_url?: string,
+}
+
+interface GithubPullUpdate {
+  // TODO
+}
+
+interface GithubSearchPullsItem {
+  title: string,
+  body?: string,
+  /** API-endpoint */
+  repository_url: string,
+  html_url: string,
+  state: string,
+  user?: GithubUser,
+  pull_request?: IssueSearchPullRequest,
+}
+
 interface GitHubPullRequestInput {
   hits: SearchHit[];
   title: string;
@@ -68,7 +93,7 @@ function axiosInstance(username: string, token: string, baseURL: string): AxiosI
 export class GithubClient {
 
   private readonly baseUrl: string;
-  private readonly username: string;
+  readonly username: string;
   private readonly token: string;
   private readonly searchHostKey: string;
   private readonly codeHostKey: string;
@@ -134,6 +159,14 @@ export class GithubClient {
     return this.paginate('/search/repositories', max, {q: searchString}, transformer)
   }
 
+  async searchPulls(searchString: string, max: number): Promise<GithubSearchPullsItem[]> {
+    info(`Searching for PULLS: '${searchString}' with the github client`)
+    const transformer: (item: any) => GithubSearchPullsItem = (item: any) => {
+      return item;
+    }
+    return this.paginate('/search/issues', max, {q: searchString}, transformer)
+  }
+
   createPullRequests(input: GitHubPullRequestInput, progressCallback: (done: number) => void): Promise<SimpleGitActionReturn> {
     progressCallback(0)
     return simpleActionWithResult({
@@ -164,7 +197,7 @@ export class GithubClient {
         body,
         head,
         base,
-      })
+      }, {})
       const retryStatus = await this.retryOnThrottle(attempt, response);
       meta.workLog.push({
         status: retryStatus === "ok" ? "ok" : "failed",
@@ -199,6 +232,7 @@ export class GithubClient {
           per_page: 100,
         },
       })
+      debug('Received response: ' + asString(response))
       const status: ResponseStatus = await this.retryOnThrottle(attempt, response)
       switch (status) {
         case "retryable":

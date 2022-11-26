@@ -18,7 +18,7 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
   const {
     ghClient,
     clientInitError
-  } = useGitHubSearchClient(searchFieldProps?.searchHostKey)
+  } = useGitHubSearchClient()
   useEffect(() => {
     searchFieldProps?.setState(ghClient ? 'ready' : 'loading')
   }, [ghClient])

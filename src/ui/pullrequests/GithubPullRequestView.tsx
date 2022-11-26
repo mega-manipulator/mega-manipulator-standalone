@@ -3,9 +3,7 @@ import React from "react";
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import EditIcon from '@mui/icons-material/Edit'
 import {GitHubEditPrSpeedDial} from "./actions/GitHubEditPrSpeedDial";
-
-const menuItems = []
-function useMenuItems(){}
+import {GitHubPullRequestSearch} from "./GitHubPullRequestSearch";
 
 export const GithubPullRequestView: React.FC = () => {
     {/*
@@ -21,7 +19,7 @@ export const GithubPullRequestView: React.FC = () => {
     </Select>
     */}
   return <>
-
+    <GitHubPullRequestSearch/>
     <SpeedDial
       ariaLabel="SpeedDial openIcon example"
       sx={{ position: 'absolute', bottom: 16, left: 16 }}

@@ -31,35 +31,33 @@ function githubRepoFetchGraphQl(repos: { owner: string, repo: string }[]): strin
 }`
 }
 
-const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!) {
-  search(first: 100, type: ISSUE, query: $query) {
+const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!, $cursor: String) {
+  search(first: 100, type: ISSUE, query: $query, after: $cursor) {
     pageInfo {
       hasNextPage
       endCursor
     }
-    edges {
-      node {
-        __typename
-        ... on PullRequest {
-          author {
-            avatarUrl
+    nodes {
+      __typename
+      ... on PullRequest {
+        author {
+          avatarUrl
+          login
+        }
+        repository {
+          name
+          owner {
             login
-          }
-          repository {
-            name
-            owner {
-              login
-              avatarUrl
-            }
-            url
-            sshUrl
+            avatarUrl
           }
           url
-          title
-          body
-          state
-          mergedAt
+          sshUrl
         }
+        url
+        title
+        body
+        state
+        mergedAt
       }
     }
   }
@@ -87,20 +85,20 @@ interface GithubSearchCodeItem {
 
 interface GithubUser {
   login: string,
-  avatar_url?: string,
+  avatarUrl?: string,
 }
 
 export interface GitHubPull {
-  owner?: string,
+  owner?: GithubUser,
   repo?: string,
   title: string,
   body?: string,
-  /** API-endpoint */
-  repository_url: string,
-  html_url: string,
+  repositoryUrl: string,
+  cloneUrl: string,
+  htmlUrl: string,
   state: string,
   author?: GithubUser,
-  merged_at?: string,
+  mergedAt?: string,
   raw: any,
 }
 
@@ -206,27 +204,30 @@ export class GithubClient {
   }
 
   async searchPulls(searchString: string, max: number): Promise<GitHubPull[]> {
-    throw new Error('Use graphQL endpoint, API is borked for orgs 🤦')
-
     info(`Searching for PULLS: '${searchString}' with the github client`)
     const transformer: (item: any) => GitHubPull = (item: any) => {
-      const repoUrlParts: string[] | undefined = item.repository_url?.split('/')
-      const repo: string | undefined = repoUrlParts?.pop()
-      const owner: string | undefined = repoUrlParts?.pop()
       return {
-        owner,
-        repo,
-        author: item.user,
+        owner: item.repository.owner,
+        repo: item.repository.name,
+        author: item.author,
         body: item.body,
         title: item.title,
-        html_url: item.html_url,
-        merged_at: item.pull_request?.merged_at,
+        htmlUrl: item.url,
+        mergedAt: item.mergedAt,
         state: item.state,
-        repository_url: item.repository_url,
+        repositoryUrl: item.repository.url,
+        cloneUrl: item.repository.sshUrl,
         raw: item
       };
     }
-    return this.paginate('/search/issues', max, {q: searchString}, transformer)
+    return this.paginateGraphQl(
+      '/graphql',
+      max,
+      githubPullRequestGraphQLSearch,
+      {query: searchString},
+      (data) => data.data.search.nodes,
+      transformer,
+    );
   }
 
   createPullRequests(input: GitHubPullRequestInput, progressCallback: (done: number) => void): Promise<SimpleGitActionReturn> {
@@ -280,8 +281,52 @@ export class GithubClient {
     }
   }
 
-  private async paginateGraphQl<GITHUB_TYPE, TYPE>(url: string, max: number, body: string, params: any, transformer: (data: GITHUB_TYPE) => TYPE): Promise<TYPE[]> {
-    throw new Error('Not yet implemented')
+  private async paginateGraphQl<GITHUB_TYPE, TYPE>(
+    url: string,
+    max: number,
+    query: string,
+    variables: any,
+    listExtractor: (data: any) => GITHUB_TYPE[],
+    transformer: (data: GITHUB_TYPE) => TYPE
+  ): Promise<TYPE[]> {
+    let cursor: string | undefined = undefined;
+    const aggregator: Set<TYPE> = new Set<TYPE>()
+    let attempt = 0;
+    pagination: while (aggregator.size < max) {
+      await sleep(1000)
+      const response: AxiosResponse = await this.api.post(url, {
+        variables: {
+          ...variables,
+          cursor: cursor,
+        },
+        query,
+      })
+      const status: ResponseStatus = await this.retryOnThrottle(attempt, response)
+      switch (status) {
+        case "retryable":
+          attempt++
+          info('Resume after throttle')
+          continue
+        case "failed":
+          warn(`Failed paginating request in a way that was not recoverable with throttling: ${response.status}::${JSON.stringify(response.data)}`)
+          break pagination;
+        case "ok":
+          const data: GITHUB_TYPE[] = listExtractor(response.data)
+          debug(`Got response from GitHub ${asString(data)}`) // TODO lower level?
+          const mapped = data.map(transformer)
+          for (const item of mapped) {
+            aggregator.add(item);
+            if (aggregator.size === max) break pagination;
+          }
+          attempt = 0
+          if (response.data.data.search.pageInfo.hasNextPage && response.data.data.search.pageInfo.endCursor) {
+            cursor = response.data.data.search.pageInfo.endCursor
+          } else {
+            break pagination;
+          }
+      }
+    }
+    return Array.from(aggregator);
   }
 
   private async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, transformer: (data: GITHUB_TYPE) => TYPE): Promise<TYPE[]> {

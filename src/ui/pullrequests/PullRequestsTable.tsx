@@ -1,26 +1,41 @@
 import {Box, Button, Tooltip} from "@mui/material";
 import {DataGridPro} from "@mui/x-data-grid-pro";
-import {useContext} from "react";
+import React, {useContext} from "react";
 import {MegaContext} from "../../hooks/MegaContext";
-import {GridColDef, GridRowId} from "@mui/x-data-grid";
+import {GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
 import {GitHubPull} from "../../hooks/github.com";
 import {open} from '@tauri-apps/api/shell';
 
+const GithubUserColumn: React.FC<GridRenderCellParams<any, any, any>> = ({value}) => {
+  return <>
+    <Box
+      component="img"
+      sx={{
+        height: 24,
+        width: 24,
+      }}
+      alt={value.login}
+      src={value.avatarUrl}
+    />&nbsp;{value.login}
+  </>
+}
+
 const cols: GridColDef[] = [
   {field: 'id', hideable: true, minWidth: 25, maxWidth: 100, hide: true},
-  {field: 'owner', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true},
+  {field: 'owner', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true, renderCell: GithubUserColumn },
   {field: 'repo', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true},
+  {field: 'author', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true, renderCell: GithubUserColumn },
   {field: 'title', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true},
   {field: 'body', hideable: true, minWidth: 100, maxWidth: 500, hide: false, resizable: true},
   {field: 'state', hideable: true, minWidth: 100, maxWidth: 500, hide: false, resizable: true},
   {
-    field: 'repository_url',
+    field: 'repositoryUrl',
     hideable: true,
     minWidth: 150,
     maxWidth: 500,
     hide: false,
     resizable: true,
-    renderCell: (v) => <Tooltip title={'This is the API-url, not the HTML-url'}>
+    renderCell: (v) => <Tooltip title={'Click me to open repo in browser'}>
       <Button
         variant={"outlined"}
         size={"small"}

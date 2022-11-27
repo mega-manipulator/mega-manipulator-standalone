@@ -8,10 +8,62 @@ import {getCurrentBranchName, getMainBranchName} from "../service/file/cloneDir"
 import {simpleActionWithResult, SimpleGitActionReturn} from "../service/file/simpleActionWithResult";
 import {WorkMeta, WorkResultStatus} from "../service/types";
 
-export interface GitHubClientWrapper {
-  gitHubClient?: GithubClient;
-  gitHubClientInitError?: string;
+function githubRepoFetchGraphQl(repos: { owner: string, repo: string }[]): string {
+  return `fragment repoProperties on Repository {
+  sshUrl
+  name
+  description
+  url
+  owner {
+    login
+    avatarUrl
+  }
+  defaultBranchRef {
+    name
+  }
+  allowUpdateBranch
 }
+
+{
+  ${repos.map(({owner, repo}, index) => `  repo${index}: repository(owner: "${owner}", name: "${repo}") {
+    ...repoProperties
+  }`).join("\n")}
+}`
+}
+
+const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!) {
+  search(first: 100, type: ISSUE, query: $query) {
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    edges {
+      node {
+        __typename
+        ... on PullRequest {
+          author {
+            avatarUrl
+            login
+          }
+          repository {
+            name
+            owner {
+              login
+              avatarUrl
+            }
+            url
+            sshUrl
+          }
+          url
+          title
+          body
+          state
+          mergedAt
+        }
+      }
+    }
+  }
+}`
 
 interface GithubPage<T> {
   total_count: number,
@@ -38,24 +90,18 @@ interface GithubUser {
   avatar_url?: string,
 }
 
-interface IssueSearchPullRequest {
-  merged_at?: string,
-  html_url?: string,
-}
-
-interface GithubPullUpdate {
-  // TODO
-}
-
-interface GithubSearchPullsItem {
+export interface GitHubPull {
+  owner?: string,
+  repo?: string,
   title: string,
   body?: string,
   /** API-endpoint */
   repository_url: string,
   html_url: string,
   state: string,
-  user?: GithubUser,
-  pull_request?: IssueSearchPullRequest,
+  author?: GithubUser,
+  merged_at?: string,
+  raw: any,
 }
 
 interface GitHubPullRequestInput {
@@ -159,10 +205,26 @@ export class GithubClient {
     return this.paginate('/search/repositories', max, {q: searchString}, transformer)
   }
 
-  async searchPulls(searchString: string, max: number): Promise<GithubSearchPullsItem[]> {
+  async searchPulls(searchString: string, max: number): Promise<GitHubPull[]> {
+    throw new Error('Use graphQL endpoint, API is borked for orgs 🤦')
+
     info(`Searching for PULLS: '${searchString}' with the github client`)
-    const transformer: (item: any) => GithubSearchPullsItem = (item: any) => {
-      return item;
+    const transformer: (item: any) => GitHubPull = (item: any) => {
+      const repoUrlParts: string[] | undefined = item.repository_url?.split('/')
+      const repo: string | undefined = repoUrlParts?.pop()
+      const owner: string | undefined = repoUrlParts?.pop()
+      return {
+        owner,
+        repo,
+        author: item.user,
+        body: item.body,
+        title: item.title,
+        html_url: item.html_url,
+        merged_at: item.pull_request?.merged_at,
+        state: item.state,
+        repository_url: item.repository_url,
+        raw: item
+      };
     }
     return this.paginate('/search/issues', max, {q: searchString}, transformer)
   }
@@ -216,6 +278,10 @@ export class GithubClient {
       }
       attempt++;
     }
+  }
+
+  private async paginateGraphQl<GITHUB_TYPE, TYPE>(url: string, max: number, body: string, params: any, transformer: (data: GITHUB_TYPE) => TYPE): Promise<TYPE[]> {
+    throw new Error('Not yet implemented')
   }
 
   private async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, transformer: (data: GITHUB_TYPE) => TYPE): Promise<TYPE[]> {

@@ -2,6 +2,7 @@ import {createContext, useEffect, useState} from "react";
 import {baseSettings, loadFromDiskOrDefault, MegaSettingsType, saveToDisk} from "./settings";
 import {SearchHit} from "../ui/search/types";
 import {homeDir} from '@tauri-apps/api/path';
+import {GitHubPull} from "./github.com";
 
 export interface MegaContext {
   settings: MegaSettingsType,
@@ -28,10 +29,10 @@ export interface MegaContext {
     setCodeHostKey: (codeHostKey: string) => void,
   },
   pullRequests: {
-    hits: SearchHit[],
-    setHits: (hits: SearchHit[]) => void,
-    selected: SearchHit[],
-    setSelected: (selected: SearchHit[]) => void,
+    pulls: GitHubPull[],
+    setPulls: (pulls: GitHubPull[]) => void,
+    selected: GitHubPull[],
+    setSelected: (selected: GitHubPull[]) => void,
   }
 }
 
@@ -65,11 +66,11 @@ export const MegaContext = createContext<MegaContext>({
     },
   },
   pullRequests: {
-    hits: [],
-    setHits: (hits: SearchHit[]) => {
+    pulls: [],
+    setPulls: (pulls: GitHubPull[]) => {
     },
     selected: [],
-    setSelected: (selected: SearchHit[]) => {
+    setSelected: (selected: GitHubPull[]) => {
     },
   }
 });
@@ -84,8 +85,8 @@ export function newMegaContext(): MegaContext {
     setSearchHitsSelected([])
   }, [searchHits, reload]);
 
-  const [prHits, setPrHits] = useState<SearchHit[]>([])
-  const [prHitsSelected, setPrHitsSelected] = useState<SearchHit[]>([])
+  const [prHits, setPrHits] = useState<GitHubPull[]>([])
+  const [prHitsSelected, setPrHitsSelected] = useState<GitHubPull[]>([])
 
   const [homedir, setHomeDir] = useState<string>('~');
   useEffect(() => {
@@ -129,8 +130,8 @@ export function newMegaContext(): MegaContext {
       setCodeHostKey,
     },
     pullRequests: {
-      hits: prHits,
-      setHits: setPrHits,
+      pulls: prHits,
+      setPulls: setPrHits,
       selected: prHitsSelected,
       setSelected: setPrHitsSelected,
     },

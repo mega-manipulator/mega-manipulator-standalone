@@ -1,14 +1,25 @@
-import React, {useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {useGitHubCodeClient} from "../search/github/useGitHubSearchClient";
-import {Alert, Button, IconButton, TextField, Tooltip} from "@mui/material";
+import {Alert, Button, CircularProgress, IconButton, TextField, Tooltip} from "@mui/material";
 import HelpCenterIcon from '@mui/icons-material/HelpCenter';
 import {debug, error} from "tauri-plugin-log-api";
 import {open} from '@tauri-apps/api/shell';
 import {asString} from "../../hooks/logWrapper";
+import {MegaContext} from "../../hooks/MegaContext";
+import {GitHubPull} from "../../hooks/github.com";
 
 export const GitHubPullRequestSearch: React.FC = () => {
+  const {pullRequests:{setPulls}} = useContext(MegaContext)
   const {ghClient, clientInitError} = useGitHubCodeClient()
   const [searchTerm, setSearchTerm] = useState(`is:pr author:${ghClient?.username} state:open`)
+  const [state, setState] = useState<'loading' | 'ready' | 'searching'>('loading');
+  useEffect(() => {
+    setSearchTerm(`is:pr author:${ghClient?.username} state:open`)
+    setState(ghClient ? 'ready' : "loading")
+  }, [ghClient]);
+
+
+  const [max, setMax] = useState(100);
 
   // Render
   if (clientInitError) {
@@ -23,15 +34,24 @@ export const GitHubPullRequestSearch: React.FC = () => {
       placeholder={'GitHub pulls search terms (q)'}
     />
     <Button
+      disabled={state !== "ready"}
       variant={"contained"}
       color={"primary"}
       onClick={() => {
-        debug('Searching for ')
-        ghClient?.searchPulls(searchTerm, 100)
-          ?.then((items) => debug('Result!:' + asString(items)))
+        debug(`Searching for '${searchTerm}'`)
+        setPulls([])
+        setState('searching')
+        ghClient?.searchPulls(searchTerm, max)
+          ?.then((items: GitHubPull[]) => {
+            debug('Result!:' + asString(items))
+            setPulls(items)
+          })
           ?.catch((e)=>error('ERGHT: '+asString(e)))
-      }}
-    >Search</Button>
+          ?.finally(() => setState("ready"))
+      }}>
+      {state === "searching" && <CircularProgress/>}
+      Search
+    </Button>
     <Tooltip title={'Click to open pull request search documentation in browser'}>
       <IconButton onClick={() => {
         debug('Opening docs')

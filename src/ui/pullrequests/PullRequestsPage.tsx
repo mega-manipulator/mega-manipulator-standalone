@@ -3,6 +3,7 @@ import {Alert, MenuItem, Select, Typography} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
 import {CodeHostType} from "../../hooks/settings";
 import {GithubPullRequestView} from "./GithubPullRequestView";
+import {PullRequestsTable} from "./PullRequestsTable";
 
 const DynamicPullRequestView: React.FC<{ codeHostType: CodeHostType | undefined }> = ({codeHostType}) => {
   switch (codeHostType) {
@@ -38,5 +39,6 @@ export const PullRequestsPage: React.FC = () => {
       </Select>
 
     <DynamicPullRequestView codeHostType={codeHostType}/>
+    <PullRequestsTable/>
   </>
 };

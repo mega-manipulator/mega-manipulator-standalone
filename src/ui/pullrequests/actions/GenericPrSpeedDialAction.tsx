@@ -8,6 +8,7 @@ import {getResultFromStorage} from "../../../service/work/workLog";
 import {asString} from "../../../hooks/logWrapper";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../../route/locations";
+import {debug} from "tauri-plugin-log-api";
 
 type GenericPrSpeedDialActionProps = {
   //speedDialActionProps: SpeedDialActionProps,
@@ -18,15 +19,15 @@ type GenericPrSpeedDialActionProps = {
   action: (progressCallback: (current: number, total: number) => void) => Promise<SimpleGitActionReturn>,
 }
 
-export const GenericPrSpeedDialAction: React.FC<GenericPrSpeedDialActionProps> = (
+export function genericPrSpeedDialAction (
   {
     disabled,
     tooltipTitle,
     icon,
     action,
     description,
-  }
-) => {
+  }:GenericPrSpeedDialActionProps
+) :  { modal: JSX.Element, dial: JSX.Element } {
   const nav = useNavigate()
   //const {pullRequests: {selected}} = useContext(MegaContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,17 +56,18 @@ export const GenericPrSpeedDialAction: React.FC<GenericPrSpeedDialActionProps> =
     setProgress((100.0 * current) / total)
   }, []);
 
-  return <>
-    <SpeedDialAction
+  return {
+    dial: <SpeedDialAction
       icon={icon}
       tooltipTitle={tooltipTitle}
       onClick={() => {
+        debug('Open clocked!')
         if (!disabled) {
           setIsModalOpen(true)
         }
       }}
-    />
-    <Modal
+    />,
+    modal: <Modal
       onClose={() => state !== 'running' && setIsModalOpen(false)}
       open={isModalOpen}
     >
@@ -107,6 +109,6 @@ export const GenericPrSpeedDialAction: React.FC<GenericPrSpeedDialActionProps> =
           >Execute</Button>
         </ButtonRow>
       </Box>
-    </Modal>
-  </>
+    </Modal>,
+  }
 }

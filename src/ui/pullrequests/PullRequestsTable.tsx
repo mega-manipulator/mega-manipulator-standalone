@@ -19,33 +19,24 @@ const GithubUserColumn: React.FC<GridRenderCellParams<any, any, any>> = ({value}
     />&nbsp;{value.login}
   </>
 }
-
+const defaultGridColDef: GridColDef = {
+  field: 'undefined',
+  hideable: true,
+  minWidth: 100,
+  maxWidth: 500,
+  hide: false,
+  resizable: true,
+}
 const cols: GridColDef[] = [
-  {field: 'id', hideable: true, minWidth: 25, maxWidth: 100, hide: true},
+  {...defaultGridColDef, field: 'id', minWidth: 25, hide: true,},
+  {...defaultGridColDef, field: 'owner', renderCell: GithubUserColumn},
+  {...defaultGridColDef, field: 'repo', width:175},
+  {...defaultGridColDef, field: 'author', renderCell: GithubUserColumn},
+  {...defaultGridColDef, field: 'title'},
+  {...defaultGridColDef, field: 'body'},
+  {...defaultGridColDef, field: 'state'},
   {
-    field: 'owner',
-    hideable: true,
-    minWidth: 100,
-    maxWidth: 400,
-    hide: false,
-    resizable: true,
-    renderCell: GithubUserColumn
-  },
-  {field: 'repo', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true},
-  {
-    field: 'author',
-    hideable: true,
-    minWidth: 100,
-    maxWidth: 400,
-    hide: false,
-    resizable: true,
-    renderCell: GithubUserColumn
-  },
-  {field: 'title', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true},
-  {field: 'body', hideable: true, minWidth: 100, maxWidth: 500, hide: false, resizable: true},
-  {field: 'state', hideable: true, minWidth: 100, maxWidth: 500, hide: false, resizable: true},
-  {
-    field: 'repositoryUrl', hideable: true, minWidth: 150, maxWidth: 500, hide: false, resizable: true,
+    ...defaultGridColDef, field: 'repositoryUrl', width: 150,
     renderCell: (v) => <Tooltip title={'Click me to open repo in browser'}>
       <Button variant={"outlined"} size={"small"} onClick={() => open(v.value)}>Open in browser</Button>
     </Tooltip>
@@ -54,7 +45,6 @@ const cols: GridColDef[] = [
 
 export const PullRequestsTable: React.FC = () => {
   const {pullRequests: {pulls, setSelected}} = useContext(MegaContext)
-
   return <Box sx={{width: '100%'}}>
     <DataGridPro
       autoHeight

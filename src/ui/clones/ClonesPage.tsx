@@ -58,7 +58,7 @@ const columns: GridColDef[] = [
 ];
 
 export const ClonesPage: React.FC = () => {
-  const {settings, clones: {setPaths, setSelected}} = useContext(MegaContext)
+  const {settings, clones: {setPaths, setSelected, selectedModel}} = useContext(MegaContext)
   const [state, setState] = useState<'loading' | 'ready'>('loading')
 
   const [repoStates, setRepoStates] = useState<RepoBadStatesReport[]>([])
@@ -103,10 +103,11 @@ export const ClonesPage: React.FC = () => {
             ...d
           }
         })}
+        selectionModel={selectedModel}
         onSelectionModelChange={(model: GridRowId[]) => {
           const selectedRepoBadStatesReports = model.map((id) => repoStates[+id]);
           setSelectedRepos(selectedRepoBadStatesReports)
-          setSelected(selectedRepoBadStatesReports.map((r) => r.repoPathLong))
+          setSelected(model.map((r) => +r))
         }}
         columns={columns}
         autoPageSize

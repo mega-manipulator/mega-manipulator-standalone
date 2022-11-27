@@ -1,4 +1,4 @@
-import {createContext, useEffect, useState} from "react";
+import {createContext, useEffect, useMemo, useState} from "react";
 import {baseSettings, loadFromDiskOrDefault, MegaSettingsType, saveToDisk} from "./settings";
 import {SearchHit} from "../ui/search/types";
 import {homeDir} from '@tauri-apps/api/path';
@@ -16,13 +16,15 @@ export interface MegaContext {
     hits: SearchHit[],
     setHits: (hits: SearchHit[]) => void,
     selected: SearchHit[],
-    setSelected: (selected: SearchHit[]) => void,
+    selectedModel: number[],
+    setSelected: (selected: number[]) => void,
   }
   clones: {
     paths: string[],
     setPaths: (paths: string[]) => void,
     selected: string[],
-    setSelected: (paths: string[]) => void,
+    selectedModel: number[],
+    setSelected: (paths: number[]) => void,
   }
   code: {
     codeHostKey: string,
@@ -32,7 +34,8 @@ export interface MegaContext {
     pulls: GitHubPull[],
     setPulls: (pulls: GitHubPull[]) => void,
     selected: GitHubPull[],
-    setSelected: (selected: GitHubPull[]) => void,
+    selectedModel: number[],
+    setSelected: (selected: number[]) => void,
   }
 }
 
@@ -49,7 +52,8 @@ export const MegaContext = createContext<MegaContext>({
     setHits: (hits: SearchHit[]) => {
     },
     selected: [],
-    setSelected: (selected: SearchHit[]) => {
+    selectedModel: [],
+    setSelected: (selected: number[]) => {
     },
   },
   clones: {
@@ -57,7 +61,8 @@ export const MegaContext = createContext<MegaContext>({
     setPaths: (paths: string[]) => {
     },
     selected: [],
-    setSelected: (selected: string[]) => {
+    selectedModel: [],
+    setSelected: (selected: number[]) => {
     },
   },
   code: {
@@ -70,7 +75,8 @@ export const MegaContext = createContext<MegaContext>({
     setPulls: (pulls: GitHubPull[]) => {
     },
     selected: [],
-    setSelected: (selected: GitHubPull[]) => {
+    selectedModel: [],
+    setSelected: (selected: number[]) => {
     },
   }
 });
@@ -78,15 +84,20 @@ export const MegaContext = createContext<MegaContext>({
 export function newMegaContext(): MegaContext {
   const [settings, setSettings] = useState(baseSettings())
   const [reload, setReload] = useState(0)
+
+  /* Search Hits */
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
-  const [searchHitsSelected, setSearchHitsSelected] = useState<SearchHit[]>([])
+  const [searchHitsSelectedModel, setSearchHitsSelectedModel] = useState<number[]>([])
+  const searchHitsSelected = useMemo<SearchHit[]>(() => {
+    return searchHitsSelectedModel.map((i) => searchHits[i])
+  }, [searchHits, searchHitsSelectedModel])
 
-  useEffect(() => {
-    setSearchHitsSelected([])
-  }, [searchHits, reload]);
-
+  /* Pull requests */
   const [prHits, setPrHits] = useState<GitHubPull[]>([])
-  const [prHitsSelected, setPrHitsSelected] = useState<GitHubPull[]>([])
+  const [prHitsSelectedModel, setPrHitsSelectedModel] = useState<number[]>([])
+  const prHitsSelected = useMemo<GitHubPull[]>(() => {
+    return prHitsSelectedModel.map((i)=>prHits[i])
+  },[prHitsSelectedModel, prHits])
 
   const [homedir, setHomeDir] = useState<string>('~');
   useEffect(() => {
@@ -105,8 +116,19 @@ export function newMegaContext(): MegaContext {
   }
   const [searchHostKey, setSearchHostKey] = useState<string>('local');
   const [codeHostKey, setCodeHostKey] = useState<string>('github.com');
+
+  /* Clone Paths*/
   const [clonePaths, setClonePaths] = useState<string[]>([]);
-  const [selectedClonePaths, setSelectedClonePaths] = useState<string[]>([]);
+  const [selectedClonePathsModel, setSelectedClonePathsModel] = useState<number[]>([]);
+  const selectedClonePaths = useMemo<string[]>(()=>{
+    return selectedClonePathsModel.map((i) => clonePaths[i])
+  },[clonePaths, selectedClonePathsModel]);
+
+  useEffect(() => {
+    setSearchHitsSelectedModel([])
+    setPrHitsSelectedModel([])
+    setSelectedClonePathsModel([])
+  }, [searchHits, clonePaths, prHits, reload]);
   return {
     settings,
     updateSettings,
@@ -117,13 +139,15 @@ export function newMegaContext(): MegaContext {
       hits: searchHits,
       setHits: setSearchHits,
       selected: searchHitsSelected,
-      setSelected: setSearchHitsSelected,
+      selectedModel: searchHitsSelectedModel,
+      setSelected: setSearchHitsSelectedModel,
     },
     clones: {
       paths: clonePaths,
       setPaths: setClonePaths,
       selected: selectedClonePaths,
-      setSelected: setSelectedClonePaths,
+      selectedModel: selectedClonePathsModel,
+      setSelected: setSelectedClonePathsModel,
     },
     code: {
       codeHostKey,
@@ -133,7 +157,8 @@ export function newMegaContext(): MegaContext {
       pulls: prHits,
       setPulls: setPrHits,
       selected: prHitsSelected,
-      setSelected: setPrHitsSelected,
+      selectedModel: prHitsSelectedModel,
+      setSelected: setPrHitsSelectedModel,
     },
   }
 }

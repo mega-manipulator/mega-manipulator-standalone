@@ -14,7 +14,7 @@ export const PullRequestView: React.FC = () => {
   const [body, setBody] = useState<string>();
 
   const nav = useNavigate()
-  const {clones: {selected}, code: {setCodeHostKey}} = useContext(MegaContext);
+  const {clones: {selected}, code: {codeHostKey, setCodeHostKey}} = useContext(MegaContext);
   const [hits, setHits] = useState<SearchHit[]>();
   const [err, setErr] = useState<string>();
   const [progress, setProgress] = useState<number>();
@@ -22,12 +22,8 @@ export const PullRequestView: React.FC = () => {
   const {ghClient, clientInitError} = useGitHubCodeClient()
   useEffect(() => {
     const codeHostKeySet = new Set(hits?.map((h) => h.codeHost));
-    if (codeHostKeySet.size === 1) {
-      codeHostKeySet.forEach((k) => setCodeHostKey(k))
-    } else if (codeHostKeySet.size === 0) {
-      setErr('Nothing selected..?')
-    } else {
-      setErr('Clones from more than 1 code host selected')
+    if (hits && codeHostKeySet.size === 1) {
+      setCodeHostKey(hits[0]?.codeHost)
     }
   }, [hits]);
   useEffect(() => {

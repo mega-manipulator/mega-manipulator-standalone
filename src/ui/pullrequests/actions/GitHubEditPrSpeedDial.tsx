@@ -7,7 +7,7 @@ import {TextField, Typography} from "@mui/material";
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 
 export function useGitHubEditPrSpeedDialProps() {
-  const {pullRequests: {selected}} = useContext(MegaContext)
+  const {pullRequests: {selected,setSelected}} = useContext(MegaContext)
   const [title, setTitle] = useState<string>('');
   const [body, setBody] = useState<string>('');
   const action = useCallback(async (
@@ -17,6 +17,7 @@ export function useGitHubEditPrSpeedDialProps() {
       await sleep(500)
       progressCallback(i, selected.length)
     }
+    setSelected([])
     return {
       time: 0
     }

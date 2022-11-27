@@ -343,7 +343,7 @@ export class GithubClient {
           per_page: 100,
         },
       })
-      debug('Received response: ' + asString(response))
+      trace('Received response: ' + asString(response))
       const status: ResponseStatus = await this.retryOnThrottle(attempt, response)
       switch (status) {
         case "retryable":

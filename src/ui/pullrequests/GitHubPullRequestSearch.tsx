@@ -43,7 +43,6 @@ export const GitHubPullRequestSearch: React.FC = () => {
         setState('searching')
         ghClient?.searchPulls(searchTerm, max)
           ?.then((items: GitHubPull[]) => {
-            debug('Result!:' + asString(items))
             setPulls(items)
           })
           ?.catch((e)=>error('ERGHT: '+asString(e)))

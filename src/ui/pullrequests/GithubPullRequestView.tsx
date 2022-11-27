@@ -1,6 +1,5 @@
-import {Box, SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
+import {SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
 import React, {useContext} from "react";
-import {DataGridPro} from "@mui/x-data-grid-pro";
 import EditIcon from '@mui/icons-material/Edit'
 import {useGitHubEditPrSpeedDialProps} from "./actions/GitHubEditPrSpeedDial";
 import {GitHubPullRequestSearch} from "./GitHubPullRequestSearch";
@@ -59,11 +58,5 @@ export const GithubPullRequestView: React.FC = () => {
           tooltipTitle={'Open selected Pull Requests in browser'}
           onClick={() => selected.forEach((s) => open(s.htmlUrl))}/>}
     </SpeedDial>
-    <Box sx={{width: '100%'}}>
-      <DataGridPro
-        columns={[]}
-        rows={[]}
-      />
-    </Box>
   </>
 };

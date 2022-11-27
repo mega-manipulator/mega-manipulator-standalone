@@ -44,7 +44,8 @@ const cols: GridColDef[] = [
 ];
 
 export const PullRequestsTable: React.FC = () => {
-  const {pullRequests: {pulls, setSelected}} = useContext(MegaContext)
+  const {pullRequests: {pulls, setSelected, selectedModel}} = useContext(MegaContext)
+
   return <Box sx={{width: '100%'}}>
     <DataGridPro
       autoHeight
@@ -55,8 +56,9 @@ export const PullRequestsTable: React.FC = () => {
           ...d
         }
       })}
+      selectionModel={selectedModel}
       onSelectionModelChange={(model: GridRowId[]) => {
-        setSelected(model.map((id) => pulls[+id]));
+        setSelected(model.map((id) => +id));
       }}
       autoPageSize
       pageSize={15}

@@ -14,7 +14,7 @@ const columns: GridColDef[] = [
 ];
 
 export const SearchHitTable: React.FC = () => {
-  const {search: {hits, setSelected}} = useContext(MegaContext);
+  const {search: {hits, setSelected, selectedModel}} = useContext(MegaContext);
   return (
     <Box sx={{width: '100%'}}>
       <DataGridPro
@@ -25,8 +25,9 @@ export const SearchHitTable: React.FC = () => {
             ...d
           }
         })}
+        selectionModel={selectedModel}
         onSelectionModelChange={(model: GridRowId[]) => {
-          setSelected(model.map((id) => hits[+id]))
+          setSelected(model.map((id) => +id))
         }}
         columns={columns}
         autoPageSize

@@ -1,9 +1,14 @@
-import {Box, SpeedDial, SpeedDialIcon} from "@mui/material";
-import React from "react";
+import {Box, SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
+import React, {useContext} from "react";
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import EditIcon from '@mui/icons-material/Edit'
-import {GitHubEditPrSpeedDial} from "./actions/GitHubEditPrSpeedDial";
+import {useGitHubEditPrSpeedDialProps} from "./actions/GitHubEditPrSpeedDial";
 import {GitHubPullRequestSearch} from "./GitHubPullRequestSearch";
+import {GenericPrSpeedDialModal} from "./actions/GenericPrSpeedDialAction";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import {MegaContext} from "../../hooks/MegaContext";
+import {open} from "@tauri-apps/api/shell";
+import {debug} from "tauri-plugin-log-api";
 
 export const GithubPullRequestView: React.FC = () => {
   /*
@@ -18,16 +23,41 @@ export const GithubPullRequestView: React.FC = () => {
     <MenuItem>Merge</MenuItem>
   </Select>
   */
-  const dials = [GitHubEditPrSpeedDial()];
+  //
+  const {pullRequests: {selected}} = useContext(MegaContext)
+  const items = [
+    useGitHubEditPrSpeedDialProps()
+  ]
+
+  // Render
   return <>
     <GitHubPullRequestSearch/>
-    {dials.map((m)=>m.modal)}
+
+    {/* Generic Action Modals */}
+    {items.map((item,idx)=><GenericPrSpeedDialModal key={idx} {...item} />)}
+
     <SpeedDial
       ariaLabel="SpeedDial openIcon example"
       sx={{position: 'absolute', bottom: 16, left: 16}}
       icon={<SpeedDialIcon icon={<EditIcon/>}/>}
     >
-      {dials.map((m)=>m.dial)}
+      {items.filter((item)=>!item.disabled)
+        .map((item,idx)=><SpeedDialAction
+          key={idx}
+          icon={item.icon}
+          tooltipTitle={item.tooltipTitle}
+          onClick={() => {
+            debug('Open clocked!')
+            if (!item.disabled) {
+              item.setIsModalOpen(true)
+            }
+          }}
+        />)}
+
+      {selected.length > 0 && <SpeedDialAction
+          icon={<OpenInNewIcon/>}
+          tooltipTitle={'Open selected Pull Requests in browser'}
+          onClick={() => selected.forEach((s) => open(s.htmlUrl))}/>}
     </SpeedDial>
     <Box sx={{width: '100%'}}>
       <DataGridPro

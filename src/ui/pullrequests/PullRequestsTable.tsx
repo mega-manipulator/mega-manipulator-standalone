@@ -22,25 +22,32 @@ const GithubUserColumn: React.FC<GridRenderCellParams<any, any, any>> = ({value}
 
 const cols: GridColDef[] = [
   {field: 'id', hideable: true, minWidth: 25, maxWidth: 100, hide: true},
-  {field: 'owner', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true, renderCell: GithubUserColumn },
+  {
+    field: 'owner',
+    hideable: true,
+    minWidth: 100,
+    maxWidth: 400,
+    hide: false,
+    resizable: true,
+    renderCell: GithubUserColumn
+  },
   {field: 'repo', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true},
-  {field: 'author', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true, renderCell: GithubUserColumn },
+  {
+    field: 'author',
+    hideable: true,
+    minWidth: 100,
+    maxWidth: 400,
+    hide: false,
+    resizable: true,
+    renderCell: GithubUserColumn
+  },
   {field: 'title', hideable: true, minWidth: 100, maxWidth: 400, hide: false, resizable: true},
   {field: 'body', hideable: true, minWidth: 100, maxWidth: 500, hide: false, resizable: true},
   {field: 'state', hideable: true, minWidth: 100, maxWidth: 500, hide: false, resizable: true},
   {
-    field: 'repositoryUrl',
-    hideable: true,
-    minWidth: 150,
-    maxWidth: 500,
-    hide: false,
-    resizable: true,
+    field: 'repositoryUrl', hideable: true, minWidth: 150, maxWidth: 500, hide: false, resizable: true,
     renderCell: (v) => <Tooltip title={'Click me to open repo in browser'}>
-      <Button
-        variant={"outlined"}
-        size={"small"}
-        onClick={() => open(v.value)}
-      >Open in browser</Button>
+      <Button variant={"outlined"} size={"small"} onClick={() => open(v.value)}>Open in browser</Button>
     </Tooltip>
   },
 ];

@@ -312,7 +312,7 @@ export class GithubClient {
           break pagination;
         case "ok":
           const data: GITHUB_TYPE[] = listExtractor(response.data)
-          debug(`Got response from GitHub ${asString(data)}`) // TODO lower level?
+          trace(`Got response from GitHub ${asString(data)}`)
           const mapped = data.map(transformer)
           for (const item of mapped) {
             aggregator.add(item);

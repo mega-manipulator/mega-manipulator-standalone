@@ -38,7 +38,13 @@ const cols: GridColDef[] = [
   {
     ...defaultGridColDef, field: 'repositoryUrl', width: 150,
     renderCell: (v) => <Tooltip title={'Click me to open repo in browser'}>
-      <Button variant={"outlined"} size={"small"} onClick={() => open(v.value)}>Open in browser</Button>
+      <Button variant={"outlined"} size={"small"} onClick={() => open(v.value)}>Open</Button>
+    </Tooltip>
+  },
+  {
+    ...defaultGridColDef, field: 'htmlUrl', width: 150,
+    renderCell: (v) => <Tooltip title={'Click me to open Pull Request in browser'}>
+      <Button variant={"outlined"} size={"small"} onClick={() => open(v.value)}>Open</Button>
     </Tooltip>
   },
 ];

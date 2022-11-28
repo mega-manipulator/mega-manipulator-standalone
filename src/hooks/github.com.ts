@@ -6,7 +6,8 @@ import {debug, info, trace, warn} from "tauri-plugin-log-api";
 import {MegaSettingsType} from "./settings";
 import {getCurrentBranchName, getMainBranchName} from "../service/file/cloneDir";
 import {simpleActionWithResult, SimpleGitActionReturn} from "../service/file/simpleActionWithResult";
-import {WorkMeta, WorkResultStatus} from "../service/types";
+import {WorkMeta, WorkResult, WorkResultKind, WorkResultStatus} from "../service/types";
+import {saveResultToStorage} from "../service/work/workLog";
 
 function githubRepoFetchGraphQl(repos: { owner: string, repo: string }[]): string {
   return `fragment repoProperties on Repository {
@@ -41,6 +42,7 @@ const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!
       __typename
       ... on PullRequest {
         id
+        number
         author {
           avatarUrl
           login
@@ -90,7 +92,8 @@ interface GithubUser {
 }
 
 export interface GitHubPull {
-  prId: number,
+  prId: string,
+  prNumber: number,
   owner?: GithubUser,
   repo?: string,
   title: string,
@@ -102,6 +105,56 @@ export interface GitHubPull {
   author?: GithubUser,
   mergedAt?: string,
   raw: any,
+}
+
+interface GithubPullRequestWorkInput {
+  name: string,
+  kind: WorkResultKind,
+  pulls: GitHubPull[],
+}
+
+function newPullRequestWorkResult<T extends GithubPullRequestWorkInput>(input: T): WorkResult<T, GitHubPull, WorkMeta> {
+  const time = new Date().getTime();
+  const meta: WorkMeta = {
+    workLog: [],
+  }
+  return {
+    time,
+    input,
+    status: "in-progress",
+    kind: input.kind,
+    name: input.name,
+    result: input.pulls.map((i) => ({
+      input: i,
+      output: {
+        status: "in-progress",
+        meta,
+      }
+    }))
+  }
+}
+
+async function processPullRequests<T extends GithubPullRequestWorkInput, U>(
+  input: T,
+  action: (pr: GitHubPull, idx: number, meta: WorkMeta) => Promise<AxiosResponse<U>>,
+): Promise<WorkResult<T, GitHubPull, WorkMeta>> {
+  const workResult: WorkResult<T, GitHubPull, WorkMeta> = newPullRequestWorkResult(input)
+  for (let i = 0; i < workResult.result.length; i++) {
+    const pr: GitHubPull = workResult.result[i].input;
+    // @ts-ignore
+    const meta: WorkMeta = workResult.result[i].output.meta;
+    try {
+      debug(`${input.name} ${pr.htmlUrl}`)
+      await action(pr, i, meta)
+      workResult.result[i].output.status = "ok"
+    } catch (e) {
+      workResult.result[i].output.status = "failed"
+    }
+  }
+  const anyNotOk: boolean = workResult.result.some((r) => r.output.status !== 'ok')
+  workResult.status = anyNotOk ? "failed" : "ok"
+  await saveResultToStorage(workResult)
+  return workResult
 }
 
 interface GitHubPullRequestInput {
@@ -211,6 +264,7 @@ export class GithubClient {
       //debug(`PR: ${asString(item)}`)
       return {
         prId: item.id,
+        prNumber: item.number,
         owner: item.repository.owner,
         repo: item.repository.name,
         author: item.author,
@@ -234,17 +288,17 @@ export class GithubClient {
     );
   }
 
-  async rewordPullRequests(input: { prs: GitHubPull[], title: string, body: string }) {
-    const response = await axios.post('/graphql', `mutation ($title:String!, $body:String!) {
-${input.prs.map((pr) => `  updatePullRequest(input:{pullRequestId: "${pr.prId}", title:$title, body:$body})
-`)}
-}`, {
-      params: {
-        "title": input.title,
-        "body": input.body,
-      },
-    })
-    debug(`rewordPullRequests response: ${asString(response.data)}`)
+  async rewordPullRequests(input: { prs: GitHubPull[], title: string, body: string }, progressCallback: (current: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+    return await processPullRequests({pulls: input.prs, name: 'Edit PRS', kind: "editPr"}, async (pr, idx, meta) => {
+        await sleep(1000);
+        const result = await this.evalRequest('PATCH PullRequest', meta, () => this.api.patch(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}`, {
+          title: input.title,
+          body: input.body,
+        }, {}))
+        progressCallback(idx)
+        return result
+      }
+    )
   }
 
   createPullRequests(input: GitHubPullRequestInput, progressCallback: (done: number) => void): Promise<SimpleGitActionReturn> {
@@ -269,30 +323,42 @@ ${input.prs.map((pr) => `  updatePullRequest(input:{pullRequestId: "${pr.prId}",
   }
 
   private async createPullRequest(hit: SearchHit, title: string, body: string, head: string, base: string, meta: WorkMeta) {
-    let attempt = 0;
-    outer_loop: while (true) {
+    await this.evalRequest('POST Create PullRequest', meta, async () => {
       await sleep(1000)
-      const response = await this.api.post(`${this.baseUrl}/repos/${hit.owner}/${hit.repo}/pulls`, {
+      return await this.api.post(`/repos/${hit.owner}/${hit.repo}/pulls`, {
         title,
         body,
         head,
         base,
       }, {})
+    })
+  }
+
+  private async evalRequest<T>(what: string, meta: WorkMeta | undefined, req: () => Promise<AxiosResponse<T>>): Promise<AxiosResponse<T>> {
+    let attempt = 0;
+    while (true) {
+      const response: AxiosResponse<T> = await req()
+      debug(`ResponseStatus: ${response.status}`)
+      if (response.status !== 200) {
+        debug(`ResponseData: ${asString(response.data)}`)
+      }
       const retryStatus = await this.retryOnThrottle(attempt, response);
-      meta.workLog.push({
-        status: retryStatus === "ok" ? "ok" : "failed",
-        result: response,
-        what: 'POST Create PullRequest',
-      })
+      if (meta) {
+        meta.workLog.push({
+          status: retryStatus === "ok" ? "ok" : "failed",
+          result: response,
+          what,
+        })
+      }
       switch (retryStatus) {
         case "ok":
-          info('Created PullRequest')
-          break outer_loop;
+          info(`Success '${what}'`)
+          return response;
         case "retryable":
-          debug('Failed creating PullRequest, will retry in a sec')
+          debug(`Failed '${what}', will retry in a sec`)
           break;
         case "failed":
-          throw new Error('Giving up on creating pull request')
+          throw new Error(`Giving up on creating '${what}'`)
       }
       attempt++;
     }

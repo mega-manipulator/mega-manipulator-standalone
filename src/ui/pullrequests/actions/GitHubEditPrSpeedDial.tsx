@@ -16,15 +16,12 @@ export function useGitHubEditPrSpeedDialProps() {
     progressCallback: (current: number, total: number) => void
   ) => {
     progressCallback(0, selected.length)
-    for (let i = 0; i < selected.length; i++) {
-      await ghClient?.rewordPullRequests({prs: selected, title, body})
-      progressCallback(selected.length, selected.length)
-    }
-    setSelected([])
+    const result = await ghClient?.rewordPullRequests({prs: selected, title, body}, (idx:number) => progressCallback(idx+1, selected.length))
+    progressCallback(selected.length, selected.length)
     return {
-      time: 0
+      time: result?.time ?? 0,
     }
-  }, [selected])
+  }, [selected, body, title])
   useEffect(() => {
     setTitle(selected[0]?.title)
     setBody(selected[0]?.body ?? '')

@@ -3,16 +3,16 @@ import {TextField} from "@mui/material";
 import {TextFieldProps} from "@mui/material/TextField/TextField";
 
 type NumberFieldProps = {
-  value:number,
-  valueText:string,
-  setValueText:(valueText:string)=>void,
-  error:boolean,
+  value: number,
+  valueText: string,
+  setValueText: (valueText: string) => void,
+  error: boolean,
 }
 
 export function useNumberFieldProps(
-  defaultValue:number,
-  numberValidation: (n:number) => boolean,
-  ):NumberFieldProps{
+  defaultValue: number,
+  numberValidation: (n: number) => boolean,
+): NumberFieldProps {
   const [value, setValue] = useState<number>(defaultValue);
   const [valueText, setValueText] = useState<string>(`${defaultValue}`);
   const [error, setError] = useState<boolean>(false);
@@ -27,20 +27,20 @@ export function useNumberFieldProps(
       setError(true)
     }
   }, [valueText])
-   return {
+  return {
     value,
-     valueText,
-     setValueText,
-     error,
-   }
+    valueText,
+    setValueText,
+    error,
+  }
 }
 
-export const NumberField:React.FC<NumberFieldProps & TextFieldProps> = (props)=>{
-
+export const NumberField: React.FC<{ num: NumberFieldProps, text: TextFieldProps }> = ({num, text}) => {
   return <TextField
-    {...props}
-    value={props.valueText}
-    onChange={(evt) => props.setValueText(evt.target.value)}
-    error={props.error}
+    {...text}
+    value={num.valueText}
+    onChange={(evt) => num.setValueText(evt.target.value)}
+    onBlur={()=>num.setValueText(`${num.value}`)}
+    error={num.error}
   />
 }

@@ -38,8 +38,8 @@ export const GitHubPullRequestSearch: React.FC = () => {
         placeholder={'GitHub pulls search terms (q)'}
       />
       <NumberField
-        label={'Max'}
-        {...maxProps}
+        text={{label:'Max'}}
+        num={maxProps}
       />
       <Button
         disabled={state !== "ready"}

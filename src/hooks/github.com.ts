@@ -40,6 +40,7 @@ const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!
     nodes {
       __typename
       ... on PullRequest {
+        id
         author {
           avatarUrl
           login
@@ -89,6 +90,7 @@ interface GithubUser {
 }
 
 export interface GitHubPull {
+  prId: number,
   owner?: GithubUser,
   repo?: string,
   title: string,
@@ -206,7 +208,9 @@ export class GithubClient {
   async searchPulls(searchString: string, max: number): Promise<GitHubPull[]> {
     info(`Searching for PULLS: '${searchString}' with the github client`)
     const transformer: (item: any) => GitHubPull = (item: any) => {
+      //debug(`PR: ${asString(item)}`)
       return {
+        prId: item.id,
         owner: item.repository.owner,
         repo: item.repository.name,
         author: item.author,
@@ -228,6 +232,19 @@ export class GithubClient {
       (data) => data.data.search.nodes,
       transformer,
     );
+  }
+
+  async rewordPullRequests(input: { prs: GitHubPull[], title: string, body: string }) {
+    const response = await axios.post('/graphql', `mutation ($title:String!, $body:String!) {
+${input.prs.map((pr) => `  updatePullRequest(input:{pullRequestId: "${pr.prId}", title:$title, body:$body})
+`)}
+}`, {
+      params: {
+        "title": input.title,
+        "body": input.body,
+      },
+    })
+    debug(`rewordPullRequests response: ${asString(response.data)}`)
   }
 
   createPullRequests(input: GitHubPullRequestInput, progressCallback: (done: number) => void): Promise<SimpleGitActionReturn> {

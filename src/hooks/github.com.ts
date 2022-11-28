@@ -43,12 +43,21 @@ const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!
       ... on PullRequest {
         id
         number
+        headRef {
+          name
+        }
+        baseRef {
+          name
+        }
         author {
           avatarUrl
           login
         }
         repository {
           name
+          defaultBranchRef{
+            name
+          }
           owner {
             login
             avatarUrl
@@ -95,6 +104,9 @@ export interface GitHubPull {
   prId: string,
   prNumber: number,
   owner?: GithubUser,
+  repoDefaultBranch: string,
+  head?: string,
+  base: string,
   repo?: string,
   title: string,
   body?: string,
@@ -275,7 +287,10 @@ export class GithubClient {
         state: item.state,
         repositoryUrl: item.repository.url,
         cloneUrl: item.repository.sshUrl,
-        raw: item
+        head: item.headRef?.name,
+        base: item.baseRef.name,
+        repoDefaultBranch: item.repository.defaultBranchRef.name,
+        raw: item,
       };
     }
     return this.paginateGraphQl(
@@ -288,17 +303,51 @@ export class GithubClient {
     );
   }
 
-  async rewordPullRequests(input: { prs: GitHubPull[], title: string, body: string }, progressCallback: (current: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+  async closePullRequests(input: { prs: GitHubPull[], comment: string, dropBranch: boolean }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+    return await this.patchPullRequests({...input, body: {state: "closed"}}, progressCallback);
+  }
+
+  async reOpenPullRequests(input: { prs: GitHubPull[], comment: string }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+    return await this.patchPullRequests({...input, body: {state: "open"}}, progressCallback);
+  }
+
+  async rewordPullRequests(input: { prs: GitHubPull[], body: { title: string, body: string } }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+    return await this.patchPullRequests(input, progressCallback);
+  }
+
+  private async patchPullRequests(input: { prs: GitHubPull[], comment?: string, dropBranch?: boolean, body: any }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
     return await processPullRequests({pulls: input.prs, name: 'Edit PRS', kind: "editPr"}, async (pr, idx, meta) => {
-        await sleep(1000);
-        const result = await this.evalRequest('PATCH PullRequest', meta, () => this.api.patch(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}`, {
-          title: input.title,
-          body: input.body,
-        }, {}))
+        const result = await this.evalRequest('PATCH PullRequest', meta, async () => {
+          await sleep(1000);
+          return await this.api.patch(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}`, input.body, {})
+        })
+        if (result.status === 200 && input.comment) {
+          await this.commentPr(pr, input.comment, meta)
+        }
+        if (result.status === 200 && input.dropBranch === true) {
+          await this.dropPrBranch(pr, meta)
+        }
         progressCallback(idx)
         return result
       }
     )
+  }
+
+  private async dropPrBranch(pr: GitHubPull, meta: WorkMeta) {
+    await this.evalRequest('Drop PullRequest branch', meta, async () => {
+      if (pr.head === pr.repoDefaultBranch) {
+        throw new Error('Wont even try to delete the repo default branch 🤦')
+      }
+      await sleep(1000)
+      return await this.api.delete(`/repos/${pr.owner?.login}/${pr.repo}/git/refs/heads/${pr.head}`,)
+    });
+  }
+
+  private async commentPr(pr: GitHubPull, comment: string, meta: WorkMeta) {
+    await this.evalRequest('Comment PullRequest', meta, async () => {
+      await sleep(1000)
+      return await this.api.post(`/repos/${pr.owner?.login}/${pr.repo}/issues/${pr.prNumber}/comments`, {body: comment}, {})
+    });
   }
 
   createPullRequests(input: GitHubPullRequestInput, progressCallback: (done: number) => void): Promise<SimpleGitActionReturn> {

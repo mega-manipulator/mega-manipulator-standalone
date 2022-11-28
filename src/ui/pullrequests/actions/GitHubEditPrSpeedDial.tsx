@@ -1,14 +1,13 @@
 import React, {useCallback, useContext, useEffect, useState} from "react";
 import EditIcon from '@mui/icons-material/Edit';
 import {MegaContext} from "../../../hooks/MegaContext";
-import EditOffIcon from '@mui/icons-material/EditOff';
 import {Alert, TextField, Typography} from "@mui/material";
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {ConditionalSkeleton} from "../../ConditionalSkeleton";
 
 export function useGitHubEditPrSpeedDialProps() {
-  const {pullRequests: {selected, setSelected}} = useContext(MegaContext)
+  const {pullRequests: {selected}} = useContext(MegaContext)
   const {ghClient, clientInitError} = useGitHubCodeClient()
   const [title, setTitle] = useState<string>('');
   const [body, setBody] = useState<string>('');
@@ -16,22 +15,25 @@ export function useGitHubEditPrSpeedDialProps() {
     progressCallback: (current: number, total: number) => void
   ) => {
     progressCallback(0, selected.length)
-    const result = await ghClient?.rewordPullRequests({prs: selected, title, body}, (idx:number) => progressCallback(idx+1, selected.length))
+    const result = await ghClient?.rewordPullRequests({
+      prs: selected,
+      title,
+      body
+    }, (idx: number) => progressCallback(idx + 1, selected.length))
     progressCallback(selected.length, selected.length)
     return {
       time: result?.time ?? 0,
     }
   }, [selected, body, title])
   useEffect(() => {
-    setTitle(selected[0]?.title)
+    setTitle(selected[0]?.title ?? '')
     setBody(selected[0]?.body ?? '')
   }, [selected]);
 
-
   return useGenericPrSpeedDialActionProps(
-    selected.length === 0 ? 'Select PRs to edit' : 'Edit selected Pull Requests',
+    'Edit selected Pull Requests',
     selected.length === 0,
-    selected.length === 0 ? <EditOffIcon/> : <EditIcon/>,
+    <EditIcon/>,
     <ConditionalSkeleton condition={!clientInitError} tooltipText={<Alert>{clientInitError}</Alert>}>
       <Typography variant={'h4'}>Edit selected PRs ({selected.length})</Typography>
       <TextField

@@ -8,24 +8,14 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {MegaContext} from "../../hooks/MegaContext";
 import {open} from "@tauri-apps/api/shell";
 import {debug} from "tauri-plugin-log-api";
+import {useGitHubClosePrSpeedDial} from "./actions/GitHubClosePrSpeedDial";
 
 export const GithubPullRequestView: React.FC = () => {
-  /*
-  <Select>
-    <MenuItem>Decline PR</MenuItem>
-    <MenuItem>Reword PR</MenuItem>
-    <MenuItem>Clone PR</MenuItem>
-    <MenuItem>Open in Browser</MenuItem>
-    <MenuItem>Add comment</MenuItem>
-    <MenuItem>Mark Approved</MenuItem>
-    <MenuItem>Mark Needs Work</MenuItem>
-    <MenuItem>Merge</MenuItem>
-  </Select>
-  */
-  //
+    //
   const {pullRequests: {selected}} = useContext(MegaContext)
   const items = [
-    useGitHubEditPrSpeedDialProps()
+    useGitHubEditPrSpeedDialProps(),
+    useGitHubClosePrSpeedDial(),
   ]
 
   // Render

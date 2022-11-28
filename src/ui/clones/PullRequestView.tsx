@@ -14,7 +14,7 @@ export const PullRequestView: React.FC = () => {
   const [body, setBody] = useState<string>();
 
   const nav = useNavigate()
-  const {clones: {selected}, code: {codeHostKey, setCodeHostKey}} = useContext(MegaContext);
+  const {clones: {selected}, code: {setCodeHostKey}} = useContext(MegaContext);
   const [hits, setHits] = useState<SearchHit[]>();
   const [err, setErr] = useState<string>();
   const [progress, setProgress] = useState<number>();

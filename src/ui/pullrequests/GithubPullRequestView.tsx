@@ -37,7 +37,7 @@ export const GithubPullRequestView: React.FC = () => {
 
     <SpeedDial
       ariaLabel="SpeedDial openIcon example"
-      sx={{position: 'absolute', bottom: 16, left: 16}}
+      sx={{position: 'fixed', bottom: 16, left: 16}}
       icon={<SpeedDialIcon icon={<EditIcon/>}/>}
     >
       {items.filter((item)=>!item.disabled)

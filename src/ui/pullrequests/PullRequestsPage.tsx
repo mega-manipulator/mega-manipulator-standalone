@@ -40,5 +40,6 @@ export const PullRequestsPage: React.FC = () => {
 
     <DynamicPullRequestView codeHostType={codeHostType}/>
     <PullRequestsTable/>
+    <p><br/></p>
   </>
 };

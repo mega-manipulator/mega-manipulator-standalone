@@ -339,7 +339,10 @@ export class GithubClient {
         throw new Error('Wont even try to delete the repo default branch 🤦')
       }
       await sleep(1000)
-      return await this.api.delete(`/repos/${pr.owner?.login}/${pr.repo}/git/refs/heads/${pr.head}`,)
+      return await this.evalRequest('Delete PullRequest branch', meta, async () => {
+        await sleep(1000)
+        return await this.api.delete(`/repos/${pr.owner?.login}/${pr.repo}/git/refs/heads/${pr.head}`)
+      });
     });
   }
 
@@ -387,8 +390,8 @@ export class GithubClient {
     let attempt = 0;
     while (true) {
       const response: AxiosResponse<T> = await req()
-      debug(`ResponseStatus: ${response.status}`)
-      if (response.status !== 200) {
+      debug(`${what} ResponseStatus: ${response.status}`)
+      if (response.status > 299) {
         debug(`ResponseData: ${asString(response.data)}`)
       }
       const retryStatus = await this.retryOnThrottle(attempt, response);

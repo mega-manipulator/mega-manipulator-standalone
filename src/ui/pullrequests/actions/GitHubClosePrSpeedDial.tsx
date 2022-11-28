@@ -1,6 +1,6 @@
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
-import {useCallback, useContext, useState} from "react";
+import {useCallback, useContext, useMemo, useState} from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
 import {Alert, Checkbox, FormControlLabel, TextField} from "@mui/material";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
@@ -24,12 +24,16 @@ export function useGitHubClosePrSpeedDial() {
       time: 0
     }
   }, [selected, closeComment, ghClient, dropBranch])
+  const closedPrs = useMemo(() => selected.filter((s) => s !== undefined && s.state === 'CLOSED'), [selected]);
   return useGenericPrSpeedDialActionProps(
     'Close selected Pull requests',
     selected.length === 0,
     <DeleteIcon/>,
     <>
-      {clientInitError && <Alert color={"error"}>{clientInitError}</Alert>}
+      {clientInitError && <Alert color={"error"} variant={"outlined"}>{clientInitError}</Alert>}
+      {closedPrs.length !== 0 &&
+          <Alert color={"warning"} variant={"outlined"}>{closedPrs.length} of the selected PRs are already closed
+              🤦</Alert>}
       <FormControlLabel
         control={<Checkbox value={dropBranch} onClick={() => setDropBranch(!dropBranch)}/>}
         label={'Drop Branch after closing PR, CANNOT BE UNDONE'}/>

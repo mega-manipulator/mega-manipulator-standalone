@@ -9,6 +9,7 @@ import {MegaContext} from "../../hooks/MegaContext";
 import {open} from "@tauri-apps/api/shell";
 import {debug} from "tauri-plugin-log-api";
 import {useGitHubClosePrSpeedDial} from "./actions/GitHubClosePrSpeedDial";
+import {useGitHubReOpenPrSpeedDial} from "./actions/GitHubReOpenPrSpeedDial";
 
 export const GithubPullRequestView: React.FC = () => {
     //
@@ -16,6 +17,7 @@ export const GithubPullRequestView: React.FC = () => {
   const items = [
     useGitHubEditPrSpeedDialProps(),
     useGitHubClosePrSpeedDial(),
+    useGitHubReOpenPrSpeedDial(),
   ]
 
   // Render

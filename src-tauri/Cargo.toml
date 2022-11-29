@@ -5,7 +5,7 @@ description = "Change everything"
 authors = ["jensim->github.com"]
 license = "GPLv3"
 repository = "https://github.com/mega-manipulator/mega-manipulator-standalone"
-default-run = "app"
+default-run = "mega-manipulator-standalone"
 edition = "2021"
 rust-version = "1.57"
 

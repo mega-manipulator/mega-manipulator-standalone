@@ -6,7 +6,7 @@ type ConditionalSkeletonProps = {
   /** ok-condition, if false, show a skeleton instead */
   condition: boolean,
   tooltipText?: JSX.Element | string | undefined,
-  children: JSX.Element[],
+  children: JSX.Element[] | JSX.Element,
 }
 
 export const ConditionalSkeleton: React.FC<ConditionalSkeletonProps> = (props) => {

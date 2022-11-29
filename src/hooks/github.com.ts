@@ -55,6 +55,10 @@ const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!
         }
         repository {
           name
+          viewerDefaultMergeMethod
+          rebaseMergeAllowed
+          squashMergeAllowed
+          mergeCommitAllowed
           defaultBranchRef{
             name
           }
@@ -100,12 +104,20 @@ interface GithubUser {
   avatarUrl?: string,
 }
 
+export type GithubMergeMethods = 'SQUASH' | 'MERGE' | 'REBASE'
+
 export interface GitHubPull {
   codeHostKey: string,
   prId: string,
   prNumber: number,
   owner: GithubUser,
   repoDefaultBranch: string,
+  merge: {
+    defaultMergeMethod: GithubMergeMethods,
+    rebaseMergeAllowed: boolean,
+    squashMergeAllowed: boolean,
+    mergeCommitAllowed: boolean,
+  }
   head?: string,
   base: string,
   repo: string,
@@ -117,7 +129,21 @@ export interface GitHubPull {
   state: string,
   author?: GithubUser,
   mergedAt?: string,
-  raw: any,
+  raw: unknown,
+}
+
+function resoleMergeMethod(preferedMergeMethod: GithubMergeMethods | undefined, pr: GitHubPull): GithubMergeMethods {
+  if (!preferedMergeMethod) {
+    return pr.merge.defaultMergeMethod
+  }
+  switch (preferedMergeMethod) {
+    case "SQUASH":
+      return pr.merge.squashMergeAllowed ? "SQUASH" : pr.merge.defaultMergeMethod
+    case "MERGE":
+      return pr.merge.mergeCommitAllowed ? "MERGE" : pr.merge.defaultMergeMethod
+    case "REBASE":
+      return pr.merge.rebaseMergeAllowed ? "REBASE" : pr.merge.defaultMergeMethod
+  }
 }
 
 interface GithubPullRequestWorkInput {
@@ -286,6 +312,12 @@ export class GithubClient {
         prNumber: item.number,
         owner: item.repository.owner,
         repo: item.repository.name,
+        merge: {
+          defaultMergeMethod: item.repository.viewerDefaultMergeMethod,
+          mergeCommitAllowed: item.repository.mergeCommitAllowed,
+          rebaseMergeAllowed: item.repository.rebaseMergeAllowed,
+          squashMergeAllowed: item.repository.squashMergeAllowed,
+        },
         author: item.author,
         body: item.body,
         title: item.title,
@@ -323,6 +355,34 @@ export class GithubClient {
       return this.evalRequest('Review PullRequest', meta, async () => {
         await sleep(1000);
         return await this.api.post(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}/reviews`, input.body, {})
+      })
+    })
+  }
+
+  async mergePullRequests(
+    input: {
+      prs: GitHubPull[],
+      mergeStrategy: GithubMergeMethods | undefined
+      title?: string,
+      message?: string,
+    },
+    progressCallback: (idx: number) => void,
+  ): Promise<WorkResult<unknown, GitHubPull, WorkMeta>> {
+    return await processPullRequests({
+      pulls: input.prs,
+      name: 'Merge Pull request',
+      kind: 'mergePr'
+    }, (pr: GitHubPull, idx, meta) => {
+      progressCallback(idx)
+      const method: GithubMergeMethods = resoleMergeMethod(input.mergeStrategy, pr)
+
+      return this.evalRequest('Merge PullRequest', meta, async () => {
+        await sleep(1000);
+        return await this.api.post(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}/merge`, {
+          merge_method: method,
+          commit_title: input.title,
+          commit_message: input.message,
+        }, {})
       })
     })
   }

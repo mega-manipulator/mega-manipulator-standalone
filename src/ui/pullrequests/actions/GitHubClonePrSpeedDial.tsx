@@ -1,4 +1,4 @@
-import React, {useCallback, useContext} from "react";
+import React, {useCallback, useContext, useMemo} from "react";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {Alert, Tooltip, Typography} from "@mui/material";
@@ -46,21 +46,21 @@ export function useGitHubClonePrSpeedDial(setCloneModalOpen: (isOpen: boolean) =
 
 const CloneAlerts: React.FC<{ pulls: GitHubPull[] }> = ({pulls}) => {
 
-  const uniqueBranches = pulls.map((s) => s?.head)
+  const uniqueBranches = useMemo(() => pulls.map((s) => s?.head), [pulls])
     .filter((head, idx, self) => head !== undefined && self.indexOf(head) === idx);
-  const repos = pulls.filter((p) => p).map((p) => `${p.codeHostKey}/${p.owner.login}/${p.repo}`).sort();
-  const reducedRepos = repos.reduce((previousValue, currentValue) => {
+  const repos = useMemo(() => pulls.filter((p) => p).map((p) => `${p.codeHostKey}/${p.owner.login}/${p.repo}`).sort(), [pulls])
+  const reducedRepos = useMemo(() => repos.reduce((previousValue, currentValue) => {
     if (previousValue[currentValue] !== undefined) {
       previousValue[currentValue] = previousValue[currentValue] + 1
     } else {
       previousValue[currentValue] = 1
     }
     return previousValue;
-  }, {} as { [key: string]: number })
-  const duplicateRepos = Object.keys(reducedRepos).map((key) => ({repo: key, count: reducedRepos[key]}))
-    .filter((r) => r.count !== 1)
-  const headless: GitHubPull[] = pulls.filter((s) => s !== undefined && s.head === undefined);
-  const closed: GitHubPull[] = pulls.filter((s) => s !== undefined && s.state === 'CLOSED');
+  }, {} as { [key: string]: number }), [repos]);
+  const duplicateRepos = useMemo(() => Object.keys(reducedRepos).map((key) => ({repo: key, count: reducedRepos[key]}))
+    .filter((r) => r.count !== 1), [reducedRepos])
+  const headless: GitHubPull[] = useMemo(() => pulls.filter((s) => s !== undefined && s.head === undefined), [pulls]);
+  const closed: GitHubPull[] = useMemo(() => pulls.filter((s) => s !== undefined && s.state === 'CLOSED'), [pulls]);
   return <>
     { // Branch deviation
       uniqueBranches.length > 1 && <Alert
@@ -72,7 +72,7 @@ const CloneAlerts: React.FC<{ pulls: GitHubPull[] }> = ({pulls}) => {
         >&quot;{uniqueBranches[0]}&quot; will be cloned from {pulls.length} pulls/repos</Alert>}
 
     { // Duplicate repos
-      duplicateRepos.length < 5 && duplicateRepos.map((d,idx) => <Alert
+      duplicateRepos.length < 5 && duplicateRepos.map((d, idx) => <Alert
         key={idx} variant={"filled"} color={"error"}
       >{d.count} pulls are from {d.repo}</Alert>)}
     {

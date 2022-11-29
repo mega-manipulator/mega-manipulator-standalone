@@ -68,6 +68,7 @@ export type WorkResultKind =
   | 'gitPush'
   | 'editPr'
   | 'reviewPr'
+  | 'mergePr'
 
 export interface WorkResult<INPUT_ARG, INPUT, OUTPUT> {
   time: number;

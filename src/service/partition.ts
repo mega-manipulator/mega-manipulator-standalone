@@ -1,6 +1,6 @@
 export function partition<T>(arr: T[], fn: (t: T) => boolean): T[][] {
   return arr.reduce(
-    (acc, val, _idx, _arr) => {
+    (acc, val) => {
       if (fn(val)) {
         acc[0].push(val)
       } else {
@@ -14,7 +14,7 @@ export function partition<T>(arr: T[], fn: (t: T) => boolean): T[][] {
 
 export function groupToMap<T>(arr: T[], fn: (t: T) => string): { [key: string]: T[] } {
   return arr.reduce(
-    (acc: { [key: string]: T[] }, val: T, _idx, _arr: T[]) => {
+    (acc: { [key: string]: T[] }, val: T) => {
       const key: string = fn(val)
       if (acc[key]) {
         acc[key].push(val)

@@ -60,7 +60,7 @@ export function useRepoFilter(
 
 async function getDirNames(p: string): Promise<string[]> {
   const fileEntries = await fs.readDir(p);
-  let dirs = fileEntries
+  const dirs = fileEntries
     .filter((f) => f.children !== undefined && f.name !== undefined)
     .map((f) => f.name)
     .map((f) => f as string);

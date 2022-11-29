@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {invoke} from "@tauri-apps/api";
 import {asString} from "./logWrapper";
 import {debug, info, trace} from "tauri-plugin-log-api";
@@ -33,7 +33,7 @@ export function usePassword(username?: string, baseUrl?: string): [string | null
   const [password, setPassword] = useState<string | null>(null)
   useEffect(() => {
     (async () => {
-      let osPass = await getPassword(username, baseUrl);
+      const osPass = await getPassword(username, baseUrl);
       trace('found password ' + osPass) // TODO: DELETE?
       setPassword(osPass)
     })()

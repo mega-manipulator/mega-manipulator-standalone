@@ -11,8 +11,8 @@ import {DataGridPro} from "@mui/x-data-grid-pro";
 export const ResultPage: React.FC = () => {
   const {ref} = useParams()
   const nav = useNavigate()
-  const [resultList, setResultList] = useState<(WorkResult<any, any, any> & { id: number })[]>([])
-  const [result, setResult] = useState<WorkResult<any, any, any> | null>(null)
+  const [resultList, setResultList] = useState<(WorkResult<unknown, unknown, unknown> & { id: number })[]>([])
+  const [result, setResult] = useState<WorkResult<unknown, unknown, unknown> | null>(null)
   useEffect(() => {
     if (typeof window.__TAURI_IPC__ === 'function') {
       (async () => {
@@ -41,7 +41,7 @@ export const ResultPage: React.FC = () => {
   }, [])
   useEffect(() => {
     if (ref) {
-      const foo: (WorkResult<any, any, any> & { id: number }) | undefined = resultList.find((r) => `${r.time}` === ref)
+      const foo: (WorkResult<unknown, unknown, unknown> & { id: number }) | undefined = resultList.find((r) => `${r.time}` === ref)
       setResult(foo ?? null)
     } else {
       setResult(null);
@@ -97,7 +97,7 @@ export const ResultPage: React.FC = () => {
 }
 
 type ResultTableProps = {
-  work: WorkResult<any, any, any>
+  work: WorkResult<unknown, unknown, unknown>
 }
 
 function statusToColor(status: WorkResultStatus): AlertColor {
@@ -125,14 +125,14 @@ const ResultTable: React.FC<ResultTableProps> = ({work}: ResultTableProps) => {
         <Typography variant={'h4'}>Results:</Typography>
         <Typography style={{fontStyle: 'italic', color: 'text.secondary'}}>Click the JSON to expand/collapse it</Typography>
       <hr/>
-      {work.result.map((r) => <ResultItem {...r} />)}
+      {work.result.map((r, index) => <ResultItem key={index} {...r} />)}
     </>}
   </>
 }
 
 type ResultItemProps = {
-  input: any,
-  output: WorkResultOutput<any>,
+  input: unknown,
+  output: WorkResultOutput<unknown>,
 }
 
 const ResultItem: React.FC<ResultItemProps> = ({input, output}) => {

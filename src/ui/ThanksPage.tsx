@@ -113,13 +113,13 @@ const ossPackages: ThanksType[] = [
 export const ThanksPage: React.FC = () => {
   return <>
     <Typography variant={'h4'}>Thanks goes to..</Typography>
-    {ossPackages.map((pkg) => <p>
+    {ossPackages.map((pkg, index) => <p key={index}>
       <Link onClick={() => open(pkg.link)}><Typography
         variant={'h6'}
         style={{cursor: "pointer"}}
       >{pkg.name}</Typography></Link>
       <Typography>{pkg.description}</Typography>
-      {pkg.licence && pkg.licence.map((l) => <Link onClick={() => open(l.link)}>
+      {pkg.licence && pkg.licence.map((l, i) => <Link key={i} onClick={() => open(l.link)}>
         <Chip
           style={{cursor: "pointer"}}
           variant={"filled"}

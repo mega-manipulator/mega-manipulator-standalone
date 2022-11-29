@@ -33,7 +33,7 @@ export type CloneWorkInput = {
  * Returns the timestamp that marks the resulting worklog item, which can be used to navigate to it
  */
 export async function clone(input: CloneWorkInput, listener: (progress: WorkProgress) => void): Promise<number> {
-  let branch = input.branch;
+  const branch = input.branch;
   if (!branch || branch.length === 0 || !BranchRegexp.test(branch) || !BranchStartRegexp.test(branch) || !BranchEndRegexp.test(branch)) {
     throw new Error('Branch name is not correct')
   }
@@ -49,7 +49,7 @@ export async function clone(input: CloneWorkInput, listener: (progress: WorkProg
     }))
   }
   await debug(`Start work on ${asString(result)}`)
-  let progressTracker = new WorkProgressTracker(input.hits.length);
+  const progressTracker = new WorkProgressTracker(input.hits.length);
   listener({done: 0, total: result.result.length, breakdown: {}})
   for (let i = 0; i < result.result.length; i++) {
     const hit: SearchHit = result.result[i].input;
@@ -105,6 +105,7 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: 
   try {
     await removeDir(clonePath, {recursive: true});
   } catch (e) {
+    console.info('Exception pre-cleaning dir ' + asString(e))
   }
   await createDir(clonePath, {recursive: true});
   const keepFsList: FileEntry[] = await fs.readDir(keepPath)
@@ -123,7 +124,7 @@ async function setupSparse(keepPath: string, meta: WorkMeta, sparseCheckout: str
   if (sparseCheckout === null) {
     return;
   }
-  let sparseConfFile = await path.join(keepPath, '.git', 'info', 'sparse-checkout');
+  const sparseConfFile = await path.join(keepPath, '.git', 'info', 'sparse-checkout');
   await debug(`Setting up sparse checkout in ${sparseConfFile}`)
   await fs.removeFile(sparseConfFile)
     .then(() => meta.workLog.push({what: `Remove ${sparseConfFile}`, status: "ok", result: true}))

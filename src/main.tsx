@@ -19,17 +19,20 @@ const darkTheme = createTheme({
 const muiProLicence = import.meta.env.VITE_MUI_PRO_LICENCE;
 LicenseInfo.setLicenseKey(muiProLicence);
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ThemeProvider theme={darkTheme}>
-      <CssBaseline/>
-      <div style={{
-        marginLeft: "10px",
-        marginRight: "10px",
-        marginTop: "10px"
-      }}>
-        <App/>
-      </div>
-    </ThemeProvider>
-  </React.StrictMode>
-)
+const rootElement = document?.getElementById('root');
+if (rootElement){
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <ThemeProvider theme={darkTheme}>
+        <CssBaseline/>
+        <div style={{
+          marginLeft: "10px",
+          marginRight: "10px",
+          marginTop: "10px"
+        }}>
+          <App/>
+        </div>
+      </ThemeProvider>
+    </React.StrictMode>
+  )
+}

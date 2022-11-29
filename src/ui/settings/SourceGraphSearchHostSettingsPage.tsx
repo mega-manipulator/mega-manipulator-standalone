@@ -106,8 +106,8 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
   return <>
     <Typography variant={"h4"}>{header}</Typography>
     <div>
-      {errors.map((err) => <Alert variant={"filled"} severity={"error"}>{err}</Alert>)}
-      {warnings.map((w) => <Alert variant={"filled"} severity={"warning"}>{w}</Alert>)}
+      {errors.map((err, idx) => <Alert key={idx} variant={"filled"} severity={"error"}>{err}</Alert>)}
+      {warnings.map((w, idx) => <Alert key={idx} variant={"filled"} severity={"warning"}>{w}</Alert>)}
     </div>
     {!searchHostKey && <FormControl>
         <FormHelperText>Search host key</FormHelperText>
@@ -200,7 +200,7 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
                   sourceGraph: searchHost,
                 }
               }
-            }).then((_) => nav(locations.settings.link))
+            }).then(() => nav(locations.settings.link))
               .catch((e) => setErrors([...errors, asString(e)]))
           }
         }}>Save</Button>

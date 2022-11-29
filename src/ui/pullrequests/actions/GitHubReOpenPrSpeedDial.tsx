@@ -1,6 +1,6 @@
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
-import {useCallback, useContext, useMemo, useState} from "react";
+import React, {useCallback, useContext, useMemo, useState} from "react";
 import {Alert, TextField, Tooltip} from "@mui/material";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {open} from "@tauri-apps/api/shell";

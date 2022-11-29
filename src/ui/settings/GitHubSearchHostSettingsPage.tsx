@@ -36,7 +36,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
   }, [searchHostKeyVal, megaSettings])
   const [validationError, setValidationError] = useState<string | undefined>(undefined)
   useEffect(() => {
-    let errors: string[] = [];
+    const errors: string[] = [];
     if (searchHostKeyVal.length === 0) errors.push('Search host key cannot be empty')
     if (searchHostKey === undefined && searchHostKeySame > 0) errors.push('Search host key already defined')
     if (searchHostKey !== undefined && searchHostKeySame > 1) errors.push('Search host key already defined')

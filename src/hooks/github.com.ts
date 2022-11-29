@@ -240,8 +240,8 @@ export class GithubClient {
   async searchCode(searchString: string, max: number): Promise<SearchHit[]> {
     info(`Searching for REPO '${searchString}' with the github client`)
     const transformer = (codeItem: GithubSearchCodeItem) => {
-      let owner = codeItem.repository.owner.login;
-      let repo = codeItem.repository.name;
+      const owner = codeItem.repository.owner.login;
+      const repo = codeItem.repository.name;
       return ({
         searchHost: this.searchHostKey,
         codeHost: this.codeHostKey,
@@ -257,8 +257,8 @@ export class GithubClient {
   async searchRepo(searchString: string, max: number): Promise<SearchHit[]> {
     info(`Searching for REPO: '${searchString}' with the github client`)
     const transformer = (repository: GithubSearchCodeRepository) => {
-      let owner = repository.owner.login;
-      let repo = repository.name;
+      const owner = repository.owner.login;
+      const repo = repository.name;
       return ({
         searchHost: this.searchHostKey,
         codeHost: this.codeHostKey,
@@ -303,6 +303,23 @@ export class GithubClient {
       (data) => data.data.search.nodes,
       transformer,
     );
+  }
+
+  async reviewPullRequests(
+    input: { prs: GitHubPull[], body: { body: string, event: 'REQUEST_CHANGES' | 'APPROVE' } },
+    progressCallback: (idx: number) => void
+  ): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+    return await processPullRequests({
+      pulls: input.prs,
+      name: 'Review Pull request',
+      kind: 'reviewPr'
+    }, (pr, idx, meta) => {
+      progressCallback(idx)
+      return this.evalRequest('Review PullRequest', meta, async () => {
+        await sleep(1000);
+        return await this.api.post(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}/reviews`, input.body, {})
+      })
+    })
   }
 
   async closePullRequests(input: { prs: GitHubPull[], comment: string, dropBranch: boolean }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {

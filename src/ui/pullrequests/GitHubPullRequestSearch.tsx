@@ -29,7 +29,7 @@ export const GitHubPullRequestSearch: React.FC = () => {
   return <>
     {clientInitError && <Alert>{clientInitError}</Alert>}
 
-    <ConditionalSkeleton condition={isOk} tooltipText={<> <CircularProgress/> Couldn't load correctly</>}>
+    <ConditionalSkeleton condition={isOk} tooltipText={<> <CircularProgress/> Couldn&apos;t load correctly</>}>
       <TextField
         label={'Search terms'}
         value={searchTerm}

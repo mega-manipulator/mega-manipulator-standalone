@@ -25,6 +25,7 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
     closeButtonText = 'Close',
     action,
     closeAction = () => {
+      return;
     },
     isAvailable,
   }
@@ -67,7 +68,7 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
             onClick={() => {
               action()
                 .then(close)
-                .catch((e) => error(`Failed '${openButtonText}' due to: ${asString(e)}`).then((_) => setState('done')))
+                .catch((e) => error(`Failed '${openButtonText}' due to: ${asString(e)}`).then(() => setState('done')))
             }}>{runButtonText}</Button>
         </ButtonRow>
       </Box>

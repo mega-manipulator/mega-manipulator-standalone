@@ -140,7 +140,7 @@ export const SettingsPage = () => {
         One way to fix this is by resetting the settings to default state.<br/>
         Passwords will remain in your OS keystore ofc 😉<br/>
         <Button color={"error"} variant={"outlined"} onClick={() => {
-          createDefault().then(_ => info('Settings wiped'))
+          createDefault().then(() => info('Settings wiped'))
         }}>Wipe settings</Button></div>
     </>
   }
@@ -187,7 +187,7 @@ export const SettingsPage = () => {
               if(clonePath) draft.clonePath = clonePath;
               if(keepLocalRepos) draft.keepLocalReposPath = keepLocalRepos;
               if(editorApplicationPath) draft.editorApplication = editorApplicationPath;
-            }).then(_ => info('Updated settings'))
+            }).then(() => info('Updated settings'))
               .catch((e) => error(`Failed updating settings: ${asString(e)}`))
           }}
         >Save settings</Button>

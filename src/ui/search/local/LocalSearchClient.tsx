@@ -45,19 +45,19 @@ export class LocalSearchClient {
     owner: string,
     repo: string,
   ): Promise<SearchHit[]> {
-    if(this.megaSettings.keepLocalReposPath === undefined) return [];
-    let pathParts: string[] = [this.megaSettings.keepLocalReposPath, codeHost, owner,repo]
-    const firstAsterisk=pathParts.indexOf('*')
-    if(firstAsterisk > 0) {
-      pathParts = pathParts.slice(0,firstAsterisk)
+    if (this.megaSettings.keepLocalReposPath === undefined) return [];
+    let pathParts: string[] = [this.megaSettings.keepLocalReposPath, codeHost, owner, repo]
+    const firstAsterisk = pathParts.indexOf('*')
+    if (firstAsterisk > 0) {
+      pathParts = pathParts.slice(0, firstAsterisk)
     }
     const allowedPrefix = await path.join(...pathParts)
-    debug('Allowed prefix: '+allowedPrefix)
+    debug('Allowed prefix: ' + allowedPrefix)
     const keeps: string[] = (await listRepos(this.megaSettings.keepLocalReposPath))
       .filter((p) => p.startsWith(allowedPrefix))
 
     debug(`Search for '${searchString}' with the local client in ${keeps.length} dirs, using '${program}'`)
-    const commands: (SearchHit | null)[] = await Promise.all(keeps.map((keep, i) => {
+    const commands: (SearchHit | null)[] = await Promise.all(keeps.map((keep) => {
       return withTimeout(1000, searchCommand(program, searchString, fileString, keep))
         .then(async (c) => {
           if (c.code === 0) {
@@ -71,8 +71,8 @@ export class LocalSearchClient {
   }
 }
 
-function searchCommand(program:string, search:string, file:string, dir:string):Command {
-  switch (program){
+function searchCommand(program: string, search: string, file: string, dir: string): Command {
+  switch (program) {
     case 'ag':
       return new Command('ag', ['-m', '-L', search, file], {cwd: dir});
     default:
@@ -80,38 +80,9 @@ function searchCommand(program:string, search:string, file:string, dir:string):C
   }
 }
 
-function tokenizeString(searchString: string): string[] {
-  const aggregate: string[] = []
-  const words = searchString.split(/ /g)
-  let buffer: string[] = []
-  let bufferChar = 'c'
-  for (const word of words) {
-    if (buffer.length > 0) {
-      if (word.endsWith(bufferChar)) {
-        buffer.push(word.substring(0, word.length - 1))
-        aggregate.push(buffer.join(' '))
-        buffer = []
-      } else {
-        buffer.push(word)
-      }
-    } else {
-      if ((word.startsWith("'") && !word.endsWith("'"))) {
-        bufferChar = "'"
-        buffer.push(word.substring(1))
-      } else if ((word.startsWith('"') && !word.endsWith('"'))) {
-        bufferChar = '"'
-        buffer.push(word.substring(1))
-      } else {
-        aggregate.push(word)
-      }
-    }
-  }
-  return aggregate
-}
-
 async function withTimeout(timeLimit: number, command: Command): Promise<ChildProcess> {
   let timeoutHandle: number | undefined = undefined
-  const timeoutPromise = new Promise<ChildProcess>((_resolve, _reject) => {
+  const timeoutPromise = new Promise<ChildProcess>((_resolve) => {
     timeoutHandle = setTimeout(
       () => _resolve({stdout: 'timeout', code: -1, stderr: 'timeout', signal: null}),
       timeLimit

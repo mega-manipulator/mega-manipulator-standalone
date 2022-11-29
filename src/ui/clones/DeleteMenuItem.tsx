@@ -35,8 +35,8 @@ export const DeleteMenuItem: React.FC<DeleteMenuItemProps> = ({settings, repos, 
       reloadCallback()
     }}>
       <Box sx={modalStyle}>
-        {errors.map((e) =>
-          <Alert variant={"filled"} color={"error"}>{e}</Alert>
+        {errors.map((e, i) =>
+          <Alert key={i} variant={"filled"} color={"error"}>{e}</Alert>
         )}
         <Button
           disabled={used}
@@ -45,7 +45,7 @@ export const DeleteMenuItem: React.FC<DeleteMenuItemProps> = ({settings, repos, 
           onClick={() => {
             (async () => {
               setUsed(true)
-              let errAggregate: string[] = []
+              const errAggregate: string[] = []
               if (!settings) return
               const basePath = settings.clonePath
               if (!basePath) return
@@ -54,7 +54,7 @@ export const DeleteMenuItem: React.FC<DeleteMenuItemProps> = ({settings, repos, 
                 try {
                   await fs.removeDir(repoPath, {recursive: true});
                 } catch (e) {
-                  let message = `Failed removing '${repoPath}' due to '${asString(e)}'`;
+                  const message = `Failed removing '${repoPath}' due to '${asString(e)}'`;
                   error(message)
                   errAggregate.push(message)
                 }

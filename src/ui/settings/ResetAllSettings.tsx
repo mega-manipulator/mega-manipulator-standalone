@@ -1,4 +1,4 @@
-import {useState} from "react";
+import React, {useState} from "react";
 import {Box, Button, Grid, Modal, Typography} from "@mui/material";
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {createDefault} from "../../hooks/settings";
@@ -6,7 +6,7 @@ import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
 import {modalStyle} from "../modal/megaModal";
 
-export const ResetAllSettings = () => {
+export const ResetAllSettings:React.FC = () => {
   const nav = useNavigate()
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -17,7 +17,7 @@ export const ResetAllSettings = () => {
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Typography variant={'h6'} component={'h2'}>⚠️ Reset all settings? ⚠️</Typography>
-            <Typography>There's no going back on this.</Typography>
+            <Typography>There&apos;s no going back on this.</Typography>
           </Grid>
           <Grid item xs={6}>
             <Button variant={"outlined"} color="secondary" onClick={handleClose}>
@@ -27,7 +27,7 @@ export const ResetAllSettings = () => {
           <Grid item xs={6}>
             <Button
               onClick={() => {
-                createDefault().then(_ => {
+                createDefault().then(() => {
                   handleClose();
                   nav(locations.settings.link)
                 })

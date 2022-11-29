@@ -20,13 +20,13 @@ export async function runCommand(program: string, args: string[], dir: string, m
   return result;
 }
 
-export async function saveResultToStorage(result: WorkResult<any, any, any>) {
+export async function saveResultToStorage(result: WorkResult<unknown, unknown, unknown>) {
   const existing = await getResultFromStorage()
   existing[result.time] = result
   await store.set(nodeName, existing)
 }
 
-export async function getResultFromStorage(): Promise<({ [key: number]: WorkResult<any, any, any> })> {
+export async function getResultFromStorage(): Promise<({ [key: number]: WorkResult<unknown, unknown, unknown> })> {
   return await store.get(nodeName) ?? {}
 }
 

@@ -1,7 +1,7 @@
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Command} from "@tauri-apps/api/shell";
 
-export const EnvValidationWarning = () => {
+export const EnvValidationWarning:React.FC = () => {
   const [env, setEnv] = useState('')
   useEffect(() => {
     new Command(
@@ -17,7 +17,7 @@ export const EnvValidationWarning = () => {
   return <>
     <ul>
       {
-        env.split(':').map((it) => <li>{it}</li>)
+        env.split(':').map((it, index) => <li key={index}>{it}</li>)
       }
     </ul>
   </>

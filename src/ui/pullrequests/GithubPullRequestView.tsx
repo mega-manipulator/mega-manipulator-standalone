@@ -12,6 +12,7 @@ import {useGitHubClosePrSpeedDial} from "./actions/GitHubClosePrSpeedDial";
 import {useGitHubReOpenPrSpeedDial} from "./actions/GitHubReOpenPrSpeedDial";
 import {useGitHubClonePrSpeedDial} from "./actions/GitHubClonePrSpeedDial";
 import {CloneModal, useCloneModalProps} from "../manage/clones/clonepage/CloneModal";
+import {useGitHubReviewPrSpeedDial} from "./actions/useGitHubReviewPrSpeedDial";
 
 export const GithubPullRequestView: React.FC = () => {
   const {pullRequests: {selected}} = useContext(MegaContext)
@@ -22,6 +23,9 @@ export const GithubPullRequestView: React.FC = () => {
     useGitHubClosePrSpeedDial(),
     useGitHubReOpenPrSpeedDial(),
     useGitHubClonePrSpeedDial(cloneModalProps.cloneModalPropsWrapper.open),
+    useGitHubReviewPrSpeedDial(),
+    // Comment
+    // Merge
   ]
 
   // Render

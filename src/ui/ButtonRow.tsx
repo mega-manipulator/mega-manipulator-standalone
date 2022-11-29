@@ -1,6 +1,6 @@
-import React from "react";
+import React, {ReactNode} from "react";
 
-export const ButtonRow: React.FC<{ children: any[] }> = ({children}) => {
+export const ButtonRow: React.FC<{ children: ReactNode[] }> = ({children}) => {
   return <p style={{
     display: "grid",
     gridAutoFlow: "column",

@@ -8,7 +8,7 @@ import {MegaContext} from "../../hooks/MegaContext";
 
 export const GitHubCodeHostSettingsPage: React.FC = () => {
   const {codeHostKey} = useParams()
-  const {settings:megaSettings, updateSettings:updateMegaSettings} = useContext(MegaContext)
+  const {updateSettings:updateMegaSettings} = useContext(MegaContext)
   const nav = useNavigate()
 
   return <>

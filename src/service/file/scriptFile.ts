@@ -45,7 +45,7 @@ export async function openDirs(settings: MegaSettingsType, filePaths: string[]) 
         command.on("close", () => {
           debug('Open command terminated')
         })
-        command.on("error", (...args: any[]) => debug('Open command errored: ' + asString(args)))
+        command.on("error", (...args: unknown[]) => debug('Open command errored: ' + asString(args)))
         await command.spawn()
       }
       break;
@@ -70,7 +70,7 @@ export async function runScriptSequentially(input: RunScriptInput, progressCallb
   return workResult.result.some((w) => w.output.status !== "ok") ? "failed" : "ok"
 }
 
-async function doWork(input: RunScriptInput, workResult: WorkResult<RunScriptInput, string, any>, scriptPath: string, index: number, progressCallback?: (path: string, result: WorkResultStatus) => void) {
+async function doWork(input: RunScriptInput, workResult: WorkResult<RunScriptInput, string, unknown>, scriptPath: string, index: number, progressCallback?: (path: string, result: WorkResultStatus) => void) {
   const filePath = input.filePaths[index];
   try {
     const commandResult = await new Command('bash-run-script', [scriptPath], {cwd: filePath}).execute()
@@ -88,7 +88,7 @@ async function doWork(input: RunScriptInput, workResult: WorkResult<RunScriptInp
   }
 }
 
-function newWorkResult(input: RunScriptInput): WorkResult<RunScriptInput, string, any> {
+function newWorkResult(input: RunScriptInput): WorkResult<RunScriptInput, string, unknown> {
   const time = new Date().getTime()
   return {
     name: `Run scripted change of ${input.filePaths.length}`,

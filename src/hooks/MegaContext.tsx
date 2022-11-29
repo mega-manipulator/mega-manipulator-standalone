@@ -41,42 +41,47 @@ export interface MegaContext {
 
 export const MegaContext = createContext<MegaContext>({
   settings: baseSettings(),
-  updateSettings: (fn: (draft: MegaSettingsType) => Promise<void>) => new Promise(() => {
+  updateSettings: () => new Promise(() => {
+    return;
   }),
   homeDir: '~',
   search: {
     searchHostKey: 'string',
-    setSearchHostKey: (codeHostKey: string) => {
+    setSearchHostKey: () => {
+      return;
     },
     hits: [],
-    setHits: (hits: SearchHit[]) => {
+    setHits: () => {
+      return;
     },
     selected: [],
     selectedModel: [],
-    setSelected: (selected: number[]) => {
+    setSelected: () => {
+      return;
     },
   },
   clones: {
     paths: [],
-    setPaths: (paths: string[]) => {
+    setPaths: () => {
+      return;
     },
     selected: [],
     selectedModel: [],
-    setSelected: (selected: number[]) => {
-    },
+    setSelected(){return;},
   },
   code: {
     codeHostKey: 'string',
-    setCodeHostKey: (codeHostKey: string) => {
+    setCodeHostKey: () => {
+      return;
     },
   },
   pullRequests: {
     pulls: [],
-    setPulls: (pulls: GitHubPull[]) => {
-    },
+    setPulls: () => {return;},
     selected: [],
     selectedModel: [],
-    setSelected: (selected: number[]) => {
+    setSelected: () => {
+      return;
     },
   }
 });

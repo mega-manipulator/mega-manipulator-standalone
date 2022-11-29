@@ -1,6 +1,7 @@
 import {useNavigate, useRouteError} from "react-router-dom";
 import {Button} from "@mui/material";
 import {locations} from "../route/locations";
+import React from "react";
 
 export const RoutingErrorBoundary: React.FC = () => {
   const err = useRouteError()

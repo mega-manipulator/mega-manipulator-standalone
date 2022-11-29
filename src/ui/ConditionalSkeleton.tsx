@@ -14,9 +14,9 @@ export const ConditionalSkeleton: React.FC<ConditionalSkeletonProps> = (props) =
   const [top, setTop] = useState(0);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
-  const ref: React.MutableRefObject<any> = useRef();
+  const ref: React.MutableRefObject<HTMLElement|undefined> = useRef();
   const refresh = useCallback(()=>{
-    if (ref) {
+    if (ref.current) {
       setWidth(ref.current.clientWidth)
       setHeight(ref.current.clientHeight)
       setTop(ref.current.offsetTop)

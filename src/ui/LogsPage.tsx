@@ -6,7 +6,7 @@ import {debug, error} from "tauri-plugin-log-api";
 import {asString} from "../hooks/logWrapper";
 import {KeyboardDoubleArrowUpRounded} from "@mui/icons-material";
 
-type LogLevel = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE'
+// type LogLevel = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE'
 
 export const LogsPage: React.FC = () => {
   const bottomRef = useRef<HTMLSpanElement | null>(null)
@@ -75,7 +75,7 @@ export const LogsPage: React.FC = () => {
     </Fade>
     <Grid container width={'100%'}>
 
-      {logFiles.map((f) => <Grid item style={{border: '1px solid #fff', paddingRight: 10, margin: 10}}>
+      {logFiles.map((f,i) => <Grid key={i} item style={{border: '1px solid #fff', paddingRight: 10, margin: 10}}>
         <Radio
           checked={f === selectedLogFile}
           name={`file-select_${f}`}

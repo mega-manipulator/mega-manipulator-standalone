@@ -78,7 +78,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
     setErr(null)
   };
 
-  return <Modal open={cloneModalPropsWrapper.isOpen} onClose={(_event) => {
+  return <Modal open={cloneModalPropsWrapper.isOpen} onClose={() => {
     if (state !== "running") close()
   }}>
     <Box sx={modalStyle}>
@@ -179,7 +179,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
                   error('Failed cloning' + asString(e));
                   setErr(asString(e))
                 })
-                .then(_ => {
+                .then(() => {
                   setState('done')
                   info('Done cloning')
                 });

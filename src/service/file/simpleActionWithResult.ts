@@ -17,7 +17,7 @@ export interface SimpleActionProps {
 /**
  * Run stuff in parallel
  */
-export async function simpleAction<T = any>(input: SimpleActionProps, action: (index: number, hit: SearchHit, path: string) => Promise<T>, errMapper: (hit: SearchHit, err: unknown) => Promise<T>): Promise<(T)[]> {
+export async function simpleAction<T>(input: SimpleActionProps, action: (index: number, hit: SearchHit, path: string) => Promise<T>, errMapper: (hit: SearchHit, err: unknown) => Promise<T>): Promise<(T)[]> {
   const clonePath = await validClonePath(input.settings)
   const promises: Promise<T>[] = input.hits.map(async (hit, i): Promise<T> => {
     const _hit = await hitToSearchHit(hit);

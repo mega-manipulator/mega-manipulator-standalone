@@ -80,7 +80,7 @@ export async function loadFromDiskOrDefault(): Promise<MegaSettingsType> {
   const megaSettings = await defaultSettings();
 
   if (typeof window.__TAURI_IPC__ === 'function') {
-    let loadedSettings: any = await store.get(nodeName)
+    const loadedSettings: unknown = await store.get(nodeName)
     if (loadedSettings) {
       Object.assign(megaSettings, loadedSettings)
     }

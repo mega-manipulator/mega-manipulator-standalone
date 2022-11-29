@@ -81,8 +81,8 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
               info(`Found ${hits.length} hits`)
             })
               .catch((e) => error(`Failed searching ${asString(e)}`))
-              .then(_ => info('Done'))
-              .then(_ => searchFieldProps?.setState("ready"))
+              .then(() => info('Done'))
+              .then(() => searchFieldProps?.setState("ready"))
           }
         } else {
           warn('Search Client was undefined')

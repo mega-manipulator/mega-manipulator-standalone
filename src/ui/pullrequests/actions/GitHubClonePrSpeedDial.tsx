@@ -69,11 +69,11 @@ const CloneAlerts: React.FC<{ pulls: GitHubPull[] }> = ({pulls}) => {
     {
       uniqueBranches.length === 1 && <Alert
             color={"success"} variant={"outlined"}
-        >"{uniqueBranches[0]}" will be cloned from {pulls.length} pulls/repos</Alert>}
+        >&quot;{uniqueBranches[0]}&quot; will be cloned from {pulls.length} pulls/repos</Alert>}
 
     { // Duplicate repos
-      duplicateRepos.length < 5 && duplicateRepos.map((d) => <Alert
-        variant={"filled"} color={"error"}
+      duplicateRepos.length < 5 && duplicateRepos.map((d,idx) => <Alert
+        key={idx} variant={"filled"} color={"error"}
       >{d.count} pulls are from {d.repo}</Alert>)}
     {
       duplicateRepos.length >= 5 && <Alert

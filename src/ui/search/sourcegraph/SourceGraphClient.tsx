@@ -88,6 +88,7 @@ export class SourceGraphClient {
     const source = CancelToken.source();
     const handle: SourceGraphSearchHandle = {
       cancel: () => {
+        return;
       },
     };
     handle.cancel = () => {

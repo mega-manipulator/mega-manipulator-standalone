@@ -1,10 +1,10 @@
 [package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+name = "mega-manipulator-standalone"
+version = "0.0.0-git"
+description = "Change everything"
+authors = ["jensim->github.com"]
+license = "GPLv3"
+repository = "https://github.com/mega-manipulator/mega-manipulator-standalone"
 default-run = "app"
 edition = "2021"
 rust-version = "1.57"

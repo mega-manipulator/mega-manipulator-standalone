@@ -74,7 +74,7 @@ export class SourceGraphClient {
     baseUrl: string,
     searchSettings: SourceGraphSearchHostSettings,
     props: SourceGraphSearchFieldProps,
-  settings: MegaSettingsType,
+    settings: MegaSettingsType,
   ) {
     this.token = token;
     this.baseUrl = baseUrl;
@@ -115,10 +115,10 @@ export class SourceGraphClient {
       const alert: string | null | undefined = response?.data?.search?.results?.alert
       if (alert) warn(`Alert: ${alert}`)
 
-      debug('response?.data?.data?.search?.results?.results'+asString(response?.data?.data?.search?.results?.results))
+      debug('response?.data?.data?.search?.results?.results' + asString(response?.data?.data?.search?.results?.results))
       response?.data?.data?.search?.results?.results?.forEach((item: any) => {
         let hit: SearchHit | undefined = undefined;
-        debug('Evaluating result item: '+asString(item))
+        debug('Evaluating result item: ' + asString(item))
         switch (item?.__typename) {
           case 'FileMatch':
             hit = this.sgRepoStringToSearchHit(item?.repository?.name);
@@ -148,13 +148,13 @@ export class SourceGraphClient {
 
       if (repoString) {
         const parts: string[] = repoString.split('/')
-        debug('Parts: '+parts)
+        debug('Parts: ' + parts)
         if (parts.length === 3) {
           // TODO: Get our code host from sourceGraph code host
           const sgCodeHost = parts[0];
           debug(`sgCodeHost: ${sgCodeHost}`)
           const codeHostKey = this.searchSettings.codeHosts[sgCodeHost]
-          if(!codeHostKey) throw new Error(`CodeHost '${sgCodeHost}->${codeHostKey}' not mapped, ${asString(this.searchSettings.codeHosts)}`)
+          if (!codeHostKey) throw new Error(`CodeHost '${sgCodeHost}->${codeHostKey}' not mapped, ${asString(this.searchSettings.codeHosts)}`)
 
           const codeHost = this.settings.codeHosts[codeHostKey]
           const searchHost = this.props.searchFieldProps.searchHostKey;
@@ -164,7 +164,13 @@ export class SourceGraphClient {
           if (!cloneURL) {
             throw new Error('Unable to resolve clone url for repo: ' + searchHost + '/' + codeHostKey + '/' + owner + '/' + repoName)
           }
-          return new SearchHit(searchHost, codeHostKey, owner, repoName, cloneURL)
+          return ({
+            searchHost,
+            codeHost: codeHostKey,
+            owner,
+            repo: repoName,
+            sshClone: cloneURL,
+          })
         }
       }
     } catch (e) {
@@ -211,7 +217,10 @@ export function useSourceGraphClient(
         setWrapper({error: 'password is not defined', client: undefined});
         return;
       }
-      setWrapper({error: undefined, client: new SourceGraphClient(password, baseUrl, sourceGraphSettings, props, settings)})
+      setWrapper({
+        error: undefined,
+        client: new SourceGraphClient(password, baseUrl, sourceGraphSettings, props, settings)
+      })
     })()
   }, [props, props?.searchFieldProps?.searchHostKey, settings])
   return wrapper;

@@ -10,20 +10,24 @@ import {open} from "@tauri-apps/api/shell";
 import {debug} from "tauri-plugin-log-api";
 import {useGitHubClosePrSpeedDial} from "./actions/GitHubClosePrSpeedDial";
 import {useGitHubReOpenPrSpeedDial} from "./actions/GitHubReOpenPrSpeedDial";
+import {useGitHubClonePrSpeedDial} from "./actions/GitHubClonePrSpeedDial";
+import {CloneModal, useCloneModalProps} from "../manage/clones/clonepage/CloneModal";
 
 export const GithubPullRequestView: React.FC = () => {
-    //
   const {pullRequests: {selected}} = useContext(MegaContext)
+  const cloneModalProps = useCloneModalProps()
+
   const items = [
     useGitHubEditPrSpeedDialProps(),
     useGitHubClosePrSpeedDial(),
     useGitHubReOpenPrSpeedDial(),
+    useGitHubClonePrSpeedDial(cloneModalProps.cloneModalPropsWrapper.open),
   ]
 
   // Render
   return <>
     <GitHubPullRequestSearch/>
-
+    <CloneModal {...cloneModalProps}/>
     {/* Generic Action Modals */}
     {items.map((item,idx)=><GenericPrSpeedDialModal key={idx} {...item} />)}
 

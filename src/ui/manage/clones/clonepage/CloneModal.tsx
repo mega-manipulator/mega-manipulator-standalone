@@ -64,7 +64,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
   const [err, setErr] = useState<string | null>(null)
   const [state, setState] = useState<'ready' | 'running' | 'done'>('ready')
   const [workRef, setWorkRef] = useState<number | null>(null)
-  const {settings, search:{selected}} = useContext(MegaContext)
+  const {settings, search: {selected}} = useContext(MegaContext)
   const [progress, setProgress] = useState<WorkProgress | null>(null)
   const [branch, setBranch] = useState('')
   useEffect(() => {
@@ -88,15 +88,15 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
               <Typography>Clone {selected.length} things
                   into {settings?.clonePath}?</Typography>
           </div>
-          <div>
-              <TextField
-                  fullWidth
-                  variant={"filled"}
-                  label={'branch name'}
-                  value={branch}
-                  onChange={(event) => setBranch(event.target.value)}
-              />
-          </div>
+        {selected.some((s) => s && s.branch === undefined) && <div>
+            <TextField
+                fullWidth
+                variant={"filled"}
+                label={'branch name'}
+                value={branch}
+                onChange={(event) => setBranch(event.target.value)}
+            />
+        </div>}
           <div>
               <Tooltip
                   title={"Run 'git fetch' on the clones found locally, but it's faster not to run the fetch"} arrow>
@@ -165,7 +165,6 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
                   hits: selected,
                   sourceString: cloneModalPropsWrapper.sourceString,
                   branch,
-                  cloneType: "SSH",
                   settings,
                   onlyKeep,
                   fetchIfLocal,

@@ -13,7 +13,6 @@ import {getMainBranchName} from "../file/cloneDir";
 import {requireZeroStatus} from "../file/simpleActionWithResult";
 
 export type CloneState = 'cloned from remote' | 'cloned from local' | 'failed'
-export type CloneType = 'SSH' | 'HTTPS'
 
 const BranchRegexp = /[/a-zA-Z0-9_-]/g
 const BranchStartRegexp = /^[a-zA-Z0-9_-]/
@@ -24,7 +23,6 @@ export type CloneWorkInput = {
   /** Used as a human-readable ref for the WorkResult, search-string or some other user-input is recommended */
   sourceString: string,
   branch: string,
-  cloneType: CloneType,
   settings: MegaSettingsType,
   onlyKeep: boolean,
   fetchIfLocal: boolean,
@@ -35,10 +33,11 @@ export type CloneWorkInput = {
  * Returns the timestamp that marks the resulting worklog item, which can be used to navigate to it
  */
 export async function clone(input: CloneWorkInput, listener: (progress: WorkProgress) => void): Promise<number> {
-  if (!input.branch || input.branch.length === 0 || !BranchRegexp.test(input.branch) || !BranchStartRegexp.test(input.branch) || !BranchEndRegexp.test(input.branch)) {
+  let branch = input.branch;
+  if (!branch || branch.length === 0 || !BranchRegexp.test(branch) || !BranchStartRegexp.test(branch) || !BranchEndRegexp.test(branch)) {
     throw new Error('Branch name is not correct')
   }
-  let time = new Date().getTime();
+  const time = new Date().getTime();
   const result: WorkResult<CloneWorkInput, SearchHit, WorkMeta> = {
     kind: "clone", name: input.sourceString, status: 'in-progress', time,
     input,
@@ -62,7 +61,7 @@ export async function clone(input: CloneWorkInput, listener: (progress: WorkProg
       await info(`Clone ${hit.sshClone}, keepPath:${keepPath}, clonePath:${clonePath}`);
       const cloneResult = await cloneIfNeeded(keepPath, hit.sshClone, input.fetchIfLocal, meta);
       if (!input.onlyKeep) {
-        await restoreRepoFromKeep(keepPath, clonePath, input.branch, meta, input.sparseCheckout);
+        await restoreRepoFromKeep(keepPath, clonePath, hit.branch ?? branch, meta, input.sparseCheckout);
       }
 
       result.result[i].output.status = "ok";

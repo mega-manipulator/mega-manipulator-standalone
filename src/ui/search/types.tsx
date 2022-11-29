@@ -1,29 +1,17 @@
 import {MegaSettingsType} from "../../hooks/settings";
 import {useState} from "react";
 
-export class SearchHit {
-  public readonly searchHost: string | null;
-  public readonly codeHost: string;
-  public readonly owner: string;
-  public readonly repo: string;
-  public readonly sshClone: string;
-  public readonly description?: string;
-
-  constructor(
-    searchHost: string | null,
-    codeHost: string,
-    owner: string,
-    repo: string,
-    sshClone: string,
-    description?: string
-  ) {
-    this.searchHost = searchHost;
-    this.codeHost = codeHost;
-    this.owner = owner;
-    this.repo = repo;
-    this.sshClone = sshClone;
-    this.description = description;
-  }
+export interface SearchHit {
+  readonly searchHost: string | null;
+  readonly codeHost: string;
+  readonly owner: string;
+  readonly repo: string;
+  readonly sshClone: string;
+  readonly description?: string;
+  /**
+   * For pull requests to know what branch to set up after cloning
+   */
+  readonly branch?: string;
 }
 
 export type SearchPageState = 'loading' | 'ready' | 'searching'

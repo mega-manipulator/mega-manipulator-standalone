@@ -21,17 +21,23 @@ export async function listRepos(basePath?: string): Promise<string[]> {
   }
 }
 
-export async function pathToSearchHit(searchHostKey: string | null, repoPath: string): Promise<SearchHit> {
+export async function pathToSearchHit(searchHost: string | null, repoPath: string): Promise<SearchHit> {
   const repo = await path.basename(repoPath)
   const ownerPath = await path.dirname(repoPath)
   const owner = await path.basename(ownerPath)
 
   const codePath = await path.dirname(ownerPath)
-  const code = await path.basename(codePath)
+  const codeHost = await path.basename(codePath)
 
   const cloneAddr = await cloneAddress(repoPath)
 
-  return new SearchHit(searchHostKey, code, owner, repo, cloneAddr)
+  return ({
+    searchHost,
+    codeHost,
+    owner,
+    repo,
+    sshClone: cloneAddr,
+  })
 }
 
 async function cloneAddress(repoPath: string): Promise<string> {

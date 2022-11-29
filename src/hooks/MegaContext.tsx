@@ -125,9 +125,12 @@ export function newMegaContext(): MegaContext {
   },[clonePaths, selectedClonePathsModel]);
 
   useEffect(() => {
-    setSearchHitsSelectedModel([])
-    setPrHitsSelectedModel([])
-    setSelectedClonePathsModel([])
+    if (searchHitsSelectedModel.length !== 0 && (searchHitsSelectedModel.length !== searchHits.length))
+      setSearchHitsSelectedModel([])
+    if (prHitsSelectedModel.length !== 0 && prHitsSelectedModel.length !== prHits.length)
+      setPrHitsSelectedModel([])
+    if (selectedClonePathsModel.length !== 0 && selectedClonePathsModel.length !== clonePaths.length)
+      setSelectedClonePathsModel([])
   }, [searchHits, clonePaths, prHits, reload]);
   return {
     settings,

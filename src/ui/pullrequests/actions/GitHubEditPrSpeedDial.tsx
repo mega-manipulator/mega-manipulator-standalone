@@ -17,8 +17,7 @@ export function useGitHubEditPrSpeedDialProps() {
     progressCallback(0, selected.length)
     const result = await ghClient?.rewordPullRequests({
       prs: selected,
-      title,
-      body
+      body: {title, body},
     }, (idx: number) => progressCallback(idx + 1, selected.length))
     progressCallback(selected.length, selected.length)
     return {

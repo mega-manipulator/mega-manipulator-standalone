@@ -101,13 +101,14 @@ interface GithubUser {
 }
 
 export interface GitHubPull {
+  codeHostKey: string,
   prId: string,
   prNumber: number,
-  owner?: GithubUser,
+  owner: GithubUser,
   repoDefaultBranch: string,
   head?: string,
   base: string,
-  repo?: string,
+  repo: string,
   title: string,
   body?: string,
   repositoryUrl: string,
@@ -241,14 +242,14 @@ export class GithubClient {
     const transformer = (codeItem: GithubSearchCodeItem) => {
       let owner = codeItem.repository.owner.login;
       let repo = codeItem.repository.name;
-      return new SearchHit(
-        this.searchHostKey,
-        this.codeHostKey,
-        owner,
-        repo,
-        this.sshCloneUrl(owner, repo),
-        codeItem.repository.description
-      );
+      return ({
+        searchHost: this.searchHostKey,
+        codeHost: this.codeHostKey,
+        owner: owner,
+        repo: repo,
+        sshClone: this.sshCloneUrl(owner, repo),
+        description: codeItem.repository.description,
+      });
     }
     return this.paginate('/search/code', max, {q: searchString}, transformer)
   }
@@ -258,14 +259,14 @@ export class GithubClient {
     const transformer = (repository: GithubSearchCodeRepository) => {
       let owner = repository.owner.login;
       let repo = repository.name;
-      return new SearchHit(
-        this.searchHostKey,
-        this.codeHostKey,
-        owner,
-        repo,
-        this.sshCloneUrl(owner, repo),
-        repository.description
-      );
+      return ({
+        searchHost: this.searchHostKey,
+        codeHost: this.codeHostKey,
+        owner: owner,
+        repo: repo,
+        sshClone: this.sshCloneUrl(owner, repo),
+        description: repository.description,
+      });
     }
     return this.paginate('/search/repositories', max, {q: searchString}, transformer)
   }
@@ -275,6 +276,7 @@ export class GithubClient {
     const transformer: (item: any) => GitHubPull = (item: any) => {
       //debug(`PR: ${asString(item)}`)
       return {
+        codeHostKey: this.codeHostKey,
         prId: item.id,
         prNumber: item.number,
         owner: item.repository.owner,

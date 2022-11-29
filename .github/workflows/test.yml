@@ -19,7 +19,10 @@ jobs:
       - name: setup node
         uses: actions/setup-node@v1
         with:
-          node-version: 16
+          node-version: 18
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 6.0.2
       - name: install Rust stable
         uses: actions-rs/toolchain@v1
         with:

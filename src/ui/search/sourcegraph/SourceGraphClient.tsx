@@ -118,6 +118,8 @@ export class SourceGraphClient {
 
       debug('response?.data?.data?.search?.results?.results' + asString(response?.data?.data?.search?.results?.results))
       response?.data?.data?.search?.results?.results?.forEach((item: any) => {
+        if (searchHits.size === max)
+          return;
         let hit: SearchHit | undefined = undefined;
         debug('Evaluating result item: ' + asString(item))
         switch (item?.__typename) {

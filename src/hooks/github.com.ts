@@ -154,8 +154,13 @@ async function processPullRequests<T extends GithubPullRequestWorkInput, U>(
   const workResult: WorkResult<T, GitHubPull, WorkMeta> = newPullRequestWorkResult(input)
   for (let i = 0; i < workResult.result.length; i++) {
     const pr: GitHubPull = workResult.result[i].input;
-    // @ts-ignore
-    const meta: WorkMeta = workResult.result[i].output.meta;
+    let meta: WorkMeta | undefined = workResult.result[i].output.meta;
+    if (!meta) {
+      meta = {
+        workLog: []
+      };
+      workResult.result[i].output.meta = meta;
+    }
     try {
       debug(`${input.name} ${pr.htmlUrl}`)
       await action(pr, i, meta)
@@ -407,7 +412,8 @@ export class GithubClient {
 
   private async evalRequest<T>(what: string, meta: WorkMeta | undefined, req: () => Promise<AxiosResponse<T>>): Promise<AxiosResponse<T>> {
     let attempt = 0;
-    while (true) {
+    const maxTries = 10;
+    while (attempt < maxTries) {
       const response: AxiosResponse<T> = await req()
       debug(`${what} ResponseStatus: ${response.status}`)
       if (response.status > 299) {
@@ -433,6 +439,7 @@ export class GithubClient {
       }
       attempt++;
     }
+    throw new Error(`Giving up on creating '${what}' after ${maxTries} attempts`)
   }
 
   private async paginateGraphQl<GITHUB_TYPE, TYPE>(
@@ -464,7 +471,7 @@ export class GithubClient {
         case "failed":
           warn(`Failed paginating request in a way that was not recoverable with throttling: ${response.status}::${JSON.stringify(response.data)}`)
           break pagination;
-        case "ok":
+        case "ok": {
           const data: GITHUB_TYPE[] = listExtractor(response.data)
           trace(`Got response from GitHub ${asString(data)}`)
           const mapped = data.map(transformer)
@@ -478,6 +485,7 @@ export class GithubClient {
           } else {
             break pagination;
           }
+        }
       }
     }
     return Array.from(aggregator);
@@ -507,7 +515,7 @@ export class GithubClient {
         case "failed":
           warn(`Failed paginating request in a way that was not recoverable with throttling: ${response.status}::${JSON.stringify(response.data)}`)
           break pagination;
-        case "ok":
+        case "ok": {
           const data: GithubPage<GITHUB_TYPE> = response.data
           trace(`Got response from GitHub ${asString(data)}`)
           const mapped = data.items.map(transformer)
@@ -518,6 +526,7 @@ export class GithubClient {
           if (data.items.length < 100) break pagination
           attempt = 0
           page++
+        }
       }
     }
     return Array.from(aggregator);

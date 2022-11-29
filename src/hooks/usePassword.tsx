@@ -16,8 +16,7 @@ export async function getPassword(username?: string, baseUrl?: string): Promise<
     let password: string | null = null;
     try {
       trace(`Fetched password for ${joinedUsername}`);
-      // @ts-ignore
-      if(window.__TAURI_IPC__) {
+      if(window["__TAURI_IPC__"]) {
         password = await invoke('get_password', {"username": joinedUsername})
       }
     } catch (e) {
@@ -41,8 +40,7 @@ export function usePassword(username?: string, baseUrl?: string): [string | null
   const updatePassword = async (newPassword: string) => {
     if (username && baseUrl && newPassword) {
       const joinedUsername = joinServiceUserName(username, baseUrl)
-      // @ts-ignore
-      if(window.__TAURI_IPC__){
+      if(window["__TAURI_IPC__"]){
         await invoke('store_password', {
           "username": joinedUsername,
           "password": newPassword,

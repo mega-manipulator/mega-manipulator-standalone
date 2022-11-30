@@ -125,7 +125,12 @@
       "csp": null
     },
     "updater": {
-      "active": false
+      "active": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU4RjQ0RjJDOEVGQTI2MgpSV1Jpb3UvSThrU1BCVENEN3lzSFRhQnJSRFJrbUwzczZHK0pNazhyUnRubGtSZTg1bTNRb3J4Ugo=",
+      "endpoints": [
+        "https://raw.githubusercontent.com/mega-manipulator/mega-manipulator-standalone/main/tauri-update.json"
+      ],
+      "dialog": true
     },
     "windows": [
       {

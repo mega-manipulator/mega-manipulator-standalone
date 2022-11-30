@@ -45,7 +45,7 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: .github/workflows/setup-action.yml
+      - uses: mega-manipulator/tauri-setup-action@main
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-20.04'
         run: |

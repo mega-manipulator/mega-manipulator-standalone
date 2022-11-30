@@ -12,7 +12,7 @@ jobs:
       release_id: ${{ steps.create-release.outputs.result }}
     steps:
       - name: Is not a tag
-        if: !startsWith(github.ref, 'refs/tags/v')
+        if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
         shell: bash
         run: exit 1
       - name: create release

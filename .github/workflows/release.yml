@@ -13,14 +13,14 @@ jobs:
 
     steps:
       - name: Print ref type
-        run: echo ${{ env.GITHUB_REF_TYPE }}
+        run: echo "${{ github.ref }}"
       - name: Is not a tag
-        if: env.GITHUB_REF_TYPE != 'tag'
+        if: !startsWith(github.ref, 'refs/tags/v')
         shell: bash
         run: exit 1
       - name: create release
         id: create-release
-        if: env.GITHUB_REF_TYPE == 'tag'
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           RELEASE_TAG: ${{ env.GITHUB_REF_NAME }}
         uses: actions/github-script@v6

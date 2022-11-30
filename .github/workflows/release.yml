@@ -13,12 +13,12 @@ jobs:
 
     steps:
       - name: Is not a tag
-        if: ${{ env.GITHUB_REF_TYPE != tag }}
+        if: env.GITHUB_REF_TYPE != 'tag'
         shell: bash
         run: exit 1
       - name: create release
         id: create-release
-        if: ${{ env.GITHUB_REF_TYPE == tag }}
+        if: env.GITHUB_REF_TYPE == 'tag'
         env:
           RELEASE_TAG: ${{ env.GITHUB_REF_NAME }}
         uses: actions/github-script@v6

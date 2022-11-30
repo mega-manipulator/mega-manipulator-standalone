@@ -12,6 +12,8 @@ jobs:
       release_id: ${{ steps.create-release.outputs.result }}
 
     steps:
+      - name: Print ref type
+        run: echo ${{ env.GITHUB_REF_TYPE }}
       - name: Is not a tag
         if: env.GITHUB_REF_TYPE != 'tag'
         shell: bash

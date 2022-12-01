@@ -32,6 +32,18 @@ function githubRepoFetchGraphQl(repos: { owner: string, repo: string }[]): strin
 }`
 }
 
+function githubPullMarkReadyGraphql(pull: GitHubPull[]): string {
+  return `mutation {
+${pull.map(({prId}, index) => `  pull${index}: markPullRequestReadyForReview(input:{pullRequestId:"${prId}"})`).join("\n")}
+}`
+}
+
+function githubPullMarkDraftGraphql(pull: GitHubPull[]): string {
+  return `mutation {
+${pull.map(({prId}, index) => `  pull${index}: convertPullRequestToDraft(input:{pullRequestId:"${prId}"})`).join("\n")}
+}`
+}
+
 const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!, $cursor: String) {
   search(first: 100, type: ISSUE, query: $query, after: $cursor) {
     pageInfo {
@@ -73,6 +85,7 @@ const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!
         title
         body
         state
+        isDraft
         mergedAt
       }
     }
@@ -104,7 +117,8 @@ interface GithubUser {
   avatarUrl?: string,
 }
 
-export type GithubMergeMethods = 'SQUASH' | 'MERGE' | 'REBASE'
+export type GithubMergeMethodResponse = 'SQUASH' | 'MERGE' | 'REBASE'
+export type GithubMergeMethodRequest = 'squash' | 'merge' | 'rebase'
 
 export interface GitHubPull {
   codeHostKey: string,
@@ -113,7 +127,7 @@ export interface GitHubPull {
   owner: GithubUser,
   repoDefaultBranch: string,
   merge: {
-    defaultMergeMethod: GithubMergeMethods,
+    defaultMergeMethod: GithubMergeMethodResponse,
     rebaseMergeAllowed: boolean,
     squashMergeAllowed: boolean,
     mergeCommitAllowed: boolean,
@@ -123,6 +137,7 @@ export interface GitHubPull {
   repo: string,
   title: string,
   body?: string,
+  draft: boolean,
   repositoryUrl: string,
   cloneUrl: string,
   htmlUrl: string,
@@ -132,17 +147,29 @@ export interface GitHubPull {
   raw: unknown,
 }
 
-function resoleMergeMethod(preferedMergeMethod: GithubMergeMethods | undefined, pr: GitHubPull): GithubMergeMethods {
+function resoleMergeMethod(preferedMergeMethod: GithubMergeMethodResponse | undefined, pr: GitHubPull): GithubMergeMethodRequest {
+  let defaultRequest: GithubMergeMethodRequest;
+  switch (pr.merge.defaultMergeMethod) {
+    case "SQUASH":
+      defaultRequest = 'squash';
+      break;
+    case "MERGE":
+      defaultRequest = 'merge';
+      break;
+    case "REBASE":
+      defaultRequest = 'rebase';
+      break;
+  }
   if (!preferedMergeMethod) {
-    return pr.merge.defaultMergeMethod
+    return defaultRequest
   }
   switch (preferedMergeMethod) {
     case "SQUASH":
-      return pr.merge.squashMergeAllowed ? "SQUASH" : pr.merge.defaultMergeMethod
+      return pr.merge.squashMergeAllowed ? "squash" : defaultRequest
     case "MERGE":
-      return pr.merge.mergeCommitAllowed ? "MERGE" : pr.merge.defaultMergeMethod
+      return pr.merge.mergeCommitAllowed ? "merge" : defaultRequest
     case "REBASE":
-      return pr.merge.rebaseMergeAllowed ? "REBASE" : pr.merge.defaultMergeMethod
+      return pr.merge.rebaseMergeAllowed ? "rebase" : defaultRequest
   }
 }
 
@@ -321,6 +348,7 @@ export class GithubClient {
         author: item.author,
         body: item.body,
         title: item.title,
+        draft: item.isDraft,
         htmlUrl: item.url,
         mergedAt: item.mergedAt,
         state: item.state,
@@ -342,10 +370,54 @@ export class GithubClient {
     );
   }
 
+  async prReadyForReview(
+    input: { prs: GitHubPull[] },
+    progressCallback: (idx: number) => void,
+  ): Promise<WorkResult<unknown, GitHubPull, WorkMeta>> {
+    const body = githubPullMarkReadyGraphql(input.prs)
+    const workResult: WorkResult<unknown, GitHubPull, WorkMeta> = newPullRequestWorkResult({
+      name: 'Mark pull requests ready',
+      kind: 'prDraftReady',
+      pulls: input.prs,
+    })
+    const meta: WorkMeta = {
+      workLog: []
+    }
+    workResult.status = "in-progress"
+    workResult.result.push({
+      input: input.prs[0],
+      output: {
+        meta,
+        status: "in-progress"
+      },
+    })
+    try {
+      const resp = await this.evalRequest('Mark pull requests ready', meta, () => this.api.post('/graphql', {
+        query: body
+      }))
+      if (resp.status < 300) {
+        for (let i = 0; i < input.prs.length; i++) {
+          // TODO sift through result
+        }
+        workResult.status = "ok"
+      } else {
+        workResult.status = "failed"
+      }
+    } catch (e) {
+      meta.workLog.push({
+        what: 'GraphQL request',
+        status: "failed",
+        result: e,
+      })
+      workResult.status = "failed"
+    }
+    return workResult
+  }
+
   async reviewPullRequests(
     input: { prs: GitHubPull[], body: { body: string, event: 'REQUEST_CHANGES' | 'APPROVE' } },
     progressCallback: (idx: number) => void
-  ): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+  ): Promise<WorkResult<unknown, GitHubPull, WorkMeta>> {
     return await processPullRequests({
       pulls: input.prs,
       name: 'Review Pull request',
@@ -362,9 +434,10 @@ export class GithubClient {
   async mergePullRequests(
     input: {
       prs: GitHubPull[],
-      mergeStrategy: GithubMergeMethods | undefined
+      mergeStrategy: GithubMergeMethodResponse | undefined
       title?: string,
       message?: string,
+      dropBranch: boolean,
     },
     progressCallback: (idx: number) => void,
   ): Promise<WorkResult<unknown, GitHubPull, WorkMeta>> {
@@ -372,18 +445,26 @@ export class GithubClient {
       pulls: input.prs,
       name: 'Merge Pull request',
       kind: 'mergePr'
-    }, (pr: GitHubPull, idx, meta) => {
+    }, async (pr: GitHubPull, idx, meta) => {
       progressCallback(idx)
-      const method: GithubMergeMethods = resoleMergeMethod(input.mergeStrategy, pr)
+      const method: GithubMergeMethodRequest = resoleMergeMethod(input.mergeStrategy, pr)
 
-      return this.evalRequest('Merge PullRequest', meta, async () => {
+      const mergeResult = await this.evalRequest('Merge PullRequest', meta, async () => {
         await sleep(1000);
-        return await this.api.post(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}/merge`, {
+        return await this.api.put(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}/merge`, {
           merge_method: method,
           commit_title: input.title,
           commit_message: input.message,
         }, {})
       })
+      if (mergeResult.status < 300 && input.dropBranch) {
+        return this.evalRequest('Drop branch', meta, async () => {
+          await sleep(1000)
+          return await this.dropPrBranch(pr, meta)
+        })
+      } else {
+        return mergeResult
+      }
     })
   }
 
@@ -391,7 +472,10 @@ export class GithubClient {
     return await this.patchPullRequests({...input, body: {state: "closed"}}, progressCallback);
   }
 
-  async reOpenPullRequests(input: { prs: GitHubPull[], comment: string }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+  async reOpenPullRequests(
+    input: { prs: GitHubPull[], comment?: string },
+    progressCallback: (idx: number) => void
+  ): Promise<WorkResult<unknown, GitHubPull, WorkMeta>> {
     return await this.patchPullRequests({...input, body: {state: "open"}}, progressCallback);
   }
 
@@ -401,6 +485,7 @@ export class GithubClient {
 
   private async patchPullRequests(input: { prs: GitHubPull[], comment?: string, dropBranch?: boolean, body: any }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
     return await processPullRequests({pulls: input.prs, name: 'Edit PRS', kind: "editPr"}, async (pr, idx, meta) => {
+        progressCallback(idx)
         const result = await this.evalRequest('PATCH PullRequest', meta, async () => {
           await sleep(1000);
           return await this.api.patch(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}`, input.body, {})
@@ -411,14 +496,13 @@ export class GithubClient {
         if (result.status === 200 && input.dropBranch === true) {
           await this.dropPrBranch(pr, meta)
         }
-        progressCallback(idx)
         return result
       }
     )
   }
 
-  private async dropPrBranch(pr: GitHubPull, meta: WorkMeta) {
-    await this.evalRequest('Drop PullRequest branch', meta, async () => {
+  private async dropPrBranch(pr: GitHubPull, meta: WorkMeta): Promise<AxiosResponse<unknown, undefined>> {
+    return await this.evalRequest('Drop PullRequest branch', meta, async () => {
       if (pr.head === pr.repoDefaultBranch) {
         throw new Error('Wont even try to delete the repo default branch 🤦')
       }

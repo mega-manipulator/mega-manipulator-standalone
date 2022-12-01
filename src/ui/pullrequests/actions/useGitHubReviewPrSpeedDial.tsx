@@ -24,12 +24,12 @@ export function useGitHubReviewPrSpeedDial() {
         time: 0,
       }
     },
-    [selected],
+    [selected,body,event],
   );
 
   return useGenericPrSpeedDialActionProps(
     'Review Pull requests',
-    selected.length !== 0,
+    selected.length === 0,
     <CheckCircleIcon/>,
     <>
       {clientInitError && <Alert color={"warning"} variant={"outlined"}>{clientInitError}</Alert>}

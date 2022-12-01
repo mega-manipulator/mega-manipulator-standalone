@@ -69,6 +69,8 @@ export type WorkResultKind =
   | 'editPr'
   | 'reviewPr'
   | 'mergePr'
+  | 'prDraftMark'
+  | 'prDraftReady'
 
 export interface WorkResult<INPUT_ARG, INPUT, OUTPUT> {
   time: number;

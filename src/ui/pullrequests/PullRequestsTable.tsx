@@ -29,12 +29,15 @@ const defaultGridColDef: GridColDef = {
 }
 const cols: GridColDef[] = [
   {...defaultGridColDef, field: 'id', minWidth: 25, hide: true,},
+  {...defaultGridColDef, field: 'prId', minWidth: 25, hide: true,},
+  {...defaultGridColDef, field: 'prNumber', minWidth: 25, hide: true,},
   {...defaultGridColDef, field: 'owner', renderCell: GithubUserColumn},
   {...defaultGridColDef, field: 'repo', width:175},
   {...defaultGridColDef, field: 'author', renderCell: GithubUserColumn},
   {...defaultGridColDef, field: 'title'},
   {...defaultGridColDef, field: 'body'},
   {...defaultGridColDef, field: 'state'},
+  {...defaultGridColDef, field: 'draft', renderCell: (v) => v.value ? '❌':'✅'},
   {
     ...defaultGridColDef, field: 'repositoryUrl', width: 150,
     renderCell: (v) => <Tooltip title={'Click me to open repo in browser'}>

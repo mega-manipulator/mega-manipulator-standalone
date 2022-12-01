@@ -14,7 +14,6 @@ function update(){
   suffix=$2
   url="$(jq -r ".assets[] |select(.name |endswith(\"${suffix}\")) |.url" $tmp_file)"
   sig="$(curl -Lfs -H "Authentication: token $GITHUB_TOKEN" "${url}.sig")"
-  # echo "$type $sig"
   newContent="$(jq ".[\"$type\"] = {\"signature\":\"$sig\", \"url\":\"$url\"}" "$tmp_platforms")"
   echo "$newContent" > "$tmp_platforms"
 }

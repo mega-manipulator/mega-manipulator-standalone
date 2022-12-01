@@ -37,7 +37,7 @@ const cols: GridColDef[] = [
   {...defaultGridColDef, field: 'title'},
   {...defaultGridColDef, field: 'body'},
   {...defaultGridColDef, field: 'state'},
-  {...defaultGridColDef, field: 'draft', renderCell: (v) => v.value ? '❌':'✅'},
+  {...defaultGridColDef, field: 'draft', headerName:'Ready (Not draft)', renderCell: (v) => v.value ? '❌':'✅'},
   {
     ...defaultGridColDef, field: 'repositoryUrl', width: 150,
     renderCell: (v) => <Tooltip title={'Click me to open repo in browser'}>

@@ -7,7 +7,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "mega-manipulator-standalone",
+    "productName": "mega-manipulator",
     "version": "../package.json"
   },
   "tauri": {

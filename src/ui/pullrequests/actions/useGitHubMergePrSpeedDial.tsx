@@ -4,7 +4,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from "reac
 import CallMergeIcon from '@mui/icons-material/CallMerge';
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {Alert, FormControlLabel, MenuItem, Select, Switch, TextField} from "@mui/material";
-import {ConditionalSkeleton} from "../../ConditionalSkeleton";
 import {GithubMergeMethodResponse, GitHubPull} from "../../../hooks/github.com";
 
 const mergeAlternatives: { name: string, type: GithubMergeMethodResponse }[] = [
@@ -51,11 +50,11 @@ export function useGitHubMergePrSpeedDial() {
     if (customMerge) {
       switch (merge) {
         case "SQUASH":
-          return selected.filter((s) => !s.merge.squashMergeAllowed)
+          return selected.filter((s) => s && !s.merge.squashMergeAllowed)
         case "MERGE":
-          return selected.filter((s) => !s.merge.mergeCommitAllowed)
+          return selected.filter((s) => s && !s.merge.mergeCommitAllowed)
         case "REBASE":
-          return selected.filter((s) => !s.merge.rebaseMergeAllowed)
+          return selected.filter((s) => s && !s.merge.rebaseMergeAllowed)
       }
     }
     return []
@@ -89,7 +88,7 @@ export function useGitHubMergePrSpeedDial() {
       <FormControlLabel
         control={<Switch checked={customCommit} onClick={() => setCustomCommit(!customCommit)}/>}
         label={'Custom commit message'}/>
-      <ConditionalSkeleton condition={customCommit}>
+      {customCommit && <div>
         <TextField
           label={'Commit title'}
           disabled={!customCommit}
@@ -102,11 +101,11 @@ export function useGitHubMergePrSpeedDial() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
         />
-      </ConditionalSkeleton>
+      </div>}
       <FormControlLabel
         control={<Switch checked={customMerge} onClick={() => setCustomMerge(!customMerge)}/>}
         label={'Use preferred merge strategy'}/>
-      <ConditionalSkeleton condition={customMerge}>
+      {customMerge && <div>
         <Select
           disabled={!customMerge}
           value={merge}>
@@ -116,7 +115,7 @@ export function useGitHubMergePrSpeedDial() {
             onClick={() => setMerge(v.type)}
           >{v.name}</MenuItem>)}
         </Select>
-      </ConditionalSkeleton>
+      </div>}
     </>,
     action,
   )

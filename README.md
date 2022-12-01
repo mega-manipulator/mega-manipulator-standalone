@@ -1,4 +1,4 @@
-# mega-manipulator-standalone
+# mega-manipulator (the app)
 
 ## Requirements:
 

@@ -6,7 +6,7 @@ import {debug, info, trace, warn} from "tauri-plugin-log-api";
 import {MegaSettingsType} from "./settings";
 import {getCurrentBranchName, getMainBranchName} from "../service/file/cloneDir";
 import {simpleActionWithResult, SimpleGitActionReturn} from "../service/file/simpleActionWithResult";
-import {WorkMeta, WorkResult, WorkResultKind, WorkResultStatus} from "../service/types";
+import {WorkMeta, WorkResult, WorkResultKind, WorkResultOutput, WorkResultStatus} from "../service/types";
 import {saveResultToStorage} from "../service/work/workLog";
 
 function githubRepoFetchGraphQl(repos: { owner: string, repo: string }[]): string {
@@ -34,13 +34,13 @@ function githubRepoFetchGraphQl(repos: { owner: string, repo: string }[]): strin
 
 function githubPullMarkReadyGraphql(pull: GitHubPull[]): string {
   return `mutation {
-${pull.map(({prId}, index) => `  pull${index}: markPullRequestReadyForReview(input:{pullRequestId:"${prId}"})`).join("\n")}
+${pull.map(({prId}, index) => `  pull${index}: markPullRequestReadyForReview(input:{pullRequestId:"${prId}"}) { clientMutationId }`).join("\n")}
 }`
 }
 
 function githubPullMarkDraftGraphql(pull: GitHubPull[]): string {
   return `mutation {
-${pull.map(({prId}, index) => `  pull${index}: convertPullRequestToDraft(input:{pullRequestId:"${prId}"})`).join("\n")}
+${pull.map(({prId}, index) => `  pull${index}: convertPullRequestToDraft(input:{pullRequestId:"${prId}"}) { clientMutationId }`).join("\n")}
 }`
 }
 
@@ -370,47 +370,49 @@ export class GithubClient {
     );
   }
 
-  async prReadyForReview(
-    input: { prs: GitHubPull[] },
+  async prDraftOrReadyForReview(
+    input: { prs: GitHubPull[], draft: boolean },
     progressCallback: (idx: number) => void,
   ): Promise<WorkResult<unknown, GitHubPull, WorkMeta>> {
-    const body = githubPullMarkReadyGraphql(input.prs)
+    progressCallback(0)
+    const body = input.draft ? githubPullMarkDraftGraphql(input.prs) : githubPullMarkReadyGraphql(input.prs)
+    const name = 'Mark pull requests ' + input.draft ? 'draft' : 'ready';
     const workResult: WorkResult<unknown, GitHubPull, WorkMeta> = newPullRequestWorkResult({
-      name: 'Mark pull requests ready',
-      kind: 'prDraftReady',
+      name: name,
+      kind: input.draft ? 'prDraftMark' : 'prDraftReady',
       pulls: input.prs,
     })
     const meta: WorkMeta = {
       workLog: []
     }
+    const output: WorkResultOutput<WorkMeta> = {
+      meta,
+      status: "in-progress",
+    }
     workResult.status = "in-progress"
-    workResult.result.push({
-      input: input.prs[0],
-      output: {
-        meta,
-        status: "in-progress"
-      },
-    })
+    workResult.result = input.prs.map((p) => ({
+      input: p,
+      output,
+    }))
     try {
-      const resp = await this.evalRequest('Mark pull requests ready', meta, () => this.api.post('/graphql', {
+      const resp = await this.evalRequest(name, meta, () => this.api.post('/graphql', {
         query: body
       }))
       if (resp.status < 300) {
-        for (let i = 0; i < input.prs.length; i++) {
-          // TODO sift through result
-        }
         workResult.status = "ok"
       } else {
         workResult.status = "failed"
       }
     } catch (e) {
-      meta.workLog.push({
+      workResult.result[0]?.output?.meta?.workLog?.push({
         what: 'GraphQL request',
         status: "failed",
         result: e,
       })
       workResult.status = "failed"
     }
+    progressCallback(input.prs.length)
+    await saveResultToStorage(workResult)
     return workResult
   }
 

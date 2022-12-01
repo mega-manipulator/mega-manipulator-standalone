@@ -14,6 +14,7 @@ import {LogsPage} from "../LogsPage";
 import {SourceGraphSearchHostSettingsPage} from "../settings/SourceGraphSearchHostSettingsPage";
 import {PullRequestsPage} from "../pullrequests/PullRequestsPage";
 import {ThanksPage} from "../ThanksPage";
+import {GraphQlExplorerPage} from "../graphql/GraphQlExplorerPage";
 
 export const megaRouter = createMemoryRouter([
   {
@@ -76,6 +77,11 @@ export const megaRouter = createMemoryRouter([
       {
         path: locations.pullRequests.link,
         element: <PullRequestsPage/>,
+        errorElement: <RoutingErrorBoundary/>,
+      },
+      {
+        path: locations.graphql.link,
+        element: <GraphQlExplorerPage/>,
         errorElement: <RoutingErrorBoundary/>,
       },
 

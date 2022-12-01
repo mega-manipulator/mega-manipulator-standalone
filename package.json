@@ -11,6 +11,7 @@
     "tauri:build": "tauri build"
   },
   "dependencies": {
+    "@apollo/explorer": "^2.0.1",
     "@emotion/react": "^11.10.4",
     "@emotion/styled": "^11.10.4",
     "@fontsource/roboto": "^4.5.8",
@@ -25,7 +26,8 @@
     "react-router-dom": "^6.4.2",
     "styled-components": "^5.3.6",
     "tauri-plugin-log-api": "github:tauri-apps/tauri-plugin-log#dev",
-    "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#dev"
+    "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#dev",
+    "use-deep-compare-effect": "^1.8.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.0.5",

@@ -30,6 +30,9 @@ export const locations = {
   pullRequests: {
     link: '/pull-requests'
   },
+  graphql: {
+    link: '/graphql'
+  },
   thanks: {
     link: '/thanks'
   }

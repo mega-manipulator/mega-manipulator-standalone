@@ -15,6 +15,7 @@ const items: {
   {nav: locations.result.link, title: 'Result'},
   {nav: locations.logs.link, title: 'Logs'},
   {nav: locations.pullRequests.link, title: 'Search Pull Requests'},
+  /*{nav: locations.graphql.link, title: 'GraphQL Explorer'},*/
 
   {nav: locations.thanks.link, title: 'Thanks'},
 ]

@@ -21,7 +21,7 @@ import {useNavigate} from "react-router-dom";
 import {locations} from "../../../route/locations";
 import {error, info} from "tauri-plugin-log-api";
 import {MegaContext} from "../../../../hooks/MegaContext";
-import {ButtonRow} from "../../../ButtonRow";
+import {ButtonRow} from "../../../components/ButtonRow";
 
 export type CloneModalPropsWrapper = {
   cloneModalPropsWrapper: CloneModalProps

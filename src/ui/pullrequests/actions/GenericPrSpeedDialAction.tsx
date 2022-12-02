@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {Alert, Box, Button, LinearProgress, Modal, SpeedDialAction, Tooltip, Typography} from "@mui/material";
 import {modalStyle} from "../../modal/megaModal";
-import {ButtonRow} from "../../ButtonRow";
+import {ButtonRow} from "../../components/ButtonRow";
 import {SimpleGitActionReturn} from "../../../service/file/simpleActionWithResult";
 import {WorkResultStatus} from "../../../service/types";
 import {getResultFromStorage} from "../../../service/work/workLog";

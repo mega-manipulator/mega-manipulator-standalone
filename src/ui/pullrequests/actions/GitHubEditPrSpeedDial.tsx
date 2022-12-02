@@ -4,7 +4,6 @@ import {MegaContext} from "../../../hooks/MegaContext";
 import {Alert, TextField, Typography} from "@mui/material";
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
-import {ConditionalSkeleton} from "../../ConditionalSkeleton";
 
 export function useGitHubEditPrSpeedDialProps() {
   const {pullRequests: {selected}} = useContext(MegaContext)
@@ -33,7 +32,11 @@ export function useGitHubEditPrSpeedDialProps() {
     'Edit selected Pull Requests',
     selected.length === 0,
     <EditIcon/>,
-    <ConditionalSkeleton condition={!clientInitError} tooltipText={<Alert>{clientInitError}</Alert>}>
+    <>
+      {clientInitError && <Alert
+          variant={"outlined"}
+          color={"warning"}
+      >{clientInitError}</Alert>}
       <Typography variant={'h4'}>Edit selected PRs ({selected.length})</Typography>
       <TextField
         fullWidth
@@ -49,7 +52,7 @@ export function useGitHubEditPrSpeedDialProps() {
         value={body}
         onChange={(event) => setBody(event.target.value)}
       />
-    </ConditionalSkeleton>,
+    </>,
     action,
   )
 }

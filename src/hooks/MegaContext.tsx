@@ -10,6 +10,13 @@ export interface MegaContext {
 
   homeDir: string,
 
+  fieldMemory: {
+    [key: string]: string[]
+  }
+  setFieldMemory: (memory: {
+    [key: string]: string[]
+  }) => void;
+
   search: {
     searchHostKey: string,
     setSearchHostKey: (codeHostKey: string) => void,
@@ -45,6 +52,12 @@ export const MegaContext = createContext<MegaContext>({
     return;
   }),
   homeDir: '~',
+  fieldMemory: {
+    "foo": ["asd"]
+  },
+  setFieldMemory: () => {
+    return;
+  },
   search: {
     searchHostKey: 'string',
     setSearchHostKey: () => {
@@ -67,7 +80,9 @@ export const MegaContext = createContext<MegaContext>({
     },
     selected: [],
     selectedModel: [],
-    setSelected(){return;},
+    setSelected() {
+      return;
+    },
   },
   code: {
     codeHostKey: 'string',
@@ -77,7 +92,9 @@ export const MegaContext = createContext<MegaContext>({
   },
   pullRequests: {
     pulls: [],
-    setPulls: () => {return;},
+    setPulls: () => {
+      return;
+    },
     selected: [],
     selectedModel: [],
     setSelected: () => {
@@ -101,13 +118,15 @@ export function newMegaContext(): MegaContext {
   const [prHits, setPrHits] = useState<GitHubPull[]>([])
   const [prHitsSelectedModel, setPrHitsSelectedModel] = useState<number[]>([])
   const prHitsSelected = useMemo<GitHubPull[]>(() => {
-    return prHitsSelectedModel.map((i)=>prHits[i])
-  },[prHitsSelectedModel, prHits])
+    return prHitsSelectedModel.map((i) => prHits[i])
+  }, [prHitsSelectedModel, prHits])
 
   const [homedir, setHomeDir] = useState<string>('~');
   useEffect(() => {
     homeDir().then((d) => setHomeDir(d))
   }, []);
+
+  const [fieldMemory, setFieldMemory] = useState<{ [key: string]: string[] }>({});
 
   useEffect(() => {
     loadFromDiskOrDefault().then((d) => setSettings(d))
@@ -125,9 +144,9 @@ export function newMegaContext(): MegaContext {
   /* Clone Paths*/
   const [clonePaths, setClonePaths] = useState<string[]>([]);
   const [selectedClonePathsModel, setSelectedClonePathsModel] = useState<number[]>([]);
-  const selectedClonePaths = useMemo<string[]>(()=>{
+  const selectedClonePaths = useMemo<string[]>(() => {
     return selectedClonePathsModel.map((i) => clonePaths[i])
-  },[clonePaths, selectedClonePathsModel]);
+  }, [clonePaths, selectedClonePathsModel]);
 
   useEffect(() => {
     if (searchHitsSelectedModel.length !== 0 && (searchHitsSelectedModel.length !== searchHits.length))
@@ -141,6 +160,8 @@ export function newMegaContext(): MegaContext {
     settings,
     updateSettings,
     homeDir: homedir,
+    fieldMemory,
+    setFieldMemory,
     search: {
       searchHostKey,
       setSearchHostKey,

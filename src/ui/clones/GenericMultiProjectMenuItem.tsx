@@ -3,7 +3,7 @@ import {Box, Button, ListItemButton, Modal, Typography} from "@mui/material";
 import {modalStyle} from "../modal/megaModal";
 import {error} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
-import {ButtonRow} from "../ButtonRow";
+import {ButtonRow} from "../components/ButtonRow";
 
 type GenericMultiProjectMenuItemProps = {
   openButtonText: string;

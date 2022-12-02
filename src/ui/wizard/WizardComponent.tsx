@@ -3,7 +3,7 @@ import {modalStyle} from "../modal/megaModal";
 import React, {useCallback, useState} from "react";
 import {WorkResultStatus} from "../../service/types";
 import {asString} from "../../hooks/logWrapper";
-import {ButtonRow} from "../ButtonRow";
+import {ButtonRow} from "../components/ButtonRow";
 
 type WizardStepProps = {
   name: string,

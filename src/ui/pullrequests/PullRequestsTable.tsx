@@ -1,12 +1,15 @@
-import {Box, Button, Tooltip} from "@mui/material";
+import {Box, IconButton, Tooltip, Typography} from "@mui/material";
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import React, {useContext} from "react";
 import {MegaContext} from "../../hooks/MegaContext";
 import {GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
-import {GitHubPull} from "../../hooks/github.com";
+import {GitHubPull, GithubUser} from "../../hooks/github.com";
 import {open} from '@tauri-apps/api/shell';
+import PauseIcon from '@mui/icons-material/Pause';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
-const GithubUserColumn: React.FC<GridRenderCellParams<any, any, any>> = ({value}) => {
+const GithubUserColumn: React.FC<GridRenderCellParams<GithubUser, GitHubPull, unknown>> = ({value}) => {
   return <>
     <Box
       component="img"
@@ -14,10 +17,19 @@ const GithubUserColumn: React.FC<GridRenderCellParams<any, any, any>> = ({value}
         height: 24,
         width: 24,
       }}
-      alt={value.login}
-      src={value.avatarUrl}
-    />&nbsp;{value.login}
+      alt={value?.login}
+      src={value?.avatarUrl}
+    />&nbsp;{value?.login}
   </>
+}
+const OpenableUrlColum: React.FC<GridRenderCellParams<string, GitHubPull, unknown>> = ({value}) => {
+  return <Tooltip title={`Open in browser: ${value}`}>
+    <IconButton
+      color={"primary"}
+      onClick={() => value && open(value)}>
+      <OpenInNewIcon/>
+    </IconButton>
+  </Tooltip>
 }
 const defaultGridColDef: GridColDef = {
   field: 'undefined',
@@ -32,24 +44,18 @@ const cols: GridColDef[] = [
   {...defaultGridColDef, field: 'prId', minWidth: 25, hide: true,},
   {...defaultGridColDef, field: 'prNumber', minWidth: 25, hide: true,},
   {...defaultGridColDef, field: 'owner', renderCell: GithubUserColumn},
-  {...defaultGridColDef, field: 'repo', width:175},
+  {...defaultGridColDef, field: 'repo', width: 175},
   {...defaultGridColDef, field: 'author', renderCell: GithubUserColumn},
   {...defaultGridColDef, field: 'title'},
   {...defaultGridColDef, field: 'body'},
   {...defaultGridColDef, field: 'state'},
-  {...defaultGridColDef, field: 'draft', headerName:'Ready (Not draft)', renderCell: (v) => v.value ? '❌':'✅'},
   {
-    ...defaultGridColDef, field: 'repositoryUrl', width: 150,
-    renderCell: (v) => <Tooltip title={'Click me to open repo in browser'}>
-      <Button variant={"outlined"} size={"small"} onClick={() => open(v.value)}>Open</Button>
-    </Tooltip>
+    ...defaultGridColDef, field: 'draft', headerName: 'Ready', renderCell: (v) => v.value ?
+      <Tooltip title={'Draft'}><Typography color={"orange"}><PauseIcon/></Typography></Tooltip> :
+      <Tooltip title={'In review'}><Typography color={"green"}><RateReviewIcon/></Typography></Tooltip>
   },
-  {
-    ...defaultGridColDef, field: 'htmlUrl', width: 150,
-    renderCell: (v) => <Tooltip title={'Click me to open Pull Request in browser'}>
-      <Button variant={"outlined"} size={"small"} onClick={() => open(v.value)}>Open</Button>
-    </Tooltip>
-  },
+  {...defaultGridColDef, field: 'repositoryUrl', width: 150, renderCell: OpenableUrlColum},
+  {...defaultGridColDef, field: 'htmlUrl', width: 150, renderCell: OpenableUrlColum},
 ];
 
 export const PullRequestsTable: React.FC = () => {

@@ -23,38 +23,40 @@ import {LocalSearchField} from "./local/LocalSearchField";
 import {SourceGraphSearchField} from "./sourcegraph/SourceGraphSearchField";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
+import {SearchHostType} from "../../hooks/settings";
 
 export const SearchPage: React.FC = () => {
   const nav = useNavigate()
-  const {settings, search:{selected}} = useContext(MegaContext)
+  const {settings, search:{selected, searchHostKey, setSearchHostKey}} = useContext(MegaContext)
   const searchFieldProps = useSearchFieldProps()
 
   const cloneModalPropsWrapper: CloneModalPropsWrapper = useCloneModalProps()
   const cloneModalProps = cloneModalPropsWrapper.cloneModalPropsWrapper
   useEffect(() => {
-    cloneModalProps.setSourceString(`Clone from search '${searchFieldProps?.searchHostKey}'`)
-  }, [searchFieldProps?.searchHostKey])
-  const [searchType, setSearchType] = useState('LOCAL')
+    cloneModalProps.setSourceString(`Clone from search '${searchHostKey}'`)
+  }, [searchHostKey])
+  const [searchType, setSearchType] = useState<SearchHostType>('LOCAL')
   useEffect(() => {
-    setSearchType('LOCAL');
-    if (settings && searchFieldProps && searchFieldProps.searchHostKey) {
-      const searchHostSettings = settings.searchHosts[searchFieldProps.searchHostKey];
+    let type:SearchHostType = 'LOCAL'
+    if (settings && searchFieldProps && searchHostKey) {
+      const searchHostSettings = settings.searchHosts[searchHostKey];
       if (searchHostSettings) {
-        setSearchType(searchHostSettings.type.toUpperCase())
+        type = searchHostSettings.type
       }
     }
+    setSearchType(type);
   }, [settings, searchFieldProps])
 
   const searchHostSelect = <FormControl>
     <FormHelperText>Search host</FormHelperText>
     <Select
-      value={searchFieldProps?.searchHostKey}
+      value={searchHostKey}
       onChange={(event) => {
-        searchFieldProps?.setSearchHostKey(event.target.value as string)
+        setSearchHostKey(event.target.value as string)
         info(`onChange ${JSON.stringify(event)}`)
       }}>
       {settings && ['LOCAL', ...Object.keys(settings.searchHosts)]
-        .map((k,i) => <MenuItem key={i} value={k}>{k}</MenuItem>)}
+        .map((k,i) => <MenuItem key={i} value={k as SearchHostType}>{k}</MenuItem>)}
     </Select>
   </FormControl>
 

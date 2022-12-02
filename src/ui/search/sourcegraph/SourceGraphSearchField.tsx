@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from "react";
 import {SearchFieldProps} from "../types";
 import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
-import {warn} from "tauri-plugin-log-api";
+import {debug, warn} from "tauri-plugin-log-api";
 import {useSourceGraphClient} from "./SourceGraphClient";
 import {MegaContext} from "../../../hooks/MegaContext";
 
@@ -57,7 +57,10 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
             .then((hits) => {
               setSearchHits(hits)
             })
-            .finally(() => props.searchFieldProps.setState('ready'))
+            .finally(() => {
+              debug('READY!') //TODO
+              props.searchFieldProps.setState('ready')
+            })
         } else {
           warn('Search Client was undefined')
         }

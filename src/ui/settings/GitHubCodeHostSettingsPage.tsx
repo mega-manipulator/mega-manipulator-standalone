@@ -8,7 +8,7 @@ import {MegaContext} from "../../hooks/MegaContext";
 
 export const GitHubCodeHostSettingsPage: React.FC = () => {
   const {codeHostKey} = useParams()
-  const {updateSettings:updateMegaSettings} = useContext(MegaContext)
+  const {updateSettings:updateMegaSettings, settings:{codeHosts}} = useContext(MegaContext)
   const nav = useNavigate()
 
   return <>
@@ -26,7 +26,6 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
     }>
       Delete
     </Button><br/></> : null}
-    Json definition: JSON.stringify(codeHost)
     <div>
       <Button variant={"outlined"} color={"secondary"} onClick={() => nav(locations.settings.link)}>Back to
         Settings</Button>

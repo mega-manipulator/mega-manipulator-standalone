@@ -21,7 +21,11 @@ export function asString(str: unknown): string {
       if (Object.keys(str).length === 0 && typeof str.toString === 'function') {
         return str.toString();
       }
-      return JSON.stringify(str);
+      try {
+        return JSON.stringify(str);
+      } catch (e) {
+        return `[object: ${e}]`
+      }
     default:
       return '???';
   }

@@ -112,7 +112,7 @@ interface GithubSearchCodeItem {
   repository: GithubSearchCodeRepository
 }
 
-interface GithubUser {
+export interface GithubUser {
   login: string,
   avatarUrl?: string,
 }
@@ -331,34 +331,39 @@ export class GithubClient {
 
   async searchPulls(searchString: string, max: number): Promise<GitHubPull[]> {
     info(`Searching for PULLS: '${searchString}' with the github client`)
-    const transformer: (item: any) => GitHubPull = (item: any) => {
+    const transformer: (item: any) => GitHubPull | undefined = (item: any) => {
       //debug(`PR: ${asString(item)}`)
-      return {
-        codeHostKey: this.codeHostKey,
-        prId: item.id,
-        prNumber: item.number,
-        owner: item.repository.owner,
-        repo: item.repository.name,
-        merge: {
-          defaultMergeMethod: item.repository.viewerDefaultMergeMethod,
-          mergeCommitAllowed: item.repository.mergeCommitAllowed,
-          rebaseMergeAllowed: item.repository.rebaseMergeAllowed,
-          squashMergeAllowed: item.repository.squashMergeAllowed,
-        },
-        author: item.author,
-        body: item.body,
-        title: item.title,
-        draft: item.isDraft,
-        htmlUrl: item.url,
-        mergedAt: item.mergedAt,
-        state: item.state,
-        repositoryUrl: item.repository.url,
-        cloneUrl: item.repository.sshUrl,
-        head: item.headRef?.name,
-        base: item.baseRef.name,
-        repoDefaultBranch: item.repository.defaultBranchRef.name,
-        raw: item,
-      };
+      try {
+        return {
+          codeHostKey: this.codeHostKey,
+          prId: item.id,
+          prNumber: item.number,
+          owner: item.repository.owner,
+          repo: item.repository.name,
+          merge: {
+            defaultMergeMethod: item.repository.viewerDefaultMergeMethod,
+            mergeCommitAllowed: item.repository.mergeCommitAllowed,
+            rebaseMergeAllowed: item.repository.rebaseMergeAllowed,
+            squashMergeAllowed: item.repository.squashMergeAllowed,
+          },
+          author: item.author,
+          body: item.body,
+          title: item.title,
+          draft: item.isDraft,
+          htmlUrl: item.url,
+          mergedAt: item.mergedAt,
+          state: item.state,
+          repositoryUrl: item.repository.url,
+          cloneUrl: item.repository.sshUrl,
+          head: item.headRef?.name,
+          base: item.baseRef.name,
+          repoDefaultBranch: item.repository.defaultBranchRef.name,
+          raw: item,
+        };
+      } catch (e) {
+        warn(`Was unable to map returned PR item correctly. Error was ${asString(e)} and the item was ${asString(item)}`)
+        return undefined
+      }
     }
     return this.paginateGraphQl(
       '/graphql',
@@ -594,7 +599,7 @@ export class GithubClient {
     query: string,
     variables: any,
     listExtractor: (data: any) => GITHUB_TYPE[],
-    transformer: (data: GITHUB_TYPE) => TYPE
+    transformer: (data: GITHUB_TYPE) => TYPE | undefined
   ): Promise<TYPE[]> {
     let cursor: string | undefined = undefined;
     const aggregator: Set<TYPE> = new Set<TYPE>()
@@ -620,7 +625,7 @@ export class GithubClient {
         case "ok": {
           const data: GITHUB_TYPE[] = listExtractor(response.data)
           trace(`Got response from GitHub ${asString(data)}`)
-          const mapped = data.map(transformer)
+          const mapped: TYPE[] = data.map(transformer).filter((i) => i !== undefined).map((i) => i as TYPE)
           for (const item of mapped) {
             aggregator.add(item);
             if (aggregator.size === max) break pagination;

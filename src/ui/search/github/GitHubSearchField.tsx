@@ -54,6 +54,9 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
       InputLabelProps={{shrink: true}}
       label={'Search String'}
       value={searchText}
+      inputProps={{
+        autoCorrect:'new-password'
+      }}
       onChange={(event) => setSearchText(event.target.value)}
     />
 

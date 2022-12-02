@@ -3,7 +3,7 @@ import {SourceGraphSearchFieldProps} from "./SourceGraphSearchField";
 import {useContext, useEffect, useState} from "react";
 import {getPassword} from "../../../hooks/usePassword";
 import axios from "axios";
-import {debug, error, warn} from "tauri-plugin-log-api";
+import {debug, error, trace, warn} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
 import {SearchHit} from "../types";
 import {MegaContext} from "../../../hooks/MegaContext";
@@ -65,6 +65,7 @@ const sourceGraphGraphQlString = `query Search($query: String!) {
 export class SourceGraphClient {
   readonly token: string;
   readonly baseUrl: string;
+  readonly searchHostKey: string;
   readonly searchSettings: SourceGraphSearchHostSettings;
   readonly props: SourceGraphSearchFieldProps;
   readonly settings: MegaSettingsType;
@@ -72,12 +73,14 @@ export class SourceGraphClient {
   constructor(
     token: string,
     baseUrl: string,
+    searchHostKey: string,
     searchSettings: SourceGraphSearchHostSettings,
     props: SourceGraphSearchFieldProps,
     settings: MegaSettingsType,
   ) {
     this.token = token;
     this.baseUrl = baseUrl;
+    this.searchHostKey = searchHostKey;
     this.searchSettings = searchSettings;
     this.props = props;
     this.settings = settings;
@@ -116,12 +119,12 @@ export class SourceGraphClient {
       const alert: string | null | undefined = response?.data?.search?.results?.alert
       if (alert) warn(`Alert: ${alert}`)
 
-      debug('response?.data?.data?.search?.results?.results' + asString(response?.data?.data?.search?.results?.results))
+      trace('response?.data?.data?.search?.results?.results' + asString(response?.data?.data?.search?.results?.results))
       response?.data?.data?.search?.results?.results?.forEach((item: any) => {
         if (searchHits.size === max)
           return;
         let hit: SearchHit | undefined = undefined;
-        debug('Evaluating result item: ' + asString(item))
+        trace('Evaluating result item: ' + asString(item))
         switch (item?.__typename) {
           case 'FileMatch':
             hit = this.sgRepoStringToSearchHit(item?.repository?.name);
@@ -138,8 +141,6 @@ export class SourceGraphClient {
 
     } catch (e: unknown) {
       error(`Failed in some way: ${asString(e)}`);
-      selfRef.props.searchFieldProps.setState("ready")
-
     }
     const hits = Array.from(searchHits.values());
     debug('Response handle received for GraphQL response: ' + asString(hits.length))
@@ -151,16 +152,16 @@ export class SourceGraphClient {
 
       if (repoString) {
         const parts: string[] = repoString.split('/')
-        debug('Parts: ' + parts)
+        trace('Parts: ' + parts)
         if (parts.length === 3) {
           // TODO: Get our code host from sourceGraph code host
           const sgCodeHost = parts[0];
-          debug(`sgCodeHost: ${sgCodeHost}`)
+          trace(`sgCodeHost: ${sgCodeHost}`)
           const codeHostKey = this.searchSettings.codeHosts[sgCodeHost]
           if (!codeHostKey) throw new Error(`CodeHost '${sgCodeHost}->${codeHostKey}' not mapped, ${asString(this.searchSettings.codeHosts)}`)
 
           const codeHost = this.settings.codeHosts[codeHostKey]
-          const searchHost = this.props.searchFieldProps.searchHostKey;
+          const searchHost = this.searchHostKey;
           const owner = parts[1];
           const repoName = parts[2];
           const cloneURL = cloneUrl(codeHost, owner, repoName)
@@ -186,11 +187,11 @@ export class SourceGraphClient {
 export function useSourceGraphClient(
   props: SourceGraphSearchFieldProps,
 ): SourceGraphClientWrapper {
-  const {settings} = useContext(MegaContext);
+  const {settings, search:{searchHostKey}} = useContext(MegaContext);
   const [wrapper, setWrapper] = useState<SourceGraphClientWrapper>({error: 'Not yet initialized', client: undefined})
   useEffect(() => {
     (async () => {
-      if (!props?.searchFieldProps?.searchHostKey) {
+      if (!searchHostKey) {
         setWrapper({error: 'searchHostKey not set/initialized', client: undefined});
         return;
       } else if (!props) {
@@ -200,7 +201,7 @@ export function useSourceGraphClient(
         setWrapper({error: 'settings not set/initialized', client: undefined});
         return;
       }
-      const sourceGraphSettings = settings?.searchHosts[props?.searchFieldProps?.searchHostKey]?.sourceGraph
+      const sourceGraphSettings = settings?.searchHosts[searchHostKey]?.sourceGraph
       if (!sourceGraphSettings) {
         setWrapper({error: 'sourceGraphSettings is not defined', client: undefined});
         return;
@@ -222,9 +223,9 @@ export function useSourceGraphClient(
       }
       setWrapper({
         error: undefined,
-        client: new SourceGraphClient(password, baseUrl, sourceGraphSettings, props, settings)
+        client: new SourceGraphClient(password, baseUrl, searchHostKey, sourceGraphSettings, props, settings)
       })
     })()
-  }, [props, props?.searchFieldProps?.searchHostKey, settings])
+  }, [props, searchHostKey, settings])
   return wrapper;
 }

@@ -65,6 +65,14 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
                      draft.username = event.target.value
                    })}/>
       </Grid>
+      <Grid item sm={12} lg={6}>
+        <TextField variant={"outlined"} label={'Username'}
+                   placeholder="BaseURL"
+                   value={searchHost?.baseUrl}
+                   onChange={(event) => updateSearchHost((draft) => {
+                     draft.baseUrl = event.target.value
+                   })}/>
+      </Grid>
     </Grid>
     <Grid>
       <Grid item sm={12} lg={6}>

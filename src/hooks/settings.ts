@@ -105,7 +105,7 @@ export interface MegaSettingsType {
   codeHosts: { [key: string]: CodeHostSettings, };
 }
 
-export type SearchHostType = 'GITHUB' | 'SOURCEGRAPH'
+export type SearchHostType = 'GITHUB' | 'SOURCEGRAPH' | 'LOCAL'
 export type SearchHostSettings = {
   type: SearchHostType,
   github?: GitHubSearchHostSettings,

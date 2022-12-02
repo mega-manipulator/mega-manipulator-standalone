@@ -17,6 +17,7 @@ export const GitHubPullRequestSearch: React.FC = () => {
     megaFieldIdentifier:'ghPrSearch',
     maxMemory: 25,
     defaultValue:``,
+    saveOnBlur: true,
   })
   const [state, setState] = useState<'loading' | 'ready' | 'searching'>('loading');
   useEffect(() => {
@@ -31,17 +32,17 @@ export const GitHubPullRequestSearch: React.FC = () => {
 
   const maxProps = useNumberFieldProps(100, (n: number) => n > 0)
   const search = useCallback(() => {
-    debug(`Searching for '${searchFieldProps.value}'`)
+    //debug(`Searching for '${searchFieldProps.value}'`)
     setPulls([])
     setState('searching')
-    searchFieldProps.saveCallback()
+    searchFieldProps.saveCallback(searchFieldProps.value)
     ghClient?.searchPulls(searchFieldProps.value, maxProps.value)
       ?.then((items: GitHubPull[]) => {
         setPulls(items)
       })
       ?.catch((e) => error('ERGHT: ' + asString(e)))
       ?.finally(() => setState("ready"))
-  },[searchFieldProps, ghClient])
+  },[searchFieldProps, searchFieldProps.value, ghClient])
 
   // Render
   return <>
@@ -50,6 +51,7 @@ export const GitHubPullRequestSearch: React.FC = () => {
       {...searchFieldProps}
       label={'Search terms'}
       fullWidth
+      autoComplete={'new-password'}
       placeholder={'GitHub pulls search terms (q)'}
       onKeyUp={(event) => {
         if(event.key === 'Enter'){

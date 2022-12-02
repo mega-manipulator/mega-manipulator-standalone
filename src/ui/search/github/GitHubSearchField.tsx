@@ -1,10 +1,11 @@
 import {useGitHubSearchClient} from "./useGitHubSearchClient";
 import React, {useContext, useEffect, useState} from "react";
-import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
+import {Alert, Button, FormControl, FormHelperText, MenuItem, Select} from "@mui/material";
 import {error, info, warn} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
 import {SearchFieldProps} from "../types";
 import {MegaContext} from "../../../hooks/MegaContext";
+import {MemorableTextField, useMemorableTextField} from "../../components/MemorableTextField";
 
 export interface GitHubSearchFieldProps {
   readonly searchFieldProps: SearchFieldProps;
@@ -22,7 +23,12 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
   useEffect(() => {
     searchFieldProps?.setState(ghClient ? 'ready' : 'loading')
   }, [ghClient])
-  const [searchText, setSearchText] = useState('tauri language:typescript')
+  const ghSearchFieldProps = useMemorableTextField({
+    megaFieldIdentifier: 'ghCodeSearch',
+    maxMemory: 25,
+    defaultValue: 'tauri language:typescript',
+    saveOnBlur: true,
+  })
   const [max, setMax] = useState(100)
   const [searchType, setSearchType] = useState<SearchType>('CODE')
   if (clientInitError) {
@@ -49,20 +55,17 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
       </Select>
     </FormControl>
 
-    <TextField
+    <MemorableTextField
+      {...ghSearchFieldProps}
       fullWidth
       InputLabelProps={{shrink: true}}
       label={'Search String'}
-      value={searchText}
-      inputProps={{
-        autoCorrect:'new-password'
-      }}
-      onChange={(event) => setSearchText(event.target.value)}
+      autoComplete={'new-password'}
     />
 
     <Button
       variant={"contained"} color={"primary"}
-      disabled={searchFieldProps?.state !== 'ready' || searchText.length === 0}
+      disabled={searchFieldProps?.state !== 'ready' || ghSearchFieldProps.value.length === 0}
       onClick={() => {
         if (ghClient !== undefined) {
           searchFieldProps?.setState('searching')
@@ -70,10 +73,10 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
           let promise;
           switch (searchType) {
             case "CODE":
-              promise = ghClient.searchCode(searchText, max);
+              promise = ghClient.searchCode(ghSearchFieldProps.value, max);
               break;
             case "REPO":
-              promise = ghClient.searchRepo(searchText, max);
+              promise = ghClient.searchRepo(ghSearchFieldProps.value, max);
               break;
             default:
               promise = Promise.reject(`Unknown search type: ${searchType}`)

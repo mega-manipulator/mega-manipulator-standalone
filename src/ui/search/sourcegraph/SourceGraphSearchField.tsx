@@ -1,9 +1,10 @@
 import React, {useContext, useEffect, useState} from "react";
 import {SearchFieldProps} from "../types";
-import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
+import {Alert, Button, FormControl, FormHelperText, MenuItem, Select} from "@mui/material";
 import {debug, warn} from "tauri-plugin-log-api";
 import {useSourceGraphClient} from "./SourceGraphClient";
 import {MegaContext} from "../../../hooks/MegaContext";
+import {MemorableTextField, useMemorableTextField} from "../../components/MemorableTextField";
 
 export type SourceGraphSearchFieldProps = {
   readonly searchFieldProps: SearchFieldProps;
@@ -11,7 +12,12 @@ export type SourceGraphSearchFieldProps = {
 
 export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (props) => {
   const {search: {setHits: setSearchHits}} = useContext(MegaContext);
-  const [searchText, setSearchText] = useState('tauri count:all select:repo')
+  const sgSearchFieldProps = useMemorableTextField({
+    megaFieldIdentifier: 'sgCodeSearch',
+    maxMemory: 25,
+    defaultValue: 'tauri count:all select:repo',
+    saveOnBlur: true,
+  })
   const [max, setMax] = useState(100)
   const clientWrapper = useSourceGraphClient(props)
   useEffect(() => {
@@ -38,22 +44,22 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
     </FormControl>
 
     <div>
-      <TextField
-        label={'Search String'}
+      <MemorableTextField
+        {...sgSearchFieldProps}
         fullWidth
-        value={searchText}
-        onChange={(event) => setSearchText(event.target.value)}
+        label={'Search String'}
+        autoComplete={'new-password'}
       />
     </div>
 
     <Button
       variant={"contained"} color={"primary"}
-      disabled={props?.searchFieldProps?.state !== 'ready' || searchText.length === 0}
+      disabled={props?.searchFieldProps?.state !== 'ready' || sgSearchFieldProps.value.length === 0}
       onClick={() => {
         if (clientWrapper.client) {
           setSearchHits([])
           props.searchFieldProps.setState('searching')
-          clientWrapper.client.searchCode(searchText, max)
+          clientWrapper.client.searchCode(sgSearchFieldProps.value, max)
             .then((hits) => {
               setSearchHits(hits)
             })

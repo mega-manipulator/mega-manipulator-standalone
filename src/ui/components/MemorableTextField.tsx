@@ -34,10 +34,10 @@ type MemorableTextFieldProps = Props & TextFieldProps
 export function useMemorableTextField(inputProps: InputProps): Props {
   const {fieldMemory, setFieldMemory} = useContext(MegaContext);
   const [value, setValue] = useState<string>(inputProps.defaultValue ?? '');
-  const values = useMemo(() => fieldMemory[inputProps.megaFieldIdentifier] ?? [], [fieldMemory]);
+  const values: string[] = useMemo(() => fieldMemory[inputProps.megaFieldIdentifier] ?? inputProps.defaultValue ? [inputProps.defaultValue ?? ''] : [], [fieldMemory]);
   useEffect(() => {
     if (values) {
-      setValue(values[0] ?? inputProps.defaultValue)
+      setValue(values[0] ?? inputProps.defaultValue ?? '')
       trace('Current values are: '+asString(values))
     }
   }, []);

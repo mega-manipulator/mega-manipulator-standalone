@@ -1,8 +1,7 @@
-import {Command} from '@tauri-apps/api/shell';
+import {Command, open} from '@tauri-apps/api/shell';
 import {MegaSettingsType} from "../../hooks/settings";
 import {fs, os, path} from "@tauri-apps/api";
-import {message} from '@tauri-apps/api/dialog';
-import {debug, error, warn} from "tauri-plugin-log-api";
+import {error, info, warn} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 import {FileEntry} from "@tauri-apps/api/fs";
 import {WorkResult, WorkResultStatus} from "../types";
@@ -37,20 +36,22 @@ echo 'Wanna execute your own script? Delegate that from here!' | grep -q 'fooooo
 export async function openDirs(settings: MegaSettingsType, filePaths: string[]) {
   switch (await os.type()) {
     case "Linux":
-      await message(`Not implemented on Linux yet, you'll need to open these manually, switch to mac, or make a PR on this project ;-)`)
+      info(`"open" not implemented on Linux yet, you'll need to open these manually, switch to mac, or make a PR on this project ;-)`)
+      filePaths.forEach((p) => open(p))
       break;
     case "Darwin":
       for (const filePath of filePaths) {
         const command = new Command('open-osx', ['-a', settings.editorApplication, filePath]);
         command.on("close", () => {
-          debug('Open command terminated')
+          info(`Open "${filePath}" with "${settings.editorApplication}" command terminated `)
         })
-        command.on("error", (...args: unknown[]) => debug('Open command errored: ' + asString(args)))
+        command.on("error", (...args: unknown[]) => warn('Open command errored: ' + asString(args)))
         await command.spawn()
       }
       break;
     case "Windows_NT":
-      await message(`Not implemented on Windows yet, you'll need to open these manually, switch to mac, or make a PR on this project ;-)`)
+      info(`"open" not implemented on Windows yet, you'll need to open these manually, switch to mac, or make a PR on this project ;-)`)
+      filePaths.forEach((p) => open(p))
       break;
   }
 }

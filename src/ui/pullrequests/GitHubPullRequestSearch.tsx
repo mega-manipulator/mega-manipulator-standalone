@@ -8,7 +8,8 @@ import {asString} from "../../hooks/logWrapper";
 import {MegaContext} from "../../hooks/MegaContext";
 import {GitHubPull} from "../../hooks/github.com";
 import {NumberField, useNumberFieldProps} from "../components/NumberField";
-import {MemorableTextField, useMemorableTextField} from "../components/MemorableTextField";
+import {useMemorableTextField} from "../components/MemorableTextField";
+import {SimplifiedMemorableTextField} from "../components/SimplifiedMemorableTextField";
 
 export const GitHubPullRequestSearch: React.FC = () => {
   const {pullRequests: {setPulls}} = useContext(MegaContext)
@@ -16,8 +17,6 @@ export const GitHubPullRequestSearch: React.FC = () => {
   const searchFieldProps = useMemorableTextField({
     megaFieldIdentifier:'ghPrSearch',
     maxMemory: 25,
-    defaultValue:``,
-    saveOnBlur: true,
   })
   const [state, setState] = useState<'loading' | 'ready' | 'searching'>('loading');
   useEffect(() => {
@@ -35,7 +34,7 @@ export const GitHubPullRequestSearch: React.FC = () => {
     //debug(`Searching for '${searchFieldProps.value}'`)
     setPulls([])
     setState('searching')
-    searchFieldProps.saveCallback(searchFieldProps.value)
+    searchFieldProps.saveCallback()
     ghClient?.searchPulls(searchFieldProps.value, maxProps.value)
       ?.then((items: GitHubPull[]) => {
         setPulls(items)
@@ -47,7 +46,7 @@ export const GitHubPullRequestSearch: React.FC = () => {
   // Render
   return <>
     {clientInitError && <Alert>{clientInitError}</Alert>}
-    <MemorableTextField
+    <SimplifiedMemorableTextField
       {...searchFieldProps}
       label={'Search terms'}
       fullWidth

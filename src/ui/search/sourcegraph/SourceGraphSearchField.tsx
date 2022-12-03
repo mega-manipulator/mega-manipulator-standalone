@@ -1,10 +1,9 @@
 import React, {useContext, useEffect, useState} from "react";
 import {SearchFieldProps} from "../types";
-import {Alert, Button, FormControl, FormHelperText, MenuItem, Select} from "@mui/material";
-import {debug, warn} from "tauri-plugin-log-api";
+import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
+import {warn} from "tauri-plugin-log-api";
 import {useSourceGraphClient} from "./SourceGraphClient";
 import {MegaContext} from "../../../hooks/MegaContext";
-import {MemorableTextField, useMemorableTextField} from "../../components/MemorableTextField";
 
 export type SourceGraphSearchFieldProps = {
   readonly searchFieldProps: SearchFieldProps;
@@ -12,12 +11,7 @@ export type SourceGraphSearchFieldProps = {
 
 export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (props) => {
   const {search: {setHits: setSearchHits}} = useContext(MegaContext);
-  const sgSearchFieldProps = useMemorableTextField({
-    megaFieldIdentifier: 'sgCodeSearch',
-    maxMemory: 25,
-    defaultValue: 'tauri count:all select:repo',
-    saveOnBlur: true,
-  })
+  const [searchTerm, setSearchTerm] = useState('repo:/mega-manipulator$ count:1');
   const [max, setMax] = useState(100)
   const clientWrapper = useSourceGraphClient(props)
   useEffect(() => {
@@ -44,8 +38,9 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
     </FormControl>
 
     <div>
-      <MemorableTextField
-        {...sgSearchFieldProps}
+      <TextField
+        value={searchTerm}
+        onChange={(event) => setSearchTerm(event.target.value)}
         fullWidth
         label={'Search String'}
         autoComplete={'new-password'}
@@ -54,22 +49,21 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
 
     <Button
       variant={"contained"} color={"primary"}
-      disabled={props?.searchFieldProps?.state !== 'ready' || sgSearchFieldProps.value.length === 0}
+      disabled={props?.searchFieldProps?.state !== 'ready' || searchTerm.length === 0}
       onClick={() => {
         if (clientWrapper.client) {
           setSearchHits([])
           props.searchFieldProps.setState('searching')
-          clientWrapper.client.searchCode(sgSearchFieldProps.value, max)
+          clientWrapper.client.searchCode(searchTerm, max)
             .then((hits) => {
               setSearchHits(hits)
             })
             .finally(() => {
-              debug('READY!') //TODO
               props.searchFieldProps.setState('ready')
             })
         } else {
           warn('Search Client was undefined')
         }
       }}>Search</Button>
-  </>
+  </>;
 }

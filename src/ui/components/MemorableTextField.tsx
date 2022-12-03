@@ -1,8 +1,8 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from "react";
+import React, {useCallback, useContext, useEffect, useState} from "react";
 import {Autocomplete, TextField} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
 import {TextFieldProps} from "@mui/material/TextField/TextField";
-import {trace} from "tauri-plugin-log-api";
+import {debug, trace} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 
 type InputProps = {
@@ -18,54 +18,58 @@ type InputProps = {
   /**
    * Will default to true
    */
-  saveOnBlur?:boolean,
+  saveOnBlur?: boolean,
 }
 type Props = {
   megaFieldIdentifier: string,
   value: string,
   values: string[],
   setValue: (v: string) => void,
-  saveCallback: (val:string) => void
-  onBlur?: () => void
+  saveCallback: () => void
+  saveOnBlur: boolean
 }
 
-type MemorableTextFieldProps = Props & TextFieldProps
+export type MemorableTextFieldProps = Props & TextFieldProps
 
 export function useMemorableTextField(inputProps: InputProps): Props {
+  inputProps.maxMemory = 1; // TODO remove OVERRIDE
   const {fieldMemory, setFieldMemory} = useContext(MegaContext);
   const [value, setValue] = useState<string>(inputProps.defaultValue ?? '');
-  const values: string[] = useMemo(() => fieldMemory[inputProps.megaFieldIdentifier] ?? inputProps.defaultValue ? [inputProps.defaultValue ?? ''] : [], [fieldMemory]);
+  const [values, setValues]  = useState<string[]>([]); useEffect(() => {
+    setValues(fieldMemory[inputProps.megaFieldIdentifier] ?? inputProps.defaultValue ? [inputProps.defaultValue ?? ''] : [])
+  }, [fieldMemory]);
   useEffect(() => {
     if (values) {
       setValue(values[0] ?? inputProps.defaultValue ?? '')
-      trace('Current values are: '+asString(values))
+      debug('Current values are: ' + asString(values))
     }
-  }, []);
+  }, [inputProps]);
 
   const saveCallback = useCallback(() => {
     if (fieldMemory) {
-      let v:string[] | undefined = fieldMemory[inputProps.megaFieldIdentifier];
+      let v: string[] | undefined = fieldMemory[inputProps.megaFieldIdentifier];
       if (v) {
-        trace(`Adding value: '${value}'`)
+        debug(`Adding value: '${value}'`)
         v.unshift(value)
-        v = v.filter((value, index, array)=>array.indexOf(value) === index)
+        v = v.filter((value, index, array) => array.indexOf(value) === index)
         v.splice(inputProps.maxMemory ?? 10)
         fieldMemory[inputProps.megaFieldIdentifier] = v
+        setValues(v)
       } else {
         trace('Adding FIRST value')
         fieldMemory[inputProps.megaFieldIdentifier] = [value]
+        setValues([value])
       }
       setFieldMemory({...fieldMemory})
     }
   }, [inputProps, value, inputProps.megaFieldIdentifier])
-  const onBlur: undefined | (() => void) = inputProps.saveOnBlur ? saveCallback : undefined;
   return {
     ...inputProps,
     value,
     setValue,
     values,
     saveCallback,
-    onBlur,
+    saveOnBlur: inputProps.saveOnBlur ?? true,
   }
 }
 
@@ -76,7 +80,11 @@ export const MemorableTextField: React.FC<MemorableTextFieldProps> = (props) => 
   return <Autocomplete
     freeSolo
     blurOnSelect
-    onChange={(event, value, reason, details) => {
+    onBlur={() => {
+      props.saveOnBlur && props.saveCallback()
+    }}
+    onInputChange={(event, f) => f && props.setValue(f)}
+    onChange={(event, value, reason) => {
       trace(`Value changed 😱 to '${value}' because of '${reason}'`)
       value && props.setValue(value)
     }}

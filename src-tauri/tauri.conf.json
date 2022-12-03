@@ -86,6 +86,9 @@
       },
       "http": {
         "all": true
+      },
+      "process": {
+        "relaunch": true
       }
     },
     "bundle": {

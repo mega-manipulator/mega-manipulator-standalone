@@ -1,47 +1,83 @@
-import React, {useEffect, useState} from "react";
+import React, {ReactNode, useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
-import {getResultFromStorage} from "../../service/work/workLog";
+import {
+  deleteResultFromStorage,
+  getResultFromStorage,
+  listResultInStorage,
+  pruneOldestResultsFromStorage
+} from "../../service/work/workLog";
 import {WorkResult, WorkResultOutput, WorkResultStatus} from "../../service/types";
 import {GridColDef} from "@mui/x-data-grid";
-import {Alert, AlertColor, Box, Checkbox, FormControlLabel, Modal, Typography} from "@mui/material";
+import {
+  Alert,
+  AlertColor,
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  IconButton,
+  Modal,
+  Tooltip,
+  Typography
+} from "@mui/material";
 import {locations} from "../route/locations";
 import {modalStyle} from "../modal/megaModal";
 import {DataGridPro} from "@mui/x-data-grid-pro";
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+
+type WorkResultWithId = WorkResult<unknown, unknown, unknown> & { id: string }
 
 export const ResultPage: React.FC = () => {
   const {ref} = useParams()
   const nav = useNavigate()
-  const [resultList, setResultList] = useState<(WorkResult<unknown, unknown, unknown> & { id: number })[]>([])
+  const [reload, setReload] = useState(0)
+  const [resultList, setResultList] = useState<WorkResultWithId[]>([])
   const [result, setResult] = useState<WorkResult<unknown, unknown, unknown> | null>(null)
   useEffect(() => {
     if (typeof window.__TAURI_IPC__ === 'function') {
       (async () => {
-        const r = await getResultFromStorage()
-        setResultList(Object.values(r).reverse().map((d, i) => {
-          return {
-            ...d,
-            id: i,
+        const list = (await listResultInStorage()).reverse()
+        const r: (WorkResult<unknown, unknown, unknown> | null)[] = await Promise.all(list.map((v) => getResultFromStorage(v)));
+        const mapped: WorkResultWithId[] = list.map((d: string, i: number) => {
+          const rElement: WorkResult<unknown, unknown, unknown> | null = r[i];
+          if (rElement === null) {
+            let time = 0;
+            if (!isNaN(+d)) time = +d;
+            return {
+              id: d,
+              time,
+              result: [],
+              status: "failed",
+              input: {},
+              name: 'Failed loading from storage',
+              kind: 'unknown'
+            };
           }
-        }))
+          return {
+            ...rElement,
+            id: d,
+          };
+        })
+        setResultList(mapped)
       })()
     } else {
       setResultList([{
-        id: new Date().getTime(),
-        status: "ok",
+        id: `${new Date().getTime()}`,
+        status: "in-progress",
         input: {},
         result: [{
           input: {},
           output: {status: "ok", meta: {}}
         }],
-        name: 'foo',
+        name: 'Dummy data foo',
         time: new Date().getTime(),
         kind: "clone"
       }])
     }
-  }, [])
+  }, [reload])
   useEffect(() => {
     if (ref) {
-      const foo: (WorkResult<unknown, unknown, unknown> & { id: number }) | undefined = resultList.find((r) => `${r.time}` === ref)
+      const foo: WorkResultWithId | undefined = resultList.find((r) => `${r.time}` === ref)
       setResult(foo ?? null)
     } else {
       setResult(null);
@@ -71,10 +107,21 @@ export const ResultPage: React.FC = () => {
       }
     },
     {field: 'name', hideable: true, filterable: true, width: 500},
+    {
+      field: 'remove',
+      hideable: true,
+      filterable: false,
+      width: 200,
+      renderCell: ({id}) => (<Box><Tooltip title={'Delete result, wont even show you a popup!!'}>
+        <IconButton
+          onClick={()=>{deleteResultFromStorage(`${id}`).then(()=>setReload(reload+1))}}
+          ><DeleteForeverIcon/></IconButton>
+      </Tooltip></Box> as ReactNode)
+    }
   ]
   return <>
     <Typography variant={'h4'}>Result</Typography>
-    Ref: {ref}
+    <div>Ref: {ref}</div>
     <Modal open={ref !== undefined} onClose={() => nav(locations.result.link)}>
       <Box sx={modalStyle}>
         <pre>
@@ -82,7 +129,6 @@ export const ResultPage: React.FC = () => {
         </pre>
       </Box>
     </Modal>
-    <br/>
     <Box sx={{height: 400, width: '100%'}}>
       <DataGridPro
         rows={resultList}
@@ -93,6 +139,14 @@ export const ResultPage: React.FC = () => {
         disableSelectionOnClick
       />
     </Box>
+    <div>
+      <Tooltip title={'No warning, or confirm dialog, just BAM!'}>
+      <Button
+        variant={"outlined"} color={"warning"}
+        onClick={()=> pruneOldestResultsFromStorage(100).then(()=>setReload(reload+1))}
+      >Remove oldest Results, leaving only 100</Button>
+      </Tooltip>
+    </div>
   </>
 }
 
@@ -120,11 +174,12 @@ const ResultTable: React.FC<ResultTableProps> = ({work}: ResultTableProps) => {
     <FormControlLabel label={<Typography>Show raw JSON</Typography>}
                       control={<Checkbox value={showJson} onClick={() => setShowJson(!showJson)}/>}/>
     {showJson && <>
-      <hr/>
+        <hr/>
       {work.input && <Typography>Input: {JSON.stringify(work.input)}</Typography>}
         <Typography variant={'h4'}>Results:</Typography>
-        <Typography style={{fontStyle: 'italic', color: 'text.secondary'}}>Click the JSON to expand/collapse it</Typography>
-      <hr/>
+        <Typography style={{fontStyle: 'italic', color: 'text.secondary'}}>Click the JSON to expand/collapse
+            it</Typography>
+        <hr/>
       {work.result.map((r, index) => <ResultItem key={index} {...r} />)}
     </>}
   </>

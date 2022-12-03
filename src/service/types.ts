@@ -59,7 +59,8 @@ export interface WorkResultOutput<OUTPUT> {
 }
 
 export type WorkResultKind =
-  'clone'
+  'unknown'
+  | 'clone'
   | 'commit'
   | 'scriptedChange'
   | 'gitStage'

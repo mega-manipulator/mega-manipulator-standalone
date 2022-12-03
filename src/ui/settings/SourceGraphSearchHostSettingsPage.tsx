@@ -35,42 +35,47 @@ function codeHostStyle(key: string, settings: MegaSettingsType): React.CSSProper
   }
 }
 
+const defaultSourceGraphSettings: SourceGraphSearchHostSettings = {
+  username: 'NotReallyNeededExceptForMultiUserSetup',
+  hostType: "SEARCH",
+  codeHosts: {
+    "github.com": "github.com",
+  },
+  baseUrl: 'http://localhost:7080'
+}
+
 export const SourceGraphSearchHostSettingsPage: React.FC = () => {
   const nav = useNavigate()
   const {searchHostKey} = useParams()
-  const [newSearchHostKey, setNewSearchHostKey] = useState<string>()
-  const {settings:megaSettings, updateSettings:updateMegaSettings} = useContext(MegaContext);
-  const [settings, setSettings] = useState<SourceGraphSearchHostSettings>()
-
-  const [newMappingKey, setNewMappingKey] = useState<string>()
-  const [newMappingValue, setNewMappingValue] = useState<string>()
-
-  useEffect(() => {
+  const [newSearchHostKey, setNewSearchHostKey] = useState<string>('')
+  const {settings: megaSettings, updateSettings: updateMegaSettings} = useContext(MegaContext);
+  const settings: SourceGraphSearchHostSettings | null = useMemo<SourceGraphSearchHostSettings | null>(() => {
     if (searchHostKey && megaSettings) {
-      setSettings(megaSettings.searchHosts[searchHostKey]?.sourceGraph)
+      return (megaSettings.searchHosts[searchHostKey]?.sourceGraph ?? null)
     } else {
-      setSettings(undefined)
+      return null
     }
   }, [megaSettings, searchHostKey])
-  const [searchHost, updateSearchHost, setSearchHost] = useMutableState<SourceGraphSearchHostSettings>()
+
+  const [newMappingKey, setNewMappingKey] = useState<string>('')
+  const [newMappingValue, setNewMappingValue] = useState<string>('')
+
+  const [searchHostEdit, updateSearchHost, setSearchHost] = useMutableState<SourceGraphSearchHostSettings>(defaultSourceGraphSettings)
   useEffect(() => {
     if (settings) {
-      setSearchHost(settings)
+      setSearchHost(settings ?? defaultSourceGraphSettings)
     } else {
-      setSearchHost({
-        username: 'NotReallyNeededExceptForMultiUserSetup',
-        hostType: "SEARCH",
-        codeHosts: {},
-        baseUrl: 'http://localhost:7080'
-      })
+      setSearchHost(defaultSourceGraphSettings)
     }
   }, [settings])
   const [errors, setErrors] = useState<string[]>([])
   const [warnings, setWarnings] = useState<string[]>([])
   useEffect(() => {
+    /* Errors */
     const errAggregate: string[] = []
     if (!searchHostKey) {
       if (!newSearchHostKey || newSearchHostKey.length === 0) {
+        debug('Here we go again')
         errAggregate.push('Search host key is not defined')
       } else {
         if (megaSettings?.codeHosts[newSearchHostKey]) {
@@ -78,25 +83,26 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
         }
       }
     }
-    if (!searchHost?.username || searchHost.username.length === 0) {
+    if (!searchHostEdit?.username || searchHostEdit.username.length === 0) {
       errAggregate.push('Username not set')
     }
-    if (!searchHost?.baseUrl || !searchHost.baseUrl.match(/^https?:\/\/.*[^/]$/g)) {
+    if (!searchHostEdit?.baseUrl || !searchHostEdit.baseUrl.match(/^https?:\/\/.*[^/]$/g)) {
       errAggregate.push('BaseURL is not correct')
     }
     setErrors(errAggregate)
+    /* Warnings */
     const warnAggregate: string[] = []
-    if (!searchHost?.codeHosts || Object.keys(searchHost.codeHosts).length === 0) {
+    if (!searchHostEdit?.codeHosts || Object.keys(searchHostEdit.codeHosts).length === 0) {
       warnAggregate.push('Code Host Mapping empty')
     } else {
-      Object.values(searchHost.codeHosts).forEach((codeHost) => {
+      Object.values(searchHostEdit.codeHosts).forEach((codeHost) => {
         if (!megaSettings?.codeHosts[codeHost]) {
           warnAggregate.push(`Incorrect code host mapping, code host '${codeHost}' does not exist`)
         }
       })
     }
     setWarnings(warnAggregate)
-  }, [searchHost, searchHostKey])
+  }, [searchHostEdit, searchHostKey, newSearchHostKey])
   const validateSearchHost: boolean = useMemo(() => {
     return errors.length === 0;
   }, [errors])
@@ -121,7 +127,7 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
     <FormControl>
       <FormHelperText>Base URL</FormHelperText>
       <TextField
-        value={searchHost?.baseUrl ?? 'https://sourcegraph.com'}
+        value={searchHostEdit?.baseUrl ?? 'https://sourcegraph.com'}
         onChange={(event) => {
           updateSearchHost((dragft) => dragft.baseUrl = event.target.value)
           debug(`onChange ${JSON.stringify(event)}`)
@@ -130,7 +136,7 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
     <FormControl>
       <FormHelperText>User name (Only used for multi-user password storage reasons)</FormHelperText>
       <TextField
-        value={searchHost?.username ?? 'not-really-needed'}
+        value={searchHostEdit?.username ?? 'not-really-needed'}
         onChange={(event) => {
           updateSearchHost((draft) => draft.username = event.target.value)
           debug(`onChange ${JSON.stringify(event)}`)
@@ -146,11 +152,11 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {searchHost?.codeHosts && Object.keys(searchHost.codeHosts).map((key, index) => <TableRow key={index}>
+          {searchHostEdit?.codeHosts && Object.keys(searchHostEdit.codeHosts).map((key, index) => <TableRow key={index}>
             <TableCell>{key}</TableCell>
             <TableCell
-              style={codeHostStyle(searchHost.codeHosts[key], megaSettings)}
-            >{searchHost.codeHosts[key]}</TableCell>
+              style={codeHostStyle(searchHostEdit.codeHosts[key], megaSettings)}
+            >{searchHostEdit.codeHosts[key]}</TableCell>
             <TableCell>
               <IconButton onClick={() => {
                 updateSearchHost((draft) => {
@@ -189,15 +195,15 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
         color={"primary"}
         disabled={!validateSearchHost}
         onClick={() => {
-          if (searchHost && validateSearchHost) {
+          if (searchHostEdit && validateSearchHost) {
             updateMegaSettings(async (draft) => {
               if (searchHostKey) {
                 draft.searchHosts[searchHostKey].type = "SOURCEGRAPH"
-                draft.searchHosts[searchHostKey].sourceGraph = searchHost
+                draft.searchHosts[searchHostKey].sourceGraph = searchHostEdit
               } else if (newSearchHostKey) {
                 draft.searchHosts[newSearchHostKey] = {
                   type: "SOURCEGRAPH",
-                  sourceGraph: searchHost,
+                  sourceGraph: searchHostEdit,
                 }
               }
             }).then(() => nav(locations.settings.link))

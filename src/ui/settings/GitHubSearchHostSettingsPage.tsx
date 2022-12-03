@@ -12,7 +12,7 @@ import {MegaContext} from "../../hooks/MegaContext";
 export const GitHubSearchHostSettingsPage: React.FC = () => {
   const {searchHostKey} = useParams()
   const nav = useNavigate()
-  const {settings:megaSettings, updateSettings:updateMegaSettings} = useContext(MegaContext);
+  const {settings: megaSettings, updateSettings: updateMegaSettings} = useContext(MegaContext);
   const [settings, setSettings] = useState<GitHubSearchHostSettings | null>(null)
   useEffect(() => {
     if (searchHostKey && megaSettings) {
@@ -34,7 +34,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
       setSearchHostKeySame(Object.keys(megaSettings.searchHosts).filter((it) => it === searchHostKeyVal).length)
     }
   }, [searchHostKeyVal, megaSettings])
-  const [validationError, setValidationError] = useState<string | undefined>(undefined)
+  const [validationError, setValidationError] = useState<string>()
   useEffect(() => {
     const errors: string[] = [];
     if (searchHostKeyVal.length === 0) errors.push('Search host key cannot be empty')
@@ -42,6 +42,8 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     if (searchHostKey !== undefined && searchHostKeySame > 1) errors.push('Search host key already defined')
     if (searchHostKey !== undefined && searchHostKey !== searchHostKeyVal) errors.push('Search host key cannot be changed')
     if (searchHost?.username === undefined || searchHost.username.length < 1) errors.push('Username is undefined')
+    if (searchHost?.baseUrl === undefined || searchHost.baseUrl.length < 1) errors.push('BaseURL is undefined')
+    if (searchHost?.baseUrl !== undefined && !searchHost.baseUrl.match(/^https*:\/\/.*[^/]$/)) errors.push('BaseURL is malformed')
     if (errors.length === 0) setValidationError(undefined); else setValidationError(errors.join(', '));
   }, [searchHost, searchHostKeyVal])
   const header = useMemo(() => `${searchHostKey === undefined ? 'Create' : `Edit ${searchHostKey}`} (GitHub Search Host)`, [searchHostKey])
@@ -107,10 +109,8 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
           {searchHostKeyVal ? 'Update' : 'Create'}
         </Button>
       </Grid>
-      {validationError ?
-        <Grid item sm={12} lg={6}><Alert severity={"warning"} color={"warning"}>{validationError}</Alert></Grid>
-        : null
-      }
+      {validationError &&
+        <Grid item sm={12} lg={6}><Alert severity={"warning"} color={"warning"}>{validationError}</Alert></Grid>}
       <Grid item sm={12} lg={6}>
         <Button
           color={"warning"}

@@ -27,14 +27,14 @@
      inkscape:pagecheckerboard="0"
      showgrid="false"
      inkscape:zoom="9.4362431"
-     inkscape:cx="41.85988"
+     inkscape:cx="41.965854"
      inkscape:cy="28.454121"
      inkscape:window-width="1721"
      inkscape:window-height="1027"
-     inkscape:window-x="2517"
-     inkscape:window-y="324"
+     inkscape:window-x="2737"
+     inkscape:window-y="442"
      inkscape:window-maximized="0"
-     inkscape:current-layer="layer2" />
+     inkscape:current-layer="layer3" />
   <defs
      id="defs10" />
   <metadata
@@ -51,10 +51,9 @@
   <g
      inkscape:groupmode="layer"
      id="layer3"
-     inkscape:label="Layer 2"
-     sodipodi:insensitive="true">
+     inkscape:label="Layer 2">
     <ellipse
-       style="fill:#000000;fill-opacity:1;fill-rule:evenodd"
+       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-opacity:0.95787138"
        id="path34"
        cx="19.972183"
        cy="19.972183"
@@ -64,7 +63,8 @@
   <g
      inkscape:groupmode="layer"
      id="layer2"
-     inkscape:label="Layer 1">
+     inkscape:label="Layer 1"
+     sodipodi:insensitive="true">
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:31.5833px;line-height:1.25;font-family:sans-serif;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.789582"

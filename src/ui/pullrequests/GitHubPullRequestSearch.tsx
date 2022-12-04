@@ -8,20 +8,16 @@ import {asString} from "../../hooks/logWrapper";
 import {MegaContext} from "../../hooks/MegaContext";
 import {GitHubPull} from "../../hooks/github.com";
 import {NumberField, useNumberFieldProps} from "../components/NumberField";
-import {useMemorableTextField} from "../components/MemorableTextField";
-import {SimplifiedMemorableTextField} from "../components/SimplifiedMemorableTextField";
+import {MemorableTextField} from "../components/MemorableTextField";
 
 export const GitHubPullRequestSearch: React.FC = () => {
   const {pullRequests: {setPulls}} = useContext(MegaContext)
   const {ghClient, clientInitError} = useGitHubCodeClient()
-  const searchFieldProps = useMemorableTextField({
-    megaFieldIdentifier:'ghPrSearch',
-    maxMemory: 25,
-  })
+  const [searchTerms, setSearchTerms] = useState('');
   const [state, setState] = useState<'loading' | 'ready' | 'searching'>('loading');
   useEffect(() => {
-    if (searchFieldProps.value === ''){
-      searchFieldProps.setValue(`is:pr author:${ghClient?.username} state:open`)
+    if (searchTerms === ''){
+      setSearchTerms(`is:pr author:${ghClient?.username} state:open`)
     }
     setState(ghClient ? 'ready' : "loading")
   }, [ghClient]);
@@ -34,28 +30,30 @@ export const GitHubPullRequestSearch: React.FC = () => {
     //debug(`Searching for '${searchFieldProps.value}'`)
     setPulls([])
     setState('searching')
-    searchFieldProps.saveCallback()
-    ghClient?.searchPulls(searchFieldProps.value, maxProps.value)
+    ghClient?.searchPulls(searchTerms, maxProps.value)
       ?.then((items: GitHubPull[]) => {
         setPulls(items)
       })
       ?.catch((e) => error('ERGHT: ' + asString(e)))
       ?.finally(() => setState("ready"))
-  },[searchFieldProps, searchFieldProps.value, ghClient])
+  },[searchTerms, maxProps.value, ghClient])
 
   // Render
   return <>
     {clientInitError && <Alert>{clientInitError}</Alert>}
-    <SimplifiedMemorableTextField
-      {...searchFieldProps}
-      label={'Search terms'}
-      fullWidth
-      autoComplete={'new-password'}
-      placeholder={'GitHub pulls search terms (q)'}
-      onKeyUp={(event) => {
-        if(event.key === 'Enter'){
-          search()
-        }
+    <MemorableTextField
+      memProps={{
+        value:searchTerms,
+        valueChange:setSearchTerms,
+        megaFieldIdentifier:'sgSearchField',
+        saveOnEnter:true,
+        enterAction:search,
+      }}
+      textProps={{
+        label:'Search terms',
+        fullWidth:true,
+        autoComplete:'new-password',
+        placeholder:'GitHub pulls search terms (q)',
       }}
     />
     <NumberField

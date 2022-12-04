@@ -1,9 +1,9 @@
-import React, {useCallback, useContext, useEffect, useState} from "react";
-import {Autocomplete, TextField} from "@mui/material";
-import {MegaContext} from "../../hooks/MegaContext";
+import React, {useCallback, useEffect, useState} from "react";
+import {Autocomplete, AutocompleteProps, TextField} from "@mui/material";
 import {TextFieldProps} from "@mui/material/TextField/TextField";
-import {debug, trace} from "tauri-plugin-log-api";
+import {debug} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
+import {Store} from "tauri-plugin-store-api";
 
 type InputProps = {
   megaFieldIdentifier: string,
@@ -18,81 +18,69 @@ type InputProps = {
   /**
    * Will default to true
    */
-  saveOnBlur?: boolean,
-}
-type Props = {
-  megaFieldIdentifier: string,
+  saveOnEnter?: boolean,
+  enterAction?: () => void,
+
   value: string,
-  values: string[],
-  setValue: (v: string) => void,
-  saveCallback: () => void
-  saveOnBlur: boolean
+  valueChange: (v: string) => void,
 }
 
-export type MemorableTextFieldProps = Props & TextFieldProps
+type CombinedProps = {
+  memProps: InputProps
+  autoCompleteProps?: AutocompleteProps<string, false, true, true>
+  textProps?: TextFieldProps,
+}
 
-export function useMemorableTextField(inputProps: InputProps): Props {
-  inputProps.maxMemory = 1; // TODO remove OVERRIDE
-  const {fieldMemory, setFieldMemory} = useContext(MegaContext);
-  const [value, setValue] = useState<string>(inputProps.defaultValue ?? '');
-  const [values, setValues]  = useState<string[]>([]); useEffect(() => {
-    setValues(fieldMemory[inputProps.megaFieldIdentifier] ?? inputProps.defaultValue ? [inputProps.defaultValue ?? ''] : [])
-  }, [fieldMemory]);
+export const MemorableTextField: React.FC<CombinedProps> = ({memProps, textProps}) => {
+  const [vs, setVs] = useState<string[]>([memProps.defaultValue ?? ''])
+  const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
-    if (values) {
-      setValue(values[0] ?? inputProps.defaultValue ?? '')
-      debug('Current values are: ' + asString(values))
-    }
-  }, [inputProps]);
-
-  const saveCallback = useCallback(() => {
-    if (fieldMemory) {
-      let v: string[] | undefined = fieldMemory[inputProps.megaFieldIdentifier];
-      if (v) {
-        debug(`Adding value: '${value}'`)
-        v.unshift(value)
-        v = v.filter((value, index, array) => array.indexOf(value) === index)
-        v.splice(inputProps.maxMemory ?? 10)
-        fieldMemory[inputProps.megaFieldIdentifier] = v
-        setValues(v)
-      } else {
-        trace('Adding FIRST value')
-        fieldMemory[inputProps.megaFieldIdentifier] = [value]
-        setValues([value])
+    // On load
+    (async () => {
+      const store = new Store('.MemorableTextField.dat');
+      const retrieved: string[] | null = await store.get(memProps.megaFieldIdentifier)
+      if (retrieved) {
+        memProps.valueChange(retrieved[0])
       }
-      setFieldMemory({...fieldMemory})
-    }
-  }, [inputProps, value, inputProps.megaFieldIdentifier])
-  return {
-    ...inputProps,
-    value,
-    setValue,
-    values,
-    saveCallback,
-    saveOnBlur: inputProps.saveOnBlur ?? true,
-  }
-}
+    })()
+  }, []);
+  const internalEnterAction = useCallback(() => {
+    let tmp = vs;
+    debug(`Adding value: '${memProps.value}'`)
+    tmp.unshift(memProps.value)
+    tmp = tmp.filter((value, index, array) => array.indexOf(value) === index)
+    tmp.splice(memProps.maxMemory ?? 10)
+    setVs(tmp)
 
-/**
- *
- */
-export const MemorableTextField: React.FC<MemorableTextFieldProps> = (props) => {
+    const store = new Store('.MemorableTextField.dat');
+    store.set(memProps.megaFieldIdentifier, tmp)
+      .then(() => debug(`Updated ${memProps.megaFieldIdentifier} storage with [${tmp.join(',')}]`))
+      .catch((e) => `Failed updating file store for MemorableTextField '${memProps.megaFieldIdentifier}': ${asString(e)}`)
+
+    memProps.enterAction && memProps.enterAction()
+  }, [memProps.value]);
+
   return <Autocomplete
     freeSolo
-    blurOnSelect
-    onBlur={() => {
-      props.saveOnBlur && props.saveCallback()
+    open={isOpen}
+    onFocus={()=>setIsOpen(true)}
+    onBlur={()=>setIsOpen(false)}
+    blurOnSelect={true}
+    onInputChange={(event, f) => f && memProps.valueChange(f)}
+    value={memProps.value}
+    options={vs}
+    onChange={(event, value) => {
+      value && memProps.valueChange(value)
     }}
-    onInputChange={(event, f) => f && props.setValue(f)}
-    onChange={(event, value, reason) => {
-      trace(`Value changed 😱 to '${value}' because of '${reason}'`)
-      value && props.setValue(value)
+    onKeyUp={(e) => {
+      if (e.key === 'Enter') {
+        internalEnterAction()
+      }
     }}
     renderInput={(params) => <TextField
-      onChange={(event) => props.setValue(event.target.value)}
-      {...props}
       {...params}
+      {...textProps}
     />}
-    options={props.values}/>
+  />
 
 }

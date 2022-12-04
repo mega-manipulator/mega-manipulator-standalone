@@ -1,10 +1,11 @@
 import {useGitHubSearchClient} from "./useGitHubSearchClient";
-import React, {useContext, useEffect, useState} from "react";
-import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
+import React, {useCallback, useContext, useEffect, useState} from "react";
+import {Alert, Button, FormControl, FormHelperText, MenuItem, Select} from "@mui/material";
 import {error, info, warn} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
 import {SearchFieldProps} from "../types";
 import {MegaContext} from "../../../hooks/MegaContext";
+import {MemorableTextField} from "../../components/MemorableTextField";
 
 export interface GitHubSearchFieldProps {
   readonly searchFieldProps: SearchFieldProps;
@@ -28,6 +29,36 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
   if (clientInitError) {
     return <Alert variant={"filled"} color={"error"}>Failed setting up search client: {clientInitError}</Alert>
   }
+  const search = useCallback(() => {
+    if (ghClient !== undefined) {
+      searchFieldProps?.setState('searching')
+      setSearchHits([])
+      let promise;
+      switch (searchType) {
+        case "CODE":
+          promise = ghClient.searchCode(searchTerm, max);
+          break;
+        case "REPO":
+          promise = ghClient.searchRepo(searchTerm, max);
+          break;
+        default:
+          promise = Promise.reject(`Unknown search type: ${searchType}`)
+      }
+      if (promise !== undefined) {
+        promise.then((hits) => {
+          setSearchHits(hits)
+          info(`Found ${hits.length} hits`)
+        })
+          .catch((e) => error(`Failed searching ${asString(e)}`))
+          .then(() => info('Done'))
+          .then(() => searchFieldProps?.setState("ready"))
+      }
+    } else {
+      warn('Search Client was undefined')
+    }
+  }, [ghClient, searchTerm, max, searchFieldProps]);
+
+
   return <>
     <FormControl>
       <FormHelperText>Search Type</FormHelperText>
@@ -49,47 +80,24 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
       </Select>
     </FormControl>
 
-    <TextField
-      value={searchTerm}
-      onChange={(event) => setSearchTerm(event.target.value)}
-      fullWidth
-      InputLabelProps={{shrink: true}}
-      label={'Search String'}
-      autoComplete={'new-password'}
+    <MemorableTextField
+      memProps={{
+        enterAction: search,
+        megaFieldIdentifier: 'sgSearchTermField',
+        valueChange: setSearchTerm
+      }}
+      textProps={{
+        fullWidth: true,
+        inputProps: {shrink: true},
+        label: 'Search String',
+        autoComplete: 'new-password',
+      }}
     />
 
     <Button
       variant={"contained"} color={"primary"}
       disabled={searchFieldProps?.state !== 'ready' || searchTerm.length === 0}
-      onClick={() => {
-        if (ghClient !== undefined) {
-          searchFieldProps?.setState('searching')
-          setSearchHits([])
-          let promise;
-          switch (searchType) {
-            case "CODE":
-              promise = ghClient.searchCode(searchTerm, max);
-              break;
-            case "REPO":
-              promise = ghClient.searchRepo(searchTerm, max);
-              break;
-            default:
-              promise = Promise.reject(`Unknown search type: ${searchType}`)
-          }
-          if (promise !== undefined) {
-            promise.then((hits) => {
-              setSearchHits(hits)
-              info(`Found ${hits.length} hits`)
-            })
-              .catch((e) => error(`Failed searching ${asString(e)}`))
-              .then(() => info('Done'))
-              .then(() => searchFieldProps?.setState("ready"))
-          }
-        } else {
-          warn('Search Client was undefined')
-        }
-        info('Clicked')
-      }}>Search</Button>
+      onClick={search}>Search</Button>
 
   </>
 }

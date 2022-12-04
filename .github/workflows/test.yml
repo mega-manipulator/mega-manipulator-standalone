@@ -9,7 +9,7 @@ on:
 jobs:
   test-tauri:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         platform: [macos-latest, ubuntu-20.04, windows-latest]
 

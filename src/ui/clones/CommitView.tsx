@@ -20,8 +20,8 @@ export const CommitView: React.FC = () => {
       if (!resultNumber) {
         setResult(undefined)
       } else {
-        const allResults = await getResultFromStorage()
-        setResult(allResults[resultNumber]?.status)
+        const result = await getResultFromStorage(`${resultNumber}`)
+        setResult(result?.status)
       }
     })()
   }, [resultNumber]);

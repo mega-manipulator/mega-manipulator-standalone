@@ -14,6 +14,9 @@ jobs:
         platform: [macos-latest, ubuntu-20.04, windows-latest]
 
     runs-on: ${{ matrix.platform }}
+    concurrency:
+      group: ${{ github.head_ref }}
+      cancel-in-progress: true
     steps:
       - uses: mega-manipulator/tauri-setup-action@main
       - name: install dependencies (ubuntu only)

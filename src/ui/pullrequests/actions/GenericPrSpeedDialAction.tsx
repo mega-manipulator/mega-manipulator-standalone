@@ -82,14 +82,13 @@ export const GenericPrSpeedDialModal: React.FC<GenericPrSpeedDialActionProps> = 
   const [workRef, setWorkRef] = useState<number>();
   const [workStatus, setWorkStatus] = useState<WorkResultStatus>();
   useEffect(() => {
-    (async () => {
-      if (workRef) {
-        const results = await getResultFromStorage();
-        setWorkStatus(results[workRef]?.status);
-      } else {
-        setWorkStatus("failed");
-      }
-    })();
+    if (workRef) {
+      getResultFromStorage(`${workRef}`).then((result) => {
+        setWorkStatus(result?.status);
+      })
+    } else {
+      setWorkStatus("failed");
+    }
   }, [workRef]);
   useEffect(() => {
     if (disabled) {

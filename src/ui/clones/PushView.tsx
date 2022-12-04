@@ -19,8 +19,8 @@ export const PushView: React.FC = () => {
     if (!workRef) {
       setResultStatus(undefined)
     } else {
-      getResultFromStorage().then((res) => {
-        setResultStatus(res[workRef]?.status)
+      getResultFromStorage(`${workRef}`).then((res) => {
+        setResultStatus(res?.status)
       })
     }
   }, [workRef]);

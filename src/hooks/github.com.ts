@@ -295,6 +295,18 @@ export class GithubClient {
     return `https://github.com/${owner}/${repo}.git`
   }
 
+  private searchHitEquals(hit1: SearchHit, hit2: SearchHit): boolean {
+    if (hit1 === undefined && hit2 === undefined) {
+      return true;
+    } else if (hit1 === undefined) {
+      return false;
+    } else if (hit2 === undefined) {
+      return false;
+    } else {
+      return hit1.repo === hit2.repo && hit1.owner === hit2.owner;
+    }
+  }
+
   async searchCode(searchString: string, max: number): Promise<SearchHit[]> {
     info(`Searching for REPO '${searchString}' with the github client`)
     const transformer = (codeItem: GithubSearchCodeItem) => {
@@ -309,7 +321,7 @@ export class GithubClient {
         description: codeItem.repository.description,
       });
     }
-    return this.paginate('/search/code', max, {q: searchString}, transformer)
+    return this.paginate('/search/code', max, {q: searchString}, transformer, this.searchHitEquals)
   }
 
   async searchRepo(searchString: string, max: number): Promise<SearchHit[]> {
@@ -326,7 +338,7 @@ export class GithubClient {
         description: repository.description,
       });
     }
-    return this.paginate('/search/repositories', max, {q: searchString}, transformer)
+    return this.paginate('/search/repositories', max, {q: searchString}, transformer, this.searchHitEquals)
   }
 
   async searchPulls(searchString: string, max: number): Promise<GitHubPull[]> {
@@ -642,7 +654,7 @@ export class GithubClient {
     return Array.from(aggregator);
   }
 
-  private async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, transformer: (data: GITHUB_TYPE) => TYPE): Promise<TYPE[]> {
+  private async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, transformer: (data: GITHUB_TYPE) => TYPE, equality: (v1: TYPE, v2: TYPE) => boolean): Promise<TYPE[]> {
     const aggregator: Set<TYPE> = new Set<TYPE>()
     let page = 1
     let attempt = 0
@@ -670,7 +682,11 @@ export class GithubClient {
           const data: GithubPage<GITHUB_TYPE> = response.data
           trace(`Got response from GitHub ${asString(data)}`)
           const mapped = data.items.map(transformer)
-          for (const item of mapped) {
+          mapp: for (const item of mapped) {
+            for (const present of aggregator) {
+              if (equality(present, item))
+                continue mapp;
+            }
             aggregator.add(item);
             if (aggregator.size === max) break pagination;
           }

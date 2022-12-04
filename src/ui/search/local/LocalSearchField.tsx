@@ -1,11 +1,12 @@
 import {useLocalSearchClient} from "./LocalSearchClient";
-import React, {useContext, useEffect, useState} from "react";
-import {Alert, Button, CircularProgress, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
+import React, {useCallback, useContext, useEffect, useState} from "react";
+import {Alert, Button, CircularProgress, FormControl, FormHelperText, MenuItem, Select} from "@mui/material";
 import {SearchFieldProps} from "../types";
 import {error} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
 import {useCodeHostFilter, useOwnerFilter, useRepoFilter} from "./useLocalHitFilters";
 import {MegaContext} from "../../../hooks/MegaContext";
+import {MemorableTextField} from "../../components/MemorableTextField";
 
 export interface LocalSearchFieldProps {
   readonly searchFieldProps: SearchFieldProps;
@@ -21,7 +22,7 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
   const {settings, search: {setHits: setSearchHits}} = useContext(MegaContext);
   const localSearchClientWrapper = useLocalSearchClient(settings);
   const [program, setProgram] = useState<string>('ag')
-  const [search, setSearch] = useState<string>('foo')
+  const [searchTerm, setSearchTerm] = useState<string>('foo')
   const [file, setFile] = useState<string>('.')
   const [searchError, setSearchError] = useState<string | null>(null)
   useEffect(() => {
@@ -34,6 +35,21 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
   const codeHosts = useCodeHostFilter(settings)
   const owners = useOwnerFilter(settings, codeHost)
   const repos = useRepoFilter(settings, codeHost, owner)
+
+  const search = useCallback(() => {
+    searchFieldProps?.setState("searching")
+    setSearchHits([])
+    setSearchError(null)
+    localSearchClientWrapper.client?.searchCode(program, searchTerm, file, searchFieldProps.max, codeHost, owner, repo)
+      .then((hits) => {
+        setSearchHits(hits)
+        searchFieldProps?.setState("ready")
+      }, (err) => {
+        const msg = `Failed searching due to '${asString(err)}'`
+        error(msg)
+        setSearchError(msg)
+      })
+  }, [program, searchTerm, file, searchFieldProps, searchFieldProps.max, codeHost, owner, repo])
 
   if (!settings) {
     return <CircularProgress/>
@@ -84,16 +100,28 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
     </FormControl>
     <FormControl>
       <FormHelperText>Search Term</FormHelperText>
-      <TextField
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+      <MemorableTextField
+        memProps={{
+          value:searchTerm,
+          valueChange: setSearchTerm,
+          maxMemory:25,
+          saveOnEnter:true,
+          enterAction: search,
+          megaFieldIdentifier: 'localSearchTermField',
+        }}
       />
     </FormControl>
     <FormControl>
       <FormHelperText>File Pattern</FormHelperText>
-      <TextField
-        value={file}
-        onChange={(e) => setFile(e.target.value)}
+      <MemorableTextField
+        memProps={{
+          value:file,
+          valueChange: setFile,
+          maxMemory:25,
+          saveOnEnter:true,
+          enterAction: search,
+          megaFieldIdentifier: 'localSearchFileField',
+        }}
       />
     </FormControl>
     <FormControl>
@@ -110,19 +138,7 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
     <Button
       variant={"contained"}
       color={"primary"}
-      onClick={() => {
-        searchFieldProps?.setState("searching")
-        setSearchHits([])
-        setSearchError(null)
-        localSearchClientWrapper.client?.searchCode(program, search, file, searchFieldProps.max, codeHost, owner, repo)
-          .then((hits) => {
-            setSearchHits(hits)
-            searchFieldProps?.setState("ready")
-          }, (err) => {
-            const msg = `Failed searching due to '${asString(err)}'`
-            error(msg)
-            setSearchError(msg)
-          })
-      }}>Search</Button>
+      onClick={search}
+    >Search</Button>
   </>
 }

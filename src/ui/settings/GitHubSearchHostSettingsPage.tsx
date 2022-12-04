@@ -9,6 +9,13 @@ import {locations} from "../route/locations";
 import {info, warn} from "tauri-plugin-log-api";
 import {MegaContext} from "../../hooks/MegaContext";
 
+const defaultSearchHost:GitHubSearchHostSettings = {
+  baseUrl: 'https://api.github.com',
+  hostType:"SEARCH",
+  username:'',
+  codeHostKey: 'github.com',
+}
+
 export const GitHubSearchHostSettingsPage: React.FC = () => {
   const {searchHostKey} = useParams()
   const nav = useNavigate()
@@ -23,7 +30,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
   }, [megaSettings])
   const [searchHostKeyVal, setSearchHostKeyVal] = useState<string>(searchHostKey ?? '')
   const [searchHostKeySame, setSearchHostKeySame] = useState(0)
-  const [searchHost, updateSearchHost, setSearchHost] = useMutableState<GitHubSearchHostSettings>()
+  const [searchHost, updateSearchHost, setSearchHost] = useMutableState<GitHubSearchHostSettings>(defaultSearchHost)
   useEffect(() => {
     if (settings !== null) {
       setSearchHost(settings)
@@ -68,7 +75,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
                    })}/>
       </Grid>
       <Grid item sm={12} lg={6}>
-        <TextField variant={"outlined"} label={'Username'}
+        <TextField variant={"outlined"} label={'BaseURL'}
                    placeholder="BaseURL"
                    value={searchHost?.baseUrl}
                    onChange={(event) => updateSearchHost((draft) => {

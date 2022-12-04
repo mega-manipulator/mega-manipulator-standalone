@@ -8,10 +8,6 @@ import {Store} from "tauri-plugin-store-api";
 type InputProps = {
   megaFieldIdentifier: string,
   /**
-   * Default to empty string, will be used if there is no memory
-   */
-  defaultValue?: string,
-  /**
    * Will default to 10
    */
   maxMemory?: number,
@@ -32,7 +28,7 @@ type CombinedProps = {
 }
 
 export const MemorableTextField: React.FC<CombinedProps> = ({memProps, textProps}) => {
-  const [vs, setVs] = useState<string[]>([memProps.defaultValue ?? ''])
+  const [vs, setVs] = useState<string[]>([memProps.value ?? ''])
   useEffect(() => {
     // On load
     (async () => {
@@ -47,7 +43,7 @@ export const MemorableTextField: React.FC<CombinedProps> = ({memProps, textProps
     let tmp = vs;
     debug(`Adding value: '${memProps.value}'`)
     tmp.unshift(memProps.value)
-    tmp = tmp.filter((value, index, array) => array.indexOf(value) === index)
+    tmp = tmp.filter((value, index, array) => value && value !== '' && array.indexOf(value) === index)
     tmp.splice(memProps.maxMemory ?? 10)
     setVs(tmp)
 

@@ -1,11 +1,13 @@
 import {useGitHubSearchClient} from "./useGitHubSearchClient";
 import React, {useCallback, useContext, useEffect, useState} from "react";
-import {Alert, Button, FormControl, FormHelperText, MenuItem, Select} from "@mui/material";
-import {error, info, warn} from "tauri-plugin-log-api";
+import {Alert, Button, FormControl, FormHelperText, IconButton, MenuItem, Select, Tooltip} from "@mui/material";
+import {debug, error, info, warn} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
 import {SearchFieldProps} from "../types";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {MemorableTextField} from "../../components/MemorableTextField";
+import {open} from "@tauri-apps/api/shell";
+import HelpCenterIcon from "@mui/icons-material/HelpCenter";
 
 export interface GitHubSearchFieldProps {
   readonly searchFieldProps: SearchFieldProps;
@@ -23,12 +25,9 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
   useEffect(() => {
     searchFieldProps?.setState(ghClient ? 'ready' : 'loading')
   }, [ghClient])
-  const [searchTerm, setSearchTerm] = useState('mega-manipulator language:typescript');
+  const [searchTerm, setSearchTerm] = useState('user:mega-manipulator foo');
   const [max, setMax] = useState(100)
   const [searchType, setSearchType] = useState<SearchType>('CODE')
-  if (clientInitError) {
-    return <Alert variant={"filled"} color={"error"}>Failed setting up search client: {clientInitError}</Alert>
-  }
   const search = useCallback(() => {
     if (ghClient !== undefined) {
       searchFieldProps?.setState('searching')
@@ -58,7 +57,25 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
     }
   }, [ghClient, searchTerm, max, searchFieldProps]);
 
+  const [docLink, setDocLink] = useState<string | null>(null);
+  useEffect(() => {
+    switch (searchType) {
+      case "CODE":
+        setDocLink('https://docs.github.com/en/rest/search#search-code')
+        break;
+      case "REPO":
+        setDocLink('https://docs.github.com/en/rest/search#search-repositories')
+        break;
+      default:
+        setDocLink(null)
+    }
+  }, [searchType])
 
+
+  /* RENDER */
+  if (clientInitError) {
+    return <Alert variant={"filled"} color={"error"}>Failed setting up search client: {clientInitError}</Alert>
+  }
   return <>
     <FormControl>
       <FormHelperText>Search Type</FormHelperText>
@@ -82,14 +99,15 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
 
     <MemorableTextField
       memProps={{
+        value: searchTerm,
+        valueChange: setSearchTerm,
+        saveOnEnter: true,
         enterAction: search,
-        megaFieldIdentifier: 'sgSearchTermField',
-        valueChange: setSearchTerm
+        megaFieldIdentifier: 'ghCodeSearchField',
       }}
       textProps={{
         fullWidth: true,
-        inputProps: {shrink: true},
-        label: 'Search String',
+        placeholder:'Search String',
         autoComplete: 'new-password',
       }}
     />
@@ -99,5 +117,11 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
       disabled={searchFieldProps?.state !== 'ready' || searchTerm.length === 0}
       onClick={search}>Search</Button>
 
+    {docLink && <Tooltip title={`Click to open ${searchType} search documentation in browser`}>
+        <IconButton onClick={() => {
+          debug('Opening docs')
+          open(docLink)
+        }}><HelpCenterIcon/></IconButton>
+    </Tooltip>}
   </>
 }

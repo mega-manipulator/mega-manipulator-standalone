@@ -45,7 +45,7 @@ export const GitHubPullRequestSearch: React.FC = () => {
       memProps={{
         value:searchTerms,
         valueChange:setSearchTerms,
-        megaFieldIdentifier:'sgSearchField',
+        megaFieldIdentifier:'ghPullSearchField',
         saveOnEnter:true,
         enterAction:search,
       }}

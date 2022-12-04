@@ -1,9 +1,10 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useCallback, useContext, useEffect, useState} from "react";
 import {SearchFieldProps} from "../types";
-import {Alert, Button, FormControl, FormHelperText, MenuItem, Select, TextField} from "@mui/material";
+import {Alert, Button, FormControl, FormHelperText, MenuItem, Select} from "@mui/material";
 import {warn} from "tauri-plugin-log-api";
 import {useSourceGraphClient} from "./SourceGraphClient";
 import {MegaContext} from "../../../hooks/MegaContext";
+import {MemorableTextField} from "../../components/MemorableTextField";
 
 export type SourceGraphSearchFieldProps = {
   readonly searchFieldProps: SearchFieldProps;
@@ -22,10 +23,26 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
     }
   }, [clientWrapper])
 
+  const search = useCallback(() => {
+    if (clientWrapper.client) {
+      setSearchHits([])
+      props.searchFieldProps.setState('searching')
+      clientWrapper.client.searchCode(searchTerm, max)
+        .then((hits) => {
+          setSearchHits(hits)
+        })
+        .finally(() => {
+          props.searchFieldProps.setState('ready')
+        })
+    } else {
+      warn('Search Client was undefined')
+    }
+  }, [clientWrapper, max, searchTerm])
+
+  /*Render*/
   if (clientWrapper.error) {
     return <Alert severity={"warning"} variant={"filled"}>{clientWrapper.error}</Alert>
   }
-
   return <>
     <FormControl>
       <FormHelperText>Max hits</FormHelperText>
@@ -38,32 +55,26 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
     </FormControl>
 
     <div>
-      <TextField
-        value={searchTerm}
-        onChange={(event) => setSearchTerm(event.target.value)}
-        fullWidth
-        label={'Search String'}
-        autoComplete={'new-password'}
+      <MemorableTextField
+        memProps={{
+          value: searchTerm,
+          valueChange: setSearchTerm,
+          megaFieldIdentifier: 'sgSearchField',
+          maxMemory:25,
+          saveOnEnter: true,
+          enterAction: search,
+        }}
+        textProps={{
+          fullWidth: true,
+          label: 'Search String',
+          autoComplete: 'new-password',
+        }}
       />
     </div>
 
     <Button
       variant={"contained"} color={"primary"}
       disabled={props?.searchFieldProps?.state !== 'ready' || searchTerm.length === 0}
-      onClick={() => {
-        if (clientWrapper.client) {
-          setSearchHits([])
-          props.searchFieldProps.setState('searching')
-          clientWrapper.client.searchCode(searchTerm, max)
-            .then((hits) => {
-              setSearchHits(hits)
-            })
-            .finally(() => {
-              props.searchFieldProps.setState('ready')
-            })
-        } else {
-          warn('Search Client was undefined')
-        }
-      }}>Search</Button>
+      onClick={search}>Search</Button>
   </>;
 }

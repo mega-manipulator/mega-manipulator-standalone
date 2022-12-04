@@ -38,14 +38,28 @@ const defaultGridColDef: GridColDef = {
   maxWidth: 500,
   hide: false,
   resizable: true,
+  sortable: true,
 }
+
+function compareGitHubUser(v1: GithubUser, v2: GithubUser): number {
+  if (v1 === undefined && v2 == undefined) {
+    return 0
+  } else if (v1 === undefined) {
+    return -1
+  } else if (v2 === undefined) {
+    return 1
+  } else {
+    return v1.login.toLowerCase().localeCompare(v2.login.toLowerCase())
+  }
+}
+
 const cols: GridColDef[] = [
   {...defaultGridColDef, field: 'id', minWidth: 25, hide: true,},
   {...defaultGridColDef, field: 'prId', minWidth: 25, hide: true,},
   {...defaultGridColDef, field: 'prNumber', minWidth: 25, hide: true,},
-  {...defaultGridColDef, field: 'owner', renderCell: GithubUserColumn},
+  {...defaultGridColDef, field: 'owner', sortComparator:compareGitHubUser, renderCell: GithubUserColumn},
   {...defaultGridColDef, field: 'repo', width: 175},
-  {...defaultGridColDef, field: 'author', renderCell: GithubUserColumn},
+  {...defaultGridColDef, field: 'author', sortComparator: compareGitHubUser, renderCell: GithubUserColumn},
   {...defaultGridColDef, field: 'title'},
   {...defaultGridColDef, field: 'body'},
   {...defaultGridColDef, field: 'state'},

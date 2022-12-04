@@ -15,7 +15,7 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     concurrency:
-      group: ${{ github.head_ref }}
+      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
       cancel-in-progress: true
     steps:
       - uses: mega-manipulator/tauri-setup-action@main

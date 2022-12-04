@@ -33,7 +33,6 @@ type CombinedProps = {
 
 export const MemorableTextField: React.FC<CombinedProps> = ({memProps, textProps}) => {
   const [vs, setVs] = useState<string[]>([memProps.defaultValue ?? ''])
-  const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
     // On load
     (async () => {
@@ -62,10 +61,6 @@ export const MemorableTextField: React.FC<CombinedProps> = ({memProps, textProps
 
   return <Autocomplete
     freeSolo
-    open={isOpen}
-    onFocus={()=>setIsOpen(true)}
-    onBlur={()=>setIsOpen(false)}
-    blurOnSelect={true}
     onInputChange={(event, f) => f && memProps.valueChange(f)}
     value={memProps.value}
     options={vs}

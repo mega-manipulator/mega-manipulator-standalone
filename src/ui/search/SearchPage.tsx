@@ -56,7 +56,7 @@ export const SearchPage: React.FC = () => {
         info(`onChange ${JSON.stringify(event)}`)
       }}>
       {settings && ['LOCAL', ...Object.keys(settings.searchHosts)]
-        .map((k,i) => <MenuItem key={i} value={k as SearchHostType}>{k}</MenuItem>)}
+        .map((k,i) => <MenuItem key={i} value={k}>{k}</MenuItem>)}
     </Select>
   </FormControl>
 

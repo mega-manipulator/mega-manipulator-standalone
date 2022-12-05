@@ -1,9 +1,10 @@
 import React, {useCallback, useContext, useState} from "react";
 import {GenericMultiProjectMenuItem} from "./GenericMultiProjectMenuItem";
-import {FormControlLabel, Switch, Typography} from "@mui/material";
+import {Alert, Button, FormControlLabel, Switch, Typography} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
-import {runScriptInParallel, runScriptSequentially} from "../../service/file/scriptFile";
+import {openDirs, runScriptInParallel, runScriptSequentially} from "../../service/file/scriptFile";
 import {WorkResultStatus} from "../../service/types";
+import {path} from "@tauri-apps/api";
 
 export const ExecuteScriptedChangeMenuItem: React.FC = () => {
   const {settings, clones: {selected}} = useContext(MegaContext);
@@ -12,12 +13,25 @@ export const ExecuteScriptedChangeMenuItem: React.FC = () => {
   const progressCallback: (path: string, status: WorkResultStatus) => void = useCallback((path: string, status: WorkResultStatus) => {
     result[status] = (result[status] ?? 0) + 1
     setResult(result)
-  }, [result, setResult]);
+  }, [result]);
 
   return <GenericMultiProjectMenuItem
     openButtonText={`Run Scripted Change`}
     confirm={<>
-      <Typography>Run Scripted Change on {selected.length} projects</Typography>
+      {Object.keys(result).length === 0 ?
+        <Typography>Run Scripted Change on {selected.length} projects</Typography> :
+        <>{Object.keys(result).map((k, i) => <Alert
+          key={i}
+          variant={"outlined"}
+          color={k === 'ok' ? "success" : "warning"}
+        >{k} {result[k]}</Alert>)}</>
+      }
+      <Button
+        variant={"outlined"}
+        color={"primary"}
+        onClick={() => path.join(settings.clonePath, 'mega-manipulator.bash')
+          .then((p) => openDirs(settings, [p]))}
+      >Open script in editor</Button>
       <FormControlLabel
         control={
           <Switch

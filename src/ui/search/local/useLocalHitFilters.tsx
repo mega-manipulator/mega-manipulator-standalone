@@ -1,21 +1,22 @@
 import {useEffect, useState} from "react";
 import {MegaSettingsType} from "../../../hooks/settings";
 import {fs, path} from "@tauri-apps/api";
-import {trace} from "tauri-plugin-log-api";
+import {debug, trace} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
 
 export function useCodeHostFilter(settings: MegaSettingsType): string[] {
   const [codeHosts, setCodeHosts] = useState<string[]>([])
   useEffect(() => {
     (async () => {
-      if (settings?.clonePath) {
-        const dirs: string[] = await getDirNames(settings?.clonePath);
+      if (settings?.keepLocalReposPath) {
+        const dirs: string[] = await getDirNames(settings?.keepLocalReposPath);
+        debug(`Went looking in '${settings?.keepLocalReposPath}'.. Found ${asString(dirs)}`)
         setCodeHosts(dirs)
       } else {
         setCodeHosts([])
       }
     })()
-  }, [settings, settings?.clonePath])
+  }, [settings, settings?.keepLocalReposPath])
   return codeHosts;
 }
 
@@ -26,15 +27,15 @@ export function useOwnerFilter(
   const [owners, setOwners] = useState<string[]>([])
   useEffect(() => {
     (async () => {
-      if (settings?.clonePath && codeHost !== '*') {
-        const p = await path.join(settings.clonePath, codeHost)
+      if (settings?.keepLocalReposPath && codeHost !== '*') {
+        const p = await path.join(settings.keepLocalReposPath, codeHost)
         const dirs: string[] = await getDirNames(p);
         setOwners(dirs)
       } else {
         setOwners([])
       }
     })()
-  }, [settings, settings?.clonePath, codeHost])
+  }, [settings, settings?.keepLocalReposPath, codeHost])
   return owners;
 }
 
@@ -46,15 +47,15 @@ export function useRepoFilter(
   const [repos, setRepos] = useState<string[]>([])
   useEffect(() => {
     (async () => {
-      if (settings?.clonePath && codeHost && codeHost !== '*' && owner && owner !== '*') {
-        const p = await path.join(settings.clonePath, codeHost, owner)
+      if (settings?.keepLocalReposPath && codeHost && codeHost !== '*' && owner && owner !== '*') {
+        const p = await path.join(settings.keepLocalReposPath, codeHost, owner)
         const dirs: string[] = await getDirNames(p);
         setRepos(dirs)
       } else {
         setRepos([])
       }
     })()
-  }, [settings, settings?.clonePath, codeHost, owner])
+  }, [settings, settings?.keepLocalReposPath, codeHost, owner])
   return repos;
 }
 

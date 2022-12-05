@@ -138,7 +138,7 @@ export function newMegaContext(): MegaContext {
     saveToDisk(megaSettings)
     setReload(reload + 1)
   }
-  const [searchHostKey, setSearchHostKey] = useState<string>('local');
+  const [searchHostKey, setSearchHostKey] = useState<string>('LOCAL');
   const [codeHostKey, setCodeHostKey] = useState<string>('github.com');
 
   /* Clone Paths*/

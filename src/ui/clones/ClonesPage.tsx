@@ -54,7 +54,7 @@ const columns: GridColDef[] = [
   {field: 'noCodeHostConfig', headerName: 'Has Code Host Config', ...boolCellProps,},
   {field: 'uncommittedChanges', headerName: 'Uncommitted Changes', ...boolCellProps,},
   {field: 'onDefaultBranch', headerName: 'Not On Default Branch', ...boolCellProps,},
-  {field: 'noDiffWithOriginHead', headerName: 'Has Diff With Origin Head', ...boolCellProps,},
+  {field: 'noDiffWithOriginHead', headerName: 'Has Diff With Origin Head', ...boolCellProps, hideable:true, hide:true,},
 ];
 
 export const ClonesPage: React.FC = () => {

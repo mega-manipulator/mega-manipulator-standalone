@@ -68,7 +68,7 @@ export const StageView: React.FC = () => {
         <Tooltip title={'Reset entire repo (TODO 🤦)'}><IconButton onClick={()=>window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
         {stagedFiles[idx]
           ? <>
-            <Typography>Staged files ({stagedFiles[idx].length}): </Typography>
+            <Typography color={"#6A6"}>Staged files ({stagedFiles[idx].length}): </Typography>
             {stagedFiles[idx].map((s) => <>
               <Tooltip title={`UnStage ${s}`}>
                 <IconButton
@@ -81,7 +81,7 @@ export const StageView: React.FC = () => {
             </>)}</>
           : <Typography>Nothing staged</Typography>}
         {unStagedFiles[idx]
-          ? <><Typography>UnStaged files ({unStagedFiles[idx].length}): </Typography>
+          ? <><Typography color={"#A66"}>UnStaged files ({unStagedFiles[idx].length}): </Typography>
             {unStagedFiles[idx].map((s) => <>
               <Tooltip title={`Stage ${s}`}>
                 <IconButton
@@ -117,7 +117,10 @@ export const StageView: React.FC = () => {
           setIsStaging(true)
           gitStage(new GitStageInput(settings, selected))
             .catch((e) => error(`Something failed staging files: ${asString(e)}`))
-            .then(() => setIsStaging(false))
+            .then(() => {
+              setIsStaging(false);
+              setLoaded(false)
+            })
         }}
       ><AddIcon/>Stage all</Button>
       <Button
@@ -128,7 +131,10 @@ export const StageView: React.FC = () => {
           setIsStaging(true)
           gitUnStage(new GitStageInput(settings, selected))
             .catch((e) => error(`Something failed un-staging files: ${asString(e)}`))
-            .then(() => setIsStaging(false))
+            .then(() => {
+              setIsStaging(false)
+              setLoaded(false)
+            })
         }}
       ><RemoveIcon/> Un-Stage all</Button>
     </p>

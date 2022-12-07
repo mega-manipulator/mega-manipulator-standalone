@@ -32,10 +32,9 @@ jobs:
               name: `Desktop App ${process.env.GITHUB_REF_NAME}`,
               body: `Take a look at the assets to download and install this app.
             
-            [Mac aarch64](${linkBase}_aarch64.dmg)
-            [Mac x64](${linkBase}_x64.dmg)
+            [Mac](${linkBase}_x64.dmg)
             [Windows](${linkBase}_x64_en-US.msi)
-            [Linux .deb](${linkBase}_amd64.deb)
+            [Linux](${linkBase}_amd64.deb)
             `,
               draft: true,
               prerelease: false

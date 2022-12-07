@@ -36,7 +36,7 @@ jobs:
             [Mac x64](${linkBase}_x64.dmg)
             [Windows](${linkBase}_x64_en-US.msi)
             [Linux .deb](${linkBase}_amd64.deb)
-            `
+            `,
               draft: true,
               prerelease: false
             })

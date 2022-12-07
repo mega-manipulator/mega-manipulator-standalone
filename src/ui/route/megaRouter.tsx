@@ -1,4 +1,3 @@
-import React from "react";
 import {createMemoryRouter} from "react-router-dom";
 import {SettingsPage} from "../settings/SettingsPage";
 import {SearchPage} from "../search/SearchPage";

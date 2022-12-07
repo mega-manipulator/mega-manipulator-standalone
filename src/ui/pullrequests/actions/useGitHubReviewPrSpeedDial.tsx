@@ -1,6 +1,6 @@
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
-import React, {useCallback, useContext, useState} from "react";
+import {useCallback, useContext, useState} from "react";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {Alert, MenuItem, Select, TextField} from "@mui/material";

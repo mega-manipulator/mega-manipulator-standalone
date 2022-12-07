@@ -9,6 +9,7 @@ import {simpleActionWithResult, SimpleGitActionReturn} from "../service/file/sim
 import {WorkMeta, WorkResult, WorkResultKind, WorkResultOutput, WorkResultStatus} from "../service/types";
 import {saveResultToStorage} from "../service/work/workLog";
 
+// @ts-ignore
 function githubRepoFetchGraphQl(repos: { owner: string, repo: string }[]): string {
   return `fragment repoProperties on Repository {
   sshUrl
@@ -236,7 +237,7 @@ interface GitHubPullRequestInput {
 
 type ResponseStatus = 'ok' | 'retryable' | 'failed'
 
-function axiosInstance(username: string, token: string, baseURL: string): AxiosInstance {
+function axiosInstance(_username: string, token: string, baseURL: string): AxiosInstance {
   const instance = axios.create({
     timeout: 10000,
     headers: {
@@ -262,9 +263,7 @@ function axiosInstance(username: string, token: string, baseURL: string): AxiosI
 
 export class GithubClient {
 
-  private readonly baseUrl: string;
   readonly username: string;
-  private readonly token: string;
   private readonly searchHostKey: string;
   private readonly codeHostKey: string;
   private readonly api: AxiosInstance;
@@ -278,9 +277,7 @@ export class GithubClient {
     codeHostKey: string,
     settings: MegaSettingsType,
   ) {
-    this.baseUrl = baseUrl;
     this.username = username;
-    this.token = token;
     this.searchHostKey = searchHostKey;
     this.codeHostKey = codeHostKey;
     this.settings = settings;

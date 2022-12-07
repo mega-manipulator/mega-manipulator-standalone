@@ -1,6 +1,6 @@
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
-import React, {useCallback, useContext, useMemo, useState} from "react";
+import {useCallback, useContext, useMemo, useState} from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
 import {Alert, Checkbox, FormControlLabel, TextField} from "@mui/material";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";

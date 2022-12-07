@@ -44,7 +44,7 @@ export async function gitUnStage(input: GitStageInput): Promise<number> {
 }
 
 async function gitStageOp(input: GitStageInput, args: string[]): Promise<number> {
-  const res = await simpleActionWithResult(input, async (index, hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
+  const res = await simpleActionWithResult(input, async (_index, _hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
     const res = await runCommand('git', [...args, ...(input.files ?? [])], path, meta)
     res.code === 0 ? statusReport('ok') : statusReport('failed')
   })
@@ -56,7 +56,7 @@ export interface GitCommitInput extends SimpleActionWithResultProps {
 }
 
 export async function gitCommit(input: GitCommitInput): Promise<number> {
-  const res = await simpleActionWithResult(input, async (index, hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
+  const res = await simpleActionWithResult(input, async (_index, _hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
     const res = await runCommand('git', ['commit', '-m', input.commitMessage], path, meta)
     res.code === 0 ? statusReport('ok') : statusReport('failed')
   })
@@ -64,7 +64,7 @@ export async function gitCommit(input: GitCommitInput): Promise<number> {
 }
 
 export async function gitPush(input: SimpleActionWithResultProps): Promise<number> {
-  const res = await simpleActionWithResult(input, async (index, hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
+  const res = await simpleActionWithResult(input, async (_index, _hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
     const branchName = await getCurrentBranchName(path)
     const res = await runCommand('git', ['push', 'origin', branchName], path, meta)
     res.code === 0 ? statusReport('ok') : statusReport('failed')
@@ -96,7 +96,7 @@ export function gitChangedFiles(input: SimpleActionProps): Promise<GitDiff[]> {
 async function gitDiffyFiles(input: SimpleActionProps, gitArgs: string[]): Promise<GitDiff[]> {
   return await simpleAction(
     input,
-    async (index, hit: SearchHit, path: string) => {
+    async (_index, hit: SearchHit, path: string) => {
       try {
         const process = await new Command('git', gitArgs, {cwd: path}).execute()
         const diffFiles = process.stdout.split('\n').filter((f) => f !== '')
@@ -113,7 +113,7 @@ async function gitDiffyFiles(input: SimpleActionProps, gitArgs: string[]): Promi
  * See the committed difference, pre push
  */
 export async function gitPrePushDiff(input: SimpleActionProps): Promise<GitDiff[]> {
-  return await simpleAction(input, async (index, hit: SearchHit, path: string) => {
+  return await simpleAction(input, async (_index, hit: SearchHit, path: string) => {
     const mainBranchName = await getMainBranchName(path)
     const process = await new Command('git', ['diff', mainBranchName, `origin/${mainBranchName}`, '--name-only'], {cwd: path}).execute()
     const diffFiles = process.stdout.split('\n')

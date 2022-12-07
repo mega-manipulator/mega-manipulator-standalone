@@ -1,6 +1,6 @@
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
-import React, {useCallback, useContext, useEffect, useMemo, useState} from "react";
+import {useCallback, useContext, useEffect, useMemo, useState} from "react";
 import CallMergeIcon from '@mui/icons-material/CallMerge';
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {Alert, FormControlLabel, MenuItem, Select, Switch, TextField} from "@mui/material";

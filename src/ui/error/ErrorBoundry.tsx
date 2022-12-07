@@ -1,4 +1,4 @@
-import React, {Component, ErrorInfo, ReactNode} from "react";
+import {Component, ErrorInfo, ReactNode} from "react";
 import {Button, Typography} from "@mui/material";
 import {createDefault} from "../../hooks/settings";
 import {error, info} from "tauri-plugin-log-api";

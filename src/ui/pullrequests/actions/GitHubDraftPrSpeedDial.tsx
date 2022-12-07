@@ -1,6 +1,6 @@
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
-import React, {useCallback, useContext, useState} from "react";
+import {useCallback, useContext, useState} from "react";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {Alert, FormControlLabel, Switch} from "@mui/material";
 import AlarmOnIcon from '@mui/icons-material/AlarmOn';

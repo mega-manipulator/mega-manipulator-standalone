@@ -57,10 +57,10 @@ export const MemorableTextField: React.FC<CombinedProps> = ({memProps, textProps
 
   return <Autocomplete
     freeSolo
-    onInputChange={(event, f) => f && memProps.valueChange(f)}
+    onInputChange={(_event, f) => f && memProps.valueChange(f)}
     value={memProps.value}
     options={vs}
-    onChange={(event, value) => {
+    onChange={(_event, value) => {
       value && memProps.valueChange(value)
     }}
     onKeyUp={(e) => {

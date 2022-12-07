@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import {useEffect} from "react";
 import ErrorBoundary from "./ui/error/ErrorBoundry";
 import {RouterProvider} from "react-router-dom";
 import {megaRouter} from "./ui/route/megaRouter";

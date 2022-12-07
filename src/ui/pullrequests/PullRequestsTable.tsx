@@ -70,6 +70,7 @@ const cols: GridColDef[] = [
   },
   {...defaultGridColDef, field: 'repositoryUrl', width: 150, renderCell: OpenableUrlColum},
   {...defaultGridColDef, field: 'htmlUrl', width: 150, renderCell: OpenableUrlColum},
+  {...defaultGridColDef, field: 'filesUrl', width: 150, renderCell: OpenableUrlColum},
 ];
 
 export const PullRequestsTable: React.FC = () => {
@@ -82,6 +83,7 @@ export const PullRequestsTable: React.FC = () => {
       rows={pulls.map((d: GitHubPull, i) => {
         return {
           id: i,
+          filesUrl: `${d.htmlUrl}/files`,
           ...d
         }
       })}

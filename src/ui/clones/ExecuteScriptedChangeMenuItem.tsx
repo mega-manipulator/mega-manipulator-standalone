@@ -10,7 +10,7 @@ export const ExecuteScriptedChangeMenuItem: React.FC = () => {
   const {settings, clones: {selected}} = useContext(MegaContext);
   const [runMode, setRunMode] = useState<'sequential' | 'parallel'>('sequential');
   const [result, setResult] = useState<{ [wrs: string]: number }>({})
-  const progressCallback: (path: string, status: WorkResultStatus) => void = useCallback((path: string, status: WorkResultStatus) => {
+  const progressCallback: (_path: string, _status: WorkResultStatus) => void = useCallback((_path: string, status: WorkResultStatus) => {
     result[status] = (result[status] ?? 0) + 1
     setResult(result)
   }, [result]);
@@ -55,6 +55,6 @@ export const ExecuteScriptedChangeMenuItem: React.FC = () => {
     closeAction={() => {
       setResult({})
     }}
-    isAvailable={async () => true}
+    isAvailable={async () => selected.length !== 0}
   />
 }

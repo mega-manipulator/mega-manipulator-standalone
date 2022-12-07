@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Alert, Box, Button, ListItemButton, Modal} from "@mui/material";
+import {Alert, Box, Button, ListItemButton, ListItemButtonProps, Modal} from "@mui/material";
 import {RepoBadStatesReport} from "../../service/file/cloneDir";
 import {modalStyle} from "../modal/megaModal";
 import {fs, path} from "@tauri-apps/api";
@@ -11,9 +11,16 @@ export type DeleteMenuItemProps = {
   settings: MegaSettingsType,
   repos: RepoBadStatesReport[],
   reloadCallback: () => void,
+  listItemButtonProps: ListItemButtonProps,
 }
 
-export const DeleteMenuItem: React.FC<DeleteMenuItemProps> = ({settings, repos, reloadCallback}) => {
+export const DeleteMenuItem: React.FC<DeleteMenuItemProps> = (
+  {
+    settings,
+    repos,
+    reloadCallback,
+    listItemButtonProps
+  }) => {
   const [showModal, setShowModal] = useState(false)
   const [used, setUsed] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
@@ -25,6 +32,7 @@ export const DeleteMenuItem: React.FC<DeleteMenuItemProps> = ({settings, repos, 
 
   return <>
     <ListItemButton
+      {...listItemButtonProps}
       onClick={() => {
         setErrors([])
         setShowModal(true)

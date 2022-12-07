@@ -39,17 +39,18 @@ const renderBoolCell = (params: GridRenderCellParams) => {
   }
 };
 
-const boolCellProps = {
+const boolCellProps:Partial<GridColDef<any,RepoBadStatesReport,boolean>> = {
+  width: 175,
   minWidth: 50,
   maxWidth: 500,
   editable: false,
   resizable: true,
   type: "object",
-  renderCell: renderBoolCell
+  renderCell: renderBoolCell,
 }
 const columns: GridColDef[] = [
   {field: 'id', hideable: true, minWidth: 25, maxWidth: 100, hide: true},
-  {field: 'repoPathShort', headerName: 'Repo Path', width: 800, maxWidth: 800, editable: false, resizable: true},
+  {field: 'repoPathShort', headerName: 'Repo Path', width: 400, maxWidth: 800, editable: false, resizable: true},
   {field: 'repoPathLong', headerName: 'Repo Path (Long)', width: 800, maxWidth: 800, editable: false, resizable: true, hideable:true, hide:true},
   {field: 'noCodeHostConfig', headerName: 'Has Code Host Config', ...boolCellProps,},
   {field: 'uncommittedChanges', headerName: 'Uncommitted Changes', ...boolCellProps,},
@@ -79,7 +80,7 @@ export const ClonesPage: React.FC = () => {
         setRepoStates(analysis)
       })()
     }
-  }, [settings, reloader])
+  }, [settings, reloader, setPaths])
   const reloadTrigger = useCallback(() => {
     setSelectedRepos([])
     setReloader((reloader + 1) % 10)
@@ -117,8 +118,8 @@ export const ClonesPage: React.FC = () => {
       />
     </Box>
     <Tooltip title={selectedRepos.length === 0 ? 'Select some repos to do some harm' : 'Repo Actions'}>
-      <Avatar>
-        <IconButton disabled={selectedRepos.length === 0} onClick={() => setActionsMenuOpen(true)}>
+      <Avatar style={{position:"fixed", bottom: "10px", left: "10px"}}>
+        <IconButton onClick={() => setActionsMenuOpen(true)}>
           <MenuIcon/>
         </IconButton>
       </Avatar>
@@ -126,8 +127,8 @@ export const ClonesPage: React.FC = () => {
     <Drawer open={actionsMenuOpen} onClose={() => setActionsMenuOpen(false)}>
       <Typography>Do stuff with {selectedRepos.length} repos</Typography>
       <List>
-        <MakeChangesWizard/>
-        <DeleteMenuItem reloadCallback={reloadTrigger} settings={settings} repos={selectedRepos}/>
+        <MakeChangesWizard listItemButtonProps={{disabled: selectedRepos.length === 0}}/>
+        <DeleteMenuItem listItemButtonProps={{disabled: selectedRepos.length === 0}} reloadCallback={reloadTrigger} settings={settings} repos={selectedRepos}/>
         <OpenProjectsMenuItem/>
         <OpenWorkdirMenuItem/>
         <ExecuteScriptedChangeMenuItem/>

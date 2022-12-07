@@ -10,7 +10,7 @@ export const OpenProjectsMenuItem: React.FC = () => {
     openButtonText={'Open with EditorApplication'}
     confirm={`Really open ${selected.length} instances of with ${settings.editorApplication}?`}
     action={() => openDirs(settings, selected)}
-    isAvailable={() => os.type().then((type) => type === "Darwin")} // TODO: Do something for windows and Linux
+    isAvailable={() => os.type().then((type) => type === "Darwin" && selected.length !== 0)} // TODO: Do something for windows and Linux
   />
 }
 export const OpenWorkdirMenuItem: React.FC = () => {

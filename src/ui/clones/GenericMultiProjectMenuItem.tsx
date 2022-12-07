@@ -36,14 +36,14 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
   useEffect(() => {
     isAvailable().then((available) => setAvailable(available))
       .catch((e) => error(`Failed evaluating availability for '${openButtonText}' due to: ${asString(e)}`))
-  }, []);
+  }, [isAvailable, openButtonText]);
   const close = useCallback(() => {
     if (state !== 'running') {
       setState('ready')
       setIsOpen(false)
       closeAction()
     }
-  }, [state]);
+  }, [state, closeAction]);
 
   return <>
     <ListItemButton disabled={!available} onClick={() => setIsOpen(true)}>{openButtonText}</ListItemButton>

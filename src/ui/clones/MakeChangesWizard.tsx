@@ -1,6 +1,14 @@
 import React, {useContext, useState} from "react";
 import {WizardComponent} from "../wizard/WizardComponent";
-import {FormControlLabel, IconButton, ListItemButton, Switch, Tooltip, Typography} from "@mui/material";
+import {
+  FormControlLabel,
+  IconButton,
+  ListItemButton,
+  ListItemButtonProps,
+  Switch,
+  Tooltip,
+  Typography
+} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
 import {runScriptInParallel, runScriptSequentially, scriptFile} from "../../service/file/scriptFile";
 import {StageView} from "./StageView";
@@ -11,7 +19,7 @@ import {CommitView} from "./CommitView";
 import {PushView} from "./PushView";
 import {PullRequestView} from "./PullRequestView";
 
-export const MakeChangesWizard: React.FC = () => {
+export const MakeChangesWizard: React.FC<{listItemButtonProps:ListItemButtonProps}> = ({listItemButtonProps}) => {
   // Wizard
   const {settings, clones: {selected}} = useContext(MegaContext);
   const [isOpen, setIsOpen] = useState(false);
@@ -22,6 +30,7 @@ export const MakeChangesWizard: React.FC = () => {
 
   return <>
     <ListItemButton
+      {...listItemButtonProps}
       onClick={() => setIsOpen(!isOpen)}
     >Change Wizard</ListItemButton>
     <WizardComponent

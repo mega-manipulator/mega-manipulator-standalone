@@ -58,6 +58,13 @@
             ]
           },
           {
+            "name": "printenv-path",
+            "cmd": "printenv",
+            "args": [
+              "PATH"
+            ]
+          },
+          {
             "name": "bash-run-script",
             "cmd": "bash",
             "args": [

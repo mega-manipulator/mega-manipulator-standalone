@@ -103,7 +103,7 @@ export const MegaContext = createContext<MegaContext>({
   }
 });
 
-export function newMegaContext(): MegaContext {
+export function useMegaContext(): MegaContext {
   const [settings, setSettings] = useState(baseSettings())
   const [reload, setReload] = useState(0)
 
@@ -131,7 +131,7 @@ export function newMegaContext(): MegaContext {
   useEffect(() => {
     loadFromDiskOrDefault().then((d) => setSettings(d))
   }, [reload])
-  const updateSettings = async (fn: (draft: MegaSettingsType) => void) => {
+  const updateSettings = async (fn: (_draft: MegaSettingsType) => void) => {
     const megaSettings = await loadFromDiskOrDefault()
     fn(megaSettings)
     setSettings(megaSettings)
@@ -155,7 +155,7 @@ export function newMegaContext(): MegaContext {
       setPrHitsSelectedModel([])
     if (selectedClonePathsModel.length !== 0 && selectedClonePathsModel.length !== clonePaths.length)
       setSelectedClonePathsModel([])
-  }, [searchHits, clonePaths, prHits, reload]);
+  }, [searchHits, clonePaths, prHits, reload, searchHitsSelectedModel.length, prHitsSelectedModel.length, selectedClonePathsModel.length]);
   return {
     settings,
     updateSettings,

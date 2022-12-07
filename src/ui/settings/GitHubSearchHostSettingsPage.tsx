@@ -52,7 +52,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     if (searchHost?.baseUrl === undefined || searchHost.baseUrl.length < 1) errors.push('BaseURL is undefined')
     if (searchHost?.baseUrl !== undefined && !searchHost.baseUrl.match(/^https*:\/\/.*[^/]$/)) errors.push('BaseURL is malformed')
     if (errors.length === 0) setValidationError(undefined); else setValidationError(errors.join(', '));
-  }, [searchHost, searchHostKeyVal])
+  }, [searchHost, searchHostKeyVal, searchHostKey, searchHostKeySame])
   const header = useMemo(() => `${searchHostKey === undefined ? 'Create' : `Edit ${searchHostKey}`} (GitHub Search Host)`, [searchHostKey])
 
   return <>

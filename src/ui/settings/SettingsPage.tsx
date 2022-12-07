@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useContext, useEffect, useMemo, useState} from "react";
 import {ResetAllSettings} from "./ResetAllSettings";
 import {usePassword} from "../../hooks/usePassword";
 
@@ -29,7 +29,7 @@ type SearchHostRowProps = {
   settings: MegaSettingsType,
 }
 
-function rowStyle(args: { username?: string, baseUrl?: string }): React.CSSProperties {
+function rowStyle(args: { username: string | undefined, baseUrl: string | undefined, password: string | null }): React.CSSProperties {
   const baseCss: React.CSSProperties = {
     cursor: "pointer"
   }
@@ -45,8 +45,7 @@ function rowStyle(args: { username?: string, baseUrl?: string }): React.CSSPrope
       background: "red",
     };
   }
-  const [password] = usePassword(args.username, args.baseUrl)
-  if (!password) {
+  if (!args.password) {
     return {
       ...baseCss,
       background: "orange",
@@ -56,11 +55,14 @@ function rowStyle(args: { username?: string, baseUrl?: string }): React.CSSPrope
 }
 
 const SearchHostRow: React.FC<SearchHostRowProps> = ({settings, searchHostKey}) => {
-  const h = settings.searchHosts[searchHostKey];
   const nav = useNavigate()
+  const h = settings.searchHosts[searchHostKey];
+  const userName = useMemo(() => h?.github?.username ?? h?.sourceGraph?.username, [h])
+  const baseUrl = useMemo(() => h?.github?.baseUrl ?? h?.sourceGraph?.baseUrl, [h])
+  const [password] = usePassword(userName, baseUrl)
   if (h.type === 'SOURCEGRAPH') {
     return <TableRow
-      style={rowStyle({username: h.sourceGraph?.username, baseUrl: h?.sourceGraph?.baseUrl})}
+      style={rowStyle({username: h.sourceGraph?.username, baseUrl: h?.sourceGraph?.baseUrl, password})}
       onClick={() => {
         info('Nav > Edit Search host ' + locations.settings.search.sourcegraph.link);
         nav(`${locations.settings.search.sourcegraph.link}/${searchHostKey}`)
@@ -72,7 +74,7 @@ const SearchHostRow: React.FC<SearchHostRowProps> = ({settings, searchHostKey}) 
     </TableRow>
   } else if (h.type === 'GITHUB') {
     return <TableRow
-      style={rowStyle({username: h.github?.username, baseUrl: h?.github?.baseUrl})}
+      style={rowStyle({username: h.github?.username, baseUrl: h?.github?.baseUrl, password})}
       onClick={() => {
         info('Nav > Edit Search host ' + locations.settings.search.github.link);
         nav(`${locations.settings.search.github.link}/${searchHostKey}`)
@@ -95,10 +97,13 @@ type CodeHostRowProps = {
 
 const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
   const h = settings.codeHosts[codeHostKey];
+  const userName = useMemo(() => h?.github?.username, [h])
+  const baseUrl = useMemo(() => h?.github?.baseUrl, [h])
+  const [password] = usePassword(userName, baseUrl)
   const nav = useNavigate()
   if (h.type === 'GITHUB') {
     return <TableRow
-      style={rowStyle({username: h.github?.username, baseUrl: h?.github?.baseUrl})}
+      style={rowStyle({username: h.github?.username, baseUrl: h?.github?.baseUrl, password})}
       onClick={() => nav(`${locations.settings.code.github.link}/${codeHostKey}`)}>
       <TableCell>{codeHostKey} </TableCell>
       <TableCell>{h.type} </TableCell>
@@ -111,10 +116,10 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
 }
 
 export const SettingsPage = () => {
-  const {settings:megaSettings, updateSettings:updateMegaSettings} = useContext(MegaContext)
+  const {settings: megaSettings, updateSettings: updateMegaSettings} = useContext(MegaContext)
   const nav = useNavigate()
 
-  const [keepLocalRepos, setKeepLocalRepos] = useState<string >()
+  const [keepLocalRepos, setKeepLocalRepos] = useState<string>()
   const [clonePath, setClonePath] = useState<string>()
   const [editorApplicationPath, setEditorApplicationPath] = useState<string>();
 
@@ -184,9 +189,9 @@ export const SettingsPage = () => {
           variant={"contained"}
           onClick={() => {
             updateMegaSettings(async (draft) => {
-              if(clonePath) draft.clonePath = clonePath;
-              if(keepLocalRepos) draft.keepLocalReposPath = keepLocalRepos;
-              if(editorApplicationPath) draft.editorApplication = editorApplicationPath;
+              if (clonePath) draft.clonePath = clonePath;
+              if (keepLocalRepos) draft.keepLocalReposPath = keepLocalRepos;
+              if (editorApplicationPath) draft.editorApplication = editorApplicationPath;
             }).then(() => info('Updated settings'))
               .catch((e) => error(`Failed updating settings: ${asString(e)}`))
           }}

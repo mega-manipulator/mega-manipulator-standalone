@@ -125,7 +125,9 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
           </div>
           <div>
             {doSparseCheckout ?
-              <TextareaAutosize
+              <TextField
+                multiline
+                fullWidth
                 aria-label="minimum height"
                 minRows={3}
                 value={sparseCheckout}

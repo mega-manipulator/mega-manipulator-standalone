@@ -21,7 +21,7 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
     } else {
       props.searchFieldProps.setState('loading')
     }
-  }, [clientWrapper])
+  }, [clientWrapper, props.searchFieldProps])
 
   const search = useCallback(() => {
     if (clientWrapper.client) {

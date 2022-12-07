@@ -10,7 +10,7 @@ export function useGitHubClosePrSpeedDial() {
   const {ghClient, clientInitError} = useGitHubCodeClient()
   const [closeComment, setCloseComment] = useState('Whops');
   const [dropBranch, setDropBranch] = useState(true);
-  const action = useCallback(async (progressCallback: (current: number, total: number) => void) => {
+  const action = useCallback(async (progressCallback: (_current: number, _total: number) => void) => {
     progressCallback(0, selected.length)
     if (ghClient) {
       const result = await ghClient.closePullRequests({

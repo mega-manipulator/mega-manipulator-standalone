@@ -26,5 +26,6 @@ module.exports = {
         "react-hooks/exhaustive-deps": "warn",
         "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/ban-ts-comment": "warn",
+        "react/react-in-jsx-scope": "off",
     }
 }

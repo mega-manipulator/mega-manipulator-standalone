@@ -31,8 +31,7 @@ const OpenableUrlColum: React.FC<GridRenderCellParams<string, GitHubPull, unknow
     </IconButton>
   </Tooltip>
 }
-const defaultGridColDef: GridColDef = {
-  field: 'undefined',
+const defaultGridColDef: Partial<GridColDef<any, GitHubPull, unknown>> = {
   hideable: true,
   minWidth: 100,
   maxWidth: 500,

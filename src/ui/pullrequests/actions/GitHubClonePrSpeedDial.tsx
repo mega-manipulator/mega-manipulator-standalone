@@ -10,14 +10,13 @@ import {open} from "@tauri-apps/api/shell";
 
 export function useGitHubClonePrSpeedDial(setCloneModalOpen: (isOpen: boolean) => void) {
   const {
-    settings,
     pullRequests: {selected: selectedPulls},
     code: {codeHostKey},
     search: {setHits, setSelected: setSelectedSearchHits}
   } = useContext(MegaContext);
   const action = useCallback(async (progressCallback: (current: number, total: number) => void) => {
     progressCallback(0, selectedPulls.length)
-    const hits: SearchHit[] = useMemo(()=>selectedPulls.map((pr) => ({
+    const hits: SearchHit[] = selectedPulls.map((pr) => ({
       searchHost: codeHostKey,
       codeHost: codeHostKey,
       owner: pr.owner.login,
@@ -25,12 +24,12 @@ export function useGitHubClonePrSpeedDial(setCloneModalOpen: (isOpen: boolean) =
       sshClone: pr.cloneUrl,
       description: pr.title,
       branch: pr.head,
-    })),[selectedPulls]);
+    }));
     setHits(hits)
     setSelectedSearchHits(hits.map((_, i) => i))
     setCloneModalOpen(true)
     return {time: 0}
-  }, [selectedPulls, settings])
+  }, [codeHostKey, selectedPulls, setCloneModalOpen, setHits, setSelectedSearchHits])
 
   return useGenericPrSpeedDialActionProps(
     'Clone selected Pull requests',

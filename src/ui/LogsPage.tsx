@@ -1,4 +1,4 @@
-import {IconButton, Tooltip, Typography} from "@mui/material";
+import {Button, IconButton, Tooltip, Typography} from "@mui/material";
 import React, {useContext, useEffect, useState} from "react";
 import {logDir} from "@tauri-apps/api/path";
 import {fs, process} from "@tauri-apps/api";
@@ -20,7 +20,6 @@ export const LogsPage: React.FC = () => {
 
   const {settings} = useContext(MegaContext);
   const [logFiles, setLogFiles] = useState<FileRef[]>([])
-  const [deletedMainLogFile, setDeletedMainLogFile] = useState(false)
   const [logDirStr, setLogDirStr] = useState('')
   const [reload, setReload] = useState(0)
   useEffect(() => {
@@ -40,7 +39,11 @@ export const LogsPage: React.FC = () => {
 
   return <>
     <Typography variant={'h4'}>Logs</Typography>
-    <Typography>Click to open log files in editor/viewer</Typography>
+    {logDirStr && logDirStr !== '' && <Tooltip title={logDirStr}>
+      <Button variant={"outlined"} color={"secondary"}
+              onClick={() => openDirs(settings, [logDirStr])}
+      >Open log dir<FileOpenIcon/></Button>
+    </Tooltip>}
     <DataGridPro
       autoHeight
       autoPageSize

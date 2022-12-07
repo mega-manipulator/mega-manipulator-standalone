@@ -15,12 +15,12 @@ rust-version = "1.57"
 tauri-build = { version = "1.0.2", features = [] }
 
 [dependencies]
-serde_json = "1"
-serde = { version = "1", features = ["derive"] }
-fs_extra = "1"
-tauri = { version = "1", features = ["dialog-all", "fs-all", "http-all", "os-all", "path-all", "process-relaunch", "shell-all", "updater"] }
-keyring = "1"
-log = "0.4"
+serde_json = "1.0.87"
+serde = { version = "1.0.147", features = ["derive"] }
+fs_extra = "1.2.0"
+tauri = { version = "1.0.7", features = ["dialog-all", "fs-all", "http-all", "os-all", "path-all", "process-relaunch", "shell-all", "updater"] }
+keyring = "1.2.0"
+log = "0.4.17"
 
 [dependencies.tauri-plugin-log]
 git = "https://github.com/tauri-apps/tauri-plugin-log"

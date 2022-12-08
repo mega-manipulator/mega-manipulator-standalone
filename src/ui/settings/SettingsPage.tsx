@@ -20,7 +20,6 @@ import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
 import {createDefault, MegaSettingsType} from "../../hooks/settings";
 import {error, info} from "tauri-plugin-log-api";
-import {asString} from "../../hooks/logWrapper";
 import {NewSearchHostButton} from "./NewSearchHostButton";
 import {MegaContext} from "../../hooks/MegaContext";
 import {MemorableTextField} from "../components/MemorableTextField";
@@ -194,12 +193,12 @@ export const SettingsPage = () => {
         <Button
           variant={"contained"}
           onClick={() => {
-            updateMegaSettings(async (draft) => {
+            updateMegaSettings((draft) => {
               if (clonePath) draft.clonePath = clonePath;
               if (keepLocalRepos) draft.keepLocalReposPath = keepLocalRepos;
               if (editorApplicationPath) draft.editorApplication = editorApplicationPath;
-            }).then(() => info('Updated settings'))
-              .catch((e) => error(`Failed updating settings: ${asString(e)}`))
+            })
+            info('Updated settings')
           }}
         >Save settings</Button>
       </Grid>

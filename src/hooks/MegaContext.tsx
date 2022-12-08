@@ -1,4 +1,4 @@
-import {createContext, useEffect, useMemo, useState} from "react";
+import {createContext, useCallback, useEffect, useMemo, useState} from "react";
 import {baseSettings, loadFromDiskOrDefault, MegaSettingsType, saveToDisk} from "./settings";
 import {SearchHit} from "../ui/search/types";
 import {homeDir} from '@tauri-apps/api/path';
@@ -6,7 +6,7 @@ import {GitHubPull} from "./github.com";
 
 export interface MegaContext {
   settings: MegaSettingsType,
-  updateSettings: (fn: (draft: MegaSettingsType) => Promise<void>) => Promise<void>,
+  updateSettings: (fn: (draft: MegaSettingsType) => void) => void,
 
   homeDir: string,
 
@@ -105,7 +105,6 @@ export const MegaContext = createContext<MegaContext>({
 
 export function useMegaContext(): MegaContext {
   const [settings, setSettings] = useState(baseSettings())
-  const [reload, setReload] = useState(0)
 
   /* Search Hits */
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
@@ -124,20 +123,17 @@ export function useMegaContext(): MegaContext {
   const [homedir, setHomeDir] = useState<string>('~');
   useEffect(() => {
     homeDir().then((d) => setHomeDir(d))
+    loadFromDiskOrDefault().then((d) => setSettings(d))
   }, []);
 
   const [fieldMemory, setFieldMemory] = useState<{ [key: string]: string[] }>({});
 
-  useEffect(() => {
-    loadFromDiskOrDefault().then((d) => setSettings(d))
-  }, [reload])
-  const updateSettings = async (fn: (_draft: MegaSettingsType) => void) => {
-    const megaSettings = await loadFromDiskOrDefault()
-    fn(megaSettings)
-    setSettings(megaSettings)
-    saveToDisk(megaSettings)
-    setReload(reload + 1)
-  }
+  const updateSettings = useCallback((fn: (_draft: MegaSettingsType) => void) => {
+    fn(settings)
+    setSettings(settings)
+    saveToDisk(settings)
+  }, [settings]);
+
   const [searchHostKey, setSearchHostKey] = useState<string>('LOCAL');
   const [codeHostKey, setCodeHostKey] = useState<string>('github.com');
 

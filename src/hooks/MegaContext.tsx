@@ -148,14 +148,6 @@ export function useMegaContext(): MegaContext {
     return selectedClonePathsModel.map((i) => clonePaths[i])
   }, [clonePaths, selectedClonePathsModel]);
 
-  useEffect(() => {
-    if (searchHitsSelectedModel.length !== 0 && (searchHitsSelectedModel.length !== searchHits.length))
-      setSearchHitsSelectedModel([])
-    if (prHitsSelectedModel.length !== 0 && prHitsSelectedModel.length !== prHits.length)
-      setPrHitsSelectedModel([])
-    if (selectedClonePathsModel.length !== 0 && selectedClonePathsModel.length !== clonePaths.length)
-      setSelectedClonePathsModel([])
-  }, [searchHits, clonePaths, prHits, reload, searchHitsSelectedModel.length, prHitsSelectedModel.length, selectedClonePathsModel.length]);
   return {
     settings,
     updateSettings,
@@ -166,14 +158,20 @@ export function useMegaContext(): MegaContext {
       searchHostKey,
       setSearchHostKey,
       hits: searchHits,
-      setHits: setSearchHits,
+      setHits(h) {
+        setSearchHitsSelectedModel([])
+        setSearchHits(h)
+      },
       selected: searchHitsSelected,
       selectedModel: searchHitsSelectedModel,
       setSelected: setSearchHitsSelectedModel,
     },
     clones: {
       paths: clonePaths,
-      setPaths: setClonePaths,
+      setPaths(p) {
+        setSelectedClonePathsModel([])
+        setClonePaths(p)
+      },
       selected: selectedClonePaths,
       selectedModel: selectedClonePathsModel,
       setSelected: setSelectedClonePathsModel,
@@ -184,7 +182,10 @@ export function useMegaContext(): MegaContext {
     },
     pullRequests: {
       pulls: prHits,
-      setPulls: setPrHits,
+      setPulls(p) {
+        setPrHitsSelectedModel([])
+        setPrHits(p)
+      },
       selected: prHitsSelected,
       selectedModel: prHitsSelectedModel,
       setSelected: setPrHitsSelectedModel,

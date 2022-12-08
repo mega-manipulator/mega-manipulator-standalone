@@ -1,9 +1,10 @@
 import {useCallback, useContext, useEffect, useState} from "react";
 import EditIcon from '@mui/icons-material/Edit';
 import {MegaContext} from "../../../hooks/MegaContext";
-import {Alert, TextField, Typography} from "@mui/material";
+import {Alert, Typography} from "@mui/material";
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
+import {MemorableTextField} from "../../components/MemorableTextField";
 
 export function useGitHubEditPrSpeedDialProps() {
   const {pullRequests: {selected}} = useContext(MegaContext)
@@ -38,19 +39,29 @@ export function useGitHubEditPrSpeedDialProps() {
           color={"warning"}
       >{clientInitError}</Alert>}
       <Typography variant={'h4'}>Edit selected PRs ({selected.length})</Typography>
-      <TextField
-        fullWidth
-        label={'Title'}
-        value={title}
-        onChange={(event) => setTitle(event.target.value)}
+      <MemorableTextField
+        memProps={{
+          megaFieldIdentifier: 'pullTitle',
+          value: title,
+          valueChange: setTitle,
+        }}
+        textProps={{
+          fullWidth: true,
+          label: 'Title',
+        }}
       />
-      <TextField
-        fullWidth
-        multiline
-        minRows={5}
-        label={'Body'}
-        value={body}
-        onChange={(event) => setBody(event.target.value)}
+      <MemorableTextField
+        memProps={{
+          megaFieldIdentifier: 'pullBody',
+          value: body,
+          valueChange: setBody,
+        }}
+        textProps={{
+          fullWidth: true,
+          multiline: true,
+          minRows: 5,
+          label: 'Body',
+        }}
       />
     </>,
     action,

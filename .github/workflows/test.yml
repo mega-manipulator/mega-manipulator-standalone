@@ -18,14 +18,12 @@ jobs:
       group: ${{ github.workflow }}-${{ matrix.platform }}-${{ github.head_ref || github.ref }}
       cancel-in-progress: true
     steps:
-      - uses: mega-manipulator/tauri-setup-action@main
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-20.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf
-      - name: install app dependencies and build it
-        run: yarn && yarn build
+      - uses: mega-manipulator/tauri-setup-action@main
       - uses: tauri-apps/tauri-action@v0
         env:
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}

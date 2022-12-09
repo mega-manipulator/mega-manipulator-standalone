@@ -45,8 +45,8 @@ ${pull.map(({prId}, index) => `  pull${index}: convertPullRequestToDraft(input:{
 }`
 }
 
-const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!, $cursor: String) {
-  search(first: 100, type: ISSUE, query: $query, after: $cursor) {
+const githubPullRequestGraphQLSearch = (getChecks: boolean) => `query SearchPullRequests($max: Int!, $query: String!, $cursor: String) {
+  search(first: $max, type: ISSUE, query: $query, after: $cursor) {
     pageInfo {
       hasNextPage
       endCursor
@@ -88,6 +88,27 @@ const githubPullRequestGraphQLSearch = `query SearchPullRequests($query: String!
         state
         isDraft
         mergedAt
+        reviewDecision ${getChecks ? `
+        commits(last: 1) {
+          nodes {
+            commit {
+              statusCheckRollup {
+                state
+                contexts(first:25) {
+                  nodes {
+                    __typename
+                    ... on CheckRun {
+                      name
+                      status
+                      conclusion
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+` : ''}
       }
     }
   }
@@ -121,6 +142,12 @@ export interface GithubUser {
 export type GithubMergeMethodResponse = 'SQUASH' | 'MERGE' | 'REBASE'
 export type GithubMergeMethodRequest = 'squash' | 'merge' | 'rebase'
 
+export type GithubPrCheck = {
+  name: string,
+  status: string,
+  conclusion?: string,
+}
+
 export interface GitHubPull {
   codeHostKey: string,
   prId: string,
@@ -146,6 +173,9 @@ export interface GitHubPull {
   author?: GithubUser,
   mergedAt?: string,
   raw: unknown,
+  reviewDecision?: string,
+  statusCheckRollup?: string,
+  checks?: GithubPrCheck[]
 }
 
 function resoleMergeMethod(preferedMergeMethod: GithubMergeMethodResponse | undefined, pr: GitHubPull): GithubMergeMethodRequest {
@@ -239,7 +269,7 @@ type ResponseStatus = 'ok' | 'retryable' | 'failed'
 
 function axiosInstance(_username: string, token: string, baseURL: string): AxiosInstance {
   const instance = axios.create({
-    timeout: 10000,
+    timeout: 60000,
     headers: {
       "Authorization": `token ${token}`,
       "Accept": "application/vnd.github+json",
@@ -338,7 +368,7 @@ export class GithubClient {
     return this.paginate('/search/repositories', max, {q: searchString}, transformer, this.searchHitEquals)
   }
 
-  async searchPulls(searchString: string, max: number): Promise<GitHubPull[]> {
+  async searchPulls(searchString: string, checks: boolean, max: number): Promise<GitHubPull[]> {
     info(`Searching for PULLS: '${searchString}' with the github client`)
     const transformer: (item: any) => GitHubPull | undefined = (item: any) => {
       //debug(`PR: ${asString(item)}`)
@@ -368,6 +398,9 @@ export class GithubClient {
           base: item.baseRef.name,
           repoDefaultBranch: item.repository.defaultBranchRef.name,
           raw: item,
+          reviewDecision: item.reviewDecision,
+          statusCheckRollup: item.commits?.nodes[0]?.commit?.statusCheckRollup?.state,
+          checks: item.commits?.nodes[0]?.commit?.statusCheckRollup?.contexts?.nodes?.filter((c: any) => c && c.name && c.status)
         };
       } catch (e) {
         warn(`Was unable to map returned PR item correctly. Error was ${asString(e)} and the item was ${asString(item)}`)
@@ -377,7 +410,7 @@ export class GithubClient {
     return this.paginateGraphQl(
       '/graphql',
       max,
-      githubPullRequestGraphQLSearch,
+      githubPullRequestGraphQLSearch(checks),
       {query: searchString},
       (data) => data.data.search.nodes,
       transformer,
@@ -617,10 +650,12 @@ export class GithubClient {
     let attempt = 0;
     pagination: while (aggregator.size < max) {
       await sleep(1000)
+      const left = max - aggregator.size
       const response: AxiosResponse = await this.api.post(url, {
         variables: {
           ...variables,
           cursor: cursor,
+          max: Math.min(100, left)
         },
         query,
       })

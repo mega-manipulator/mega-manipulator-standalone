@@ -1,13 +1,15 @@
-import {Box, IconButton, Tooltip, Typography} from "@mui/material";
+import {Alert, Box, IconButton, Tooltip, Typography} from "@mui/material";
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import React, {useContext} from "react";
 import {MegaContext} from "../../hooks/MegaContext";
 import {GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
-import {GitHubPull, GithubUser} from "../../hooks/github.com";
+import {GithubPrCheck, GitHubPull, GithubUser} from "../../hooks/github.com";
 import {open} from '@tauri-apps/api/shell';
 import PauseIcon from '@mui/icons-material/Pause';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from '@mui/icons-material/Cancel';
 
 const GithubUserColumn: React.FC<GridRenderCellParams<GithubUser, GitHubPull, unknown>> = ({value}) => {
   return <>
@@ -30,6 +32,42 @@ const OpenableUrlColum: React.FC<GridRenderCellParams<string, GitHubPull, unknow
       <OpenInNewIcon/>
     </IconButton>
   </Tooltip>
+}
+const ReviewDecisionColum: React.FC<GridRenderCellParams<string, GitHubPull, unknown>> = ({value}) => {
+  switch (value){
+    case 'APPROVED':
+      return <Tooltip title={'Approved'}><Typography color={"green"}><CheckCircleIcon/></Typography></Tooltip>
+    case 'REVIEW_REQUIRED':
+      return <Tooltip title={'Review Required'}><Typography color={"orange"}><CancelIcon/></Typography></Tooltip>
+    case 'CHANGES_REQUESTED':
+      return <Tooltip title={'Changes Requested'}><Typography color={"red"}><CancelIcon/></Typography></Tooltip>
+    default:
+      return <Tooltip title={'Unknown'}><CancelIcon/></Tooltip>
+  }
+}
+const StatusCheckRollupColum: React.FC<GridRenderCellParams<string, GitHubPull, unknown>> = ({value,row:{checks}}) => {
+  const checkToAlert = (check:GithubPrCheck) => <Alert color={check.conclusion === 'SUCCESS' ? 'success' : 'warning'}>{check.name} {check.status} {check.conclusion}</Alert>
+  const c = checks?.map((c) => checkToAlert(c)) ?? []
+  switch (value) {
+    case 'SUCCESS':
+      return <Tooltip title={<>
+        <Typography>Success</Typography>
+        {c}
+      </>}><Typography color={"green"}
+      ><CheckCircleIcon/></Typography></Tooltip>
+    case 'EXPECTED':
+    case 'ERROR':
+    case 'FAILURE':
+    case 'PENDING':
+      return <Tooltip title={<>
+        <Typography>value</Typography>
+        {c}
+      </>}><Typography color={"red"}
+      ><CancelIcon/></Typography></Tooltip>
+    default:
+      return <Tooltip title={'Unknown'}><CancelIcon/></Tooltip>
+  }
+  return <></>
 }
 const defaultGridColDef: Partial<GridColDef<any, GitHubPull, unknown>> = {
   hideable: true,
@@ -62,6 +100,8 @@ const cols: GridColDef[] = [
   {...defaultGridColDef, field: 'title'},
   {...defaultGridColDef, field: 'body'},
   {...defaultGridColDef, field: 'state'},
+  {...defaultGridColDef, field: 'reviewDecision', renderCell: ReviewDecisionColum},
+  {...defaultGridColDef, field: 'statusCheckRollup', renderCell: StatusCheckRollupColum},
   {
     ...defaultGridColDef, field: 'draft', headerName: 'Ready', renderCell: (v) => v.value ?
       <Tooltip title={'Draft'}><Typography color={"orange"}><PauseIcon/></Typography></Tooltip> :

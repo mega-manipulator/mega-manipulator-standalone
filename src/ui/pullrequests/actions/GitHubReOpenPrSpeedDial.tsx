@@ -1,16 +1,17 @@
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useMemo, useState} from "react";
-import {Alert, FormControlLabel, Switch, TextField, Tooltip} from "@mui/material";
+import {Alert, FormControlLabel, Switch, Tooltip} from "@mui/material";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {open} from "@tauri-apps/api/shell";
 import RotateRightIcon from '@mui/icons-material/RotateRight';
+import {MemorableTextField} from "../../components/MemorableTextField";
 
 export function useGitHubReOpenPrSpeedDial() {
   const {pullRequests: {selected}} = useContext(MegaContext);
   const {ghClient, clientInitError} = useGitHubCodeClient()
   const [doComment, setDoComment] = useState(false)
-  const [reopenComment, setReopenComment] = useState('Whops');
+  const [reopenComment, setReopenComment] = useState('');
   const action = useCallback(async (progressCallback: (current: number, total: number) => void) => {
     progressCallback(0, selected.length)
     if (ghClient) {
@@ -54,11 +55,16 @@ export function useGitHubReOpenPrSpeedDial() {
           />}
           label={'Comment'}/>
       </div>
-      {doComment && <TextField
-          disabled={doComment}
-          label={'Re-open comment'}
-          value={reopenComment}
-          onChange={(event) => setReopenComment(event.target.value)}
+      {doComment && <MemorableTextField
+          memProps={{
+            megaFieldIdentifier: 'reOpenPrComment',
+            value: reopenComment,
+            valueChange: setReopenComment,
+          }}
+          textProps={{
+            disabled: doComment,
+            label: 'Re-open comment',
+          }}
       />}
     </>,
     action

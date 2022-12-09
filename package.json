@@ -2,7 +2,7 @@
   "name": "mega-manipulator",
   "private": true,
   "homepage": ".",
-  "version": "0.0.0-dev",
+  "version": "0.0.0",
   "scripts": {
     "dev": "vite",
     "lint": "eslint src/**/*.{ts,tsx}",

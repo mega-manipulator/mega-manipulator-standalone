@@ -2,8 +2,9 @@ import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useMemo, useState} from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
-import {Alert, Checkbox, FormControlLabel, TextField} from "@mui/material";
+import {Alert, Checkbox, FormControlLabel} from "@mui/material";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
+import {MemorableTextField} from "../../components/MemorableTextField";
 
 export function useGitHubClosePrSpeedDial() {
   const {pullRequests: {selected}} = useContext(MegaContext);
@@ -37,10 +38,15 @@ export function useGitHubClosePrSpeedDial() {
       <FormControlLabel
         control={<Checkbox value={dropBranch} onClick={() => setDropBranch(!dropBranch)}/>}
         label={'Drop Branch after closing PR, CANNOT BE UNDONE'}/>
-      <TextField
-        label={'Close Comment'}
-        value={closeComment}
-        onChange={(event) => setCloseComment(event.target.value)}
+      <MemorableTextField
+        memProps={{
+          megaFieldIdentifier: 'closePrComment',
+          value: closeComment,
+          valueChange: setCloseComment,
+        }}
+        textProps={{
+          label: 'Close Comment',
+        }}
       />
     </>,
     action

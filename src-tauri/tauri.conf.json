@@ -101,7 +101,7 @@
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "",
+      "copyright": "Jens Brimfors",
       "deb": {
         "depends": []
       },
@@ -120,6 +120,7 @@
         "exceptionDomain": "",
         "frameworks": [],
         "providerShortName": null,
+        "license": "../LICENSE",
         "signingIdentity": null
       },
       "resources": [],
@@ -145,10 +146,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 8000,
         "resizable": true,
         "title": "mega-manipulator",
-        "width": 800
+        "width": 1000
       }
     ]
   }

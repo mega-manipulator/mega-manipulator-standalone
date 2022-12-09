@@ -22,6 +22,7 @@ import {locations} from "../../../route/locations";
 import {error, info} from "tauri-plugin-log-api";
 import {MegaContext} from "../../../../hooks/MegaContext";
 import {ButtonRow} from "../../../components/ButtonRow";
+import {MemorableTextField} from "../../../components/MemorableTextField";
 
 export type CloneModalPropsWrapper = {
   cloneModalPropsWrapper: CloneModalProps
@@ -125,14 +126,19 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
           </div>
           <div>
             {doSparseCheckout ?
-              <TextField
-                multiline
-                fullWidth
-                aria-label="minimum height"
-                minRows={3}
-                value={sparseCheckout}
-                onChange={(evt) => setSpaseCheckout(evt.target.value)}
-                placeholder="Minimum 3 rows"
+              <MemorableTextField
+                memProps={{
+                  megaFieldIdentifier:'sparseCheckout',
+                  value:sparseCheckout,
+                  valueChange:setSpaseCheckout,
+                }}
+                textProps={{
+                  multiline:true,
+                  fullWidth:true,
+                  "aria-label":"minimum height",
+                  minRows:3,
+                  placeholder:"Minimum 3 rows",
+                }}
               /> : <Skeleton animation={false}>
                 <TextareaAutosize
                   aria-label="minimum height"

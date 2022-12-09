@@ -3,7 +3,8 @@ import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useState} from "react";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
-import {Alert, MenuItem, Select, TextField} from "@mui/material";
+import {Alert, MenuItem, Select} from "@mui/material";
+import {MemorableTextField} from "../../components/MemorableTextField";
 
 export function useGitHubReviewPrSpeedDial() {
   const {pullRequests: {selected}} = useContext(MegaContext);
@@ -24,7 +25,7 @@ export function useGitHubReviewPrSpeedDial() {
         time: 0,
       }
     },
-    [selected,body,event],
+    [selected, body, event],
   );
 
   return useGenericPrSpeedDialActionProps(
@@ -37,10 +38,15 @@ export function useGitHubReviewPrSpeedDial() {
         <MenuItem value={'REQUEST_CHANGES'} onSelect={() => setEvent('REQUEST_CHANGES')}>Request Changes</MenuItem>
         <MenuItem value={'APPROVE'} onSelect={() => setEvent('APPROVE')}>Approve</MenuItem>
       </Select>
-      <TextField
-        label={'Review message'}
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
+      <MemorableTextField
+        memProps={{
+          megaFieldIdentifier: 'prReviewComment',
+          value: body,
+          valueChange: setBody,
+        }}
+        textProps={{
+          label: 'Review message',
+        }}
       />
     </>,
     action

@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from "react";
-import {Alert, Box, Button, LinearProgress, TextField, Tooltip} from "@mui/material";
+import {Alert, Box, Button, LinearProgress, Tooltip} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
 import {pathToSearchHit} from "../../service/file/cloneDir";
 import {SearchHit} from "../search/types";
@@ -8,10 +8,11 @@ import {useGitHubCodeClient} from "../search/github/useGitHubSearchClient";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
 import {debug, error} from "tauri-plugin-log-api";
+import {MemorableTextField} from "../components/MemorableTextField";
 
 export const PullRequestView: React.FC = () => {
-  const [title, setTitle] = useState<string>();
-  const [body, setBody] = useState<string>();
+  const [title, setTitle] = useState<string>('');
+  const [body, setBody] = useState<string>('');
 
   const nav = useNavigate()
   const {clones: {selected}, code: {setCodeHostKey}} = useContext(MegaContext);
@@ -97,22 +98,32 @@ export const PullRequestView: React.FC = () => {
 
     {/* Form */}
     <div>
-      <TextField
-        value={title}
-        onChange={(evt) => setTitle(evt.target.value)}
-        fullWidth
-        label={'Title'}
+      <MemorableTextField
+        memProps={{
+          megaFieldIdentifier: 'pullTitle',
+          value: title,
+          valueChange: setTitle,
+        }}
+        textProps={{
+          fullWidth: true,
+          label: 'Title',
+        }}
       />
     </div>
     <div>
-      <TextField
-        value={body}
-        onChange={(evt) => setBody(evt.target.value)}
-        fullWidth
-        label={'Body'}
-        multiline
-        minRows={3}
-        placeholder="Body"
+      <MemorableTextField
+        memProps={{
+          megaFieldIdentifier: 'pullBody',
+          value: body,
+          valueChange: setBody,
+        }}
+        textProps={{
+          fullWidth: true,
+          label: 'Body',
+          multiline: true,
+          minRows: 3,
+          placeholder: "Body",
+        }}
       />
     </div>
 

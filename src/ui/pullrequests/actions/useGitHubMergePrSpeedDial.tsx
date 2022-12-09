@@ -3,8 +3,9 @@ import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useEffect, useMemo, useState} from "react";
 import CallMergeIcon from '@mui/icons-material/CallMerge';
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
-import {Alert, FormControlLabel, MenuItem, Select, Switch, TextField} from "@mui/material";
+import {Alert, FormControlLabel, MenuItem, Select, Switch} from "@mui/material";
 import {GithubMergeMethodResponse, GitHubPull} from "../../../hooks/github.com";
+import {MemorableTextField} from "../../components/MemorableTextField";
 
 const mergeAlternatives: { name: string, type: GithubMergeMethodResponse }[] = [
   {name: 'Squash', type: "SQUASH"},
@@ -61,7 +62,7 @@ export function useGitHubMergePrSpeedDial() {
   }, [selected])
   // * PRs that are already merged
   const prsThatAreAlreadyMerged = useMemo(() => selected.filter((s) => s && s.mergedAt), [selected]);
-  const draftPrs = useMemo(() => selected.filter((s)=>s && s.draft), [selected]);
+  const draftPrs = useMemo(() => selected.filter((s) => s && s.draft), [selected]);
   // TODO * PRs that don't pass their checks
 
   return useGenericPrSpeedDialActionProps(
@@ -87,34 +88,44 @@ export function useGitHubMergePrSpeedDial() {
       </div>
       <FormControlLabel
         control={<Switch checked={customCommit} onClick={() => setCustomCommit(!customCommit)}/>}
-        label={'Custom commit message'}/>
+        label={customCommit ? 'Custom commit message ✅' : 'Override default/generated commit messages'}/>
       {customCommit && <div>
-        <TextField
-          label={'Commit title'}
-          disabled={!customCommit}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <TextField
-          label={'Commit message'}
-          disabled={!customCommit}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
+          <MemorableTextField
+              memProps={{
+                megaFieldIdentifier: 'mergeTitle',
+                value: title,
+                valueChange: setTitle,
+              }}
+              textProps={{
+                label: 'Commit title',
+                disabled: !customCommit,
+              }}
+          />
+          <MemorableTextField
+              memProps={{
+                megaFieldIdentifier: 'mergeBody',
+                value: message,
+                valueChange: setMessage,
+              }}
+              textProps={{
+                label: 'Commit message',
+                disabled: !customCommit,
+              }}
+          />
       </div>}
       <FormControlLabel
         control={<Switch checked={customMerge} onClick={() => setCustomMerge(!customMerge)}/>}
         label={'Use preferred merge strategy'}/>
       {customMerge && <div>
-        <Select
-          disabled={!customMerge}
-          value={merge}>
-          {mergeAlternatives.map((v, i) => <MenuItem
-            key={i}
-            value={v.type}
-            onClick={() => setMerge(v.type)}
-          >{v.name}</MenuItem>)}
-        </Select>
+          <Select
+              disabled={!customMerge}
+              value={merge}>
+            {mergeAlternatives.map((v, i) => <MenuItem
+              key={i}
+              value={v.type}
+              onClick={() => setMerge(v.type)}
+            >{v.name}</MenuItem>)}
+          </Select>
       </div>}
     </>,
     action,

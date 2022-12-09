@@ -1,14 +1,25 @@
 import React, {useCallback, useContext, useEffect, useMemo, useState} from "react";
 import {useGitHubCodeClient} from "../search/github/useGitHubSearchClient";
-import {Alert, Button, CircularProgress, FormControlLabel, IconButton, Switch, Tooltip} from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  FormHelperText,
+  IconButton,
+  LinearProgress,
+  Switch,
+  Tooltip
+} from "@mui/material";
 import HelpCenterIcon from '@mui/icons-material/HelpCenter';
 import {debug, error} from "tauri-plugin-log-api";
 import {open} from '@tauri-apps/api/shell';
 import {asString} from "../../hooks/logWrapper";
 import {MegaContext} from "../../hooks/MegaContext";
 import {GitHubPull} from "../../hooks/github.com";
-import {NumberField, useNumberFieldProps} from "../components/NumberField";
 import {MemorableTextField} from "../components/MemorableTextField";
+import {MaxHitsField} from "../components/MaxHitsField";
 
 export const GitHubPullRequestSearch: React.FC = () => {
   const {pullRequests: {setPulls}} = useContext(MegaContext)
@@ -26,45 +37,30 @@ export const GitHubPullRequestSearch: React.FC = () => {
     return !clientInitError
   }, [clientInitError])
 
-  const maxProps = useNumberFieldProps(25, (n: number) => n > 0)
+  const [progress, setProgress] = useState<number | null>(null)
+  const [max, setMax] = useState(25)
   const search = useCallback(() => {
     //debug(`Searching for '${searchFieldProps.value}'`)
     setPulls([])
     setState('searching')
-    ghClient?.searchPulls(searchTerms, checks, maxProps.value)
+    setProgress(null)
+    ghClient?.searchPulls(searchTerms, checks, max, setProgress)
       ?.then((items: GitHubPull[]) => {
         setPulls(items)
       })
       ?.catch((e) => error('Error searching github pull requests : ' + asString(e)))
       ?.finally(() => setState("ready"))
-  }, [searchTerms, maxProps.value, ghClient, checks])
+  }, [searchTerms, max, ghClient, checks])
 
   // Render
   return <>
     {clientInitError && <Alert variant={"filled"} color={"warning"}>{clientInitError}</Alert>}
-    <MemorableTextField
-      memProps={{
-        value: searchTerms,
-        valueChange: setSearchTerms,
-        megaFieldIdentifier: 'ghPullSearchField',
-        saveOnEnter: true,
-        enterAction: search,
-      }}
-      textProps={{
-        label: 'Search terms',
-        fullWidth: true,
-        autoComplete: 'new-password',
-        placeholder: 'GitHub pulls search terms (q)',
-      }}
-    />
-    <NumberField
-      text={{label: 'Max'}}
-      num={maxProps}
-    />
+    <MaxHitsField value={max} setValue={setMax}/>
     <Tooltip title={'Expensive api calls, in time and rate limits'}>
-      <FormControlLabel
-        control={<Switch checked={checks} onClick={() => setChecks(!checks)}/>}
-        label={'Fetch Checks'}/>
+      <FormControl>
+        <FormHelperText>Fetch Checks</FormHelperText>
+        <Switch checked={checks} onClick={() => setChecks(!checks)}/>
+      </FormControl>
     </Tooltip>
     <Button
       disabled={state !== "ready" || !isOk}
@@ -80,5 +76,25 @@ export const GitHubPullRequestSearch: React.FC = () => {
         open('https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-only-issues-or-pull-requests')
       }}><HelpCenterIcon/></IconButton>
     </Tooltip>
+    {progress && <Box style={{width: "20em"}} >
+        <LinearProgress value={progress / max * 100} variant={"determinate"}/> {progress} / {max}
+    </Box>}
+    <FormControl fullWidth>
+      <FormHelperText>Search terms</FormHelperText>
+      <MemorableTextField
+        memProps={{
+          value: searchTerms,
+          valueChange: setSearchTerms,
+          megaFieldIdentifier: 'ghPullSearchField',
+          saveOnEnter: true,
+          enterAction: search,
+        }}
+        textProps={{
+          fullWidth: true,
+          autoComplete: 'new-password',
+          placeholder: 'GitHub pulls search terms (q)',
+        }}
+      />
+    </FormControl>
   </>
 };

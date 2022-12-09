@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
-import {Alert, MenuItem, Select, Typography} from "@mui/material";
+import {Alert, FormControl, FormHelperText, MenuItem, Select, Typography} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
 import {CodeHostType} from "../../hooks/settings";
 import {GithubPullRequestView} from "./GithubPullRequestView";
@@ -30,13 +30,16 @@ export const PullRequestsPage: React.FC = () => {
 
   return <>
     <Typography variant={'h4'}>Pull Requests</Typography>
-    <Select label={'Code host'} value={codeHostKey}>
+    <FormControl>
+      <FormHelperText>Code host</FormHelperText>
+      <Select value={codeHostKey}>
         {Object.keys(settings.codeHosts).map((key, index) => <MenuItem
           key={index}
           value={key}
           onSelect={() => setCodeHostKey(key)}
         >{key}</MenuItem>)}
       </Select>
+    </FormControl>
 
     <DynamicPullRequestView codeHostType={codeHostType}/>
     <PullRequestsTable/>

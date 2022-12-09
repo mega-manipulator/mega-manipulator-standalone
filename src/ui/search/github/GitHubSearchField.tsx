@@ -1,6 +1,18 @@
 import {useGitHubSearchClient} from "./useGitHubSearchClient";
 import React, {useCallback, useContext, useEffect, useState} from "react";
-import {Alert, Button, FormControl, FormHelperText, IconButton, MenuItem, Select, Tooltip} from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  FormHelperText,
+  IconButton,
+  LinearProgress,
+  MenuItem,
+  Select,
+  Tooltip
+} from "@mui/material";
 import {debug, error, info, warn} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
 import {SearchFieldProps} from "../types";
@@ -8,6 +20,7 @@ import {MegaContext} from "../../../hooks/MegaContext";
 import {MemorableTextField} from "../../components/MemorableTextField";
 import {open} from "@tauri-apps/api/shell";
 import HelpCenterIcon from "@mui/icons-material/HelpCenter";
+import {MaxHitsField} from "../../components/MaxHitsField";
 
 export interface GitHubSearchFieldProps {
   readonly searchFieldProps: SearchFieldProps;
@@ -28,17 +41,19 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
   const [searchTerm, setSearchTerm] = useState('user:mega-manipulator foo');
   const [max, setMax] = useState(100)
   const [searchType, setSearchType] = useState<SearchType>('CODE')
+  const [progress, setProgress] = useState<number | null>(null)
   const search = useCallback(() => {
     if (ghClient !== undefined) {
       searchFieldProps?.setState('searching')
+      setProgress(null)
       setSearchHits([])
       let promise;
       switch (searchType) {
         case "CODE":
-          promise = ghClient.searchCode(searchTerm, max);
+          promise = ghClient.searchCode(searchTerm, max, setProgress);
           break;
         case "REPO":
-          promise = ghClient.searchRepo(searchTerm, max);
+          promise = ghClient.searchRepo(searchTerm, max, setProgress);
           break;
         default:
           promise = Promise.reject(`Unknown search type: ${searchType}`)
@@ -55,7 +70,7 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
     } else {
       warn('Search Client was undefined')
     }
-  }, [ghClient, searchTerm, max, searchFieldProps]);
+  }, [ghClient, searchFieldProps, setSearchHits, searchType, searchTerm, max]);
 
   const [docLink, setDocLink] = useState<string | null>(null);
   useEffect(() => {
@@ -87,15 +102,7 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
       </Select>
     </FormControl>
 
-    <FormControl>
-      <FormHelperText>Max hits</FormHelperText>
-      <Select
-        value={max}
-        onChange={(event) => setMax(+event.target.value)}
-      >
-        {[10, 50, 100, 1000].map((i: number, idx) => <MenuItem key={idx} value={i}>{i}</MenuItem>)}
-      </Select>
-    </FormControl>
+    <MaxHitsField value={max} setValue={setMax}/>
 
     <MemorableTextField
       memProps={{
@@ -107,7 +114,7 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
       }}
       textProps={{
         fullWidth: true,
-        placeholder:'Search String',
+        placeholder: 'Search String',
         autoComplete: 'new-password',
       }}
     />
@@ -115,8 +122,10 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
     <Button
       variant={"contained"} color={"primary"}
       disabled={searchFieldProps?.state !== 'ready' || searchTerm.length === 0}
-      onClick={search}>Search</Button>
-
+      onClick={search}>{searchFieldProps?.state === 'searching' && <CircularProgress size={'1em'}/>}Search</Button>
+    {progress && <Box sx={{width: '50%'}}>
+        <LinearProgress value={progress / max * 100} variant={"determinate"}/> {progress}/{max}
+    </Box>}
     {docLink && <Tooltip title={`Click to open ${searchType} search documentation in browser`}>
         <IconButton onClick={() => {
           debug('Opening docs')

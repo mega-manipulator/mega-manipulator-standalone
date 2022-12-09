@@ -5,7 +5,7 @@ export interface SearchHit {
   readonly codeHost: string;
   readonly owner: string;
   readonly repo: string;
-  readonly sshClone: string;
+  readonly sshClone?: string;
   readonly description?: string;
   /**
    * For pull requests to know what branch to set up after cloning

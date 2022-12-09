@@ -7,6 +7,7 @@ import {asString} from "../../../hooks/logWrapper";
 import {useCodeHostFilter, useOwnerFilter, useRepoFilter} from "./useLocalHitFilters";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {MemorableTextField} from "../../components/MemorableTextField";
+import {MaxHitsField} from "../../components/MaxHitsField";
 
 export interface LocalSearchFieldProps {
   readonly searchFieldProps: SearchFieldProps;
@@ -98,7 +99,7 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
         {programs.map((p, i) => <MenuItem key={i} value={p}>{p}</MenuItem>)}
       </Select>
     </FormControl>
-    <FormControl>
+    <FormControl style={{width: `${Math.max(10, (file.length * 0.5))}em`}}>
       <FormHelperText>Search Term</FormHelperText>
       <MemorableTextField
         memProps={{
@@ -111,7 +112,7 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
         }}
       />
     </FormControl>
-    <FormControl>
+    <FormControl style={{width: `${Math.max(10, (file.length * 0.5))}em`}}>
       <FormHelperText>File Pattern</FormHelperText>
       <MemorableTextField
         memProps={{
@@ -124,16 +125,7 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
         }}
       />
     </FormControl>
-    <FormControl>
-      <FormHelperText>Max hits</FormHelperText>
-      <Select
-        label={'Max hits'}
-        value={searchFieldProps.max}
-        onChange={(e) => searchFieldProps.setMax(e.target.value as number)}
-      >
-        {[5, 10, 100, 1000, 10000].map((i, index) => <MenuItem key={index} value={i}>{i}</MenuItem>)}
-      </Select>
-    </FormControl>
+    <MaxHitsField value={searchFieldProps.max} setValue={searchFieldProps.setMax}/>
     {searchError && <Alert color={"error"}>{searchError}</Alert>}
     <Button
       variant={"contained"}

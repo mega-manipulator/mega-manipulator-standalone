@@ -334,7 +334,7 @@ export class GithubClient {
     }
   }
 
-  async searchCode(searchString: string, max: number): Promise<SearchHit[]> {
+  async searchCode(searchString: string, max: number, progress: (size: number) => void): Promise<SearchHit[]> {
     info(`Searching for REPO '${searchString}' with the github client`)
     const transformer = (codeItem: GithubSearchCodeItem) => {
       const owner = codeItem.repository.owner.login;
@@ -348,10 +348,10 @@ export class GithubClient {
         description: codeItem.repository.description,
       });
     }
-    return this.paginate('/search/code', max, {q: searchString}, transformer, this.searchHitEquals)
+    return this.paginate('/search/code', max, {q: searchString}, progress, transformer, this.searchHitEquals)
   }
 
-  async searchRepo(searchString: string, max: number): Promise<SearchHit[]> {
+  async searchRepo(searchString: string, max: number, progress: (size: number) => void): Promise<SearchHit[]> {
     info(`Searching for REPO: '${searchString}' with the github client`)
     const transformer = (repository: GithubSearchCodeRepository) => {
       const owner = repository.owner.login;
@@ -365,10 +365,10 @@ export class GithubClient {
         description: repository.description,
       });
     }
-    return this.paginate('/search/repositories', max, {q: searchString}, transformer, this.searchHitEquals)
+    return this.paginate('/search/repositories', max, {q: searchString}, progress, transformer, this.searchHitEquals)
   }
 
-  async searchPulls(searchString: string, checks: boolean, max: number): Promise<GitHubPull[]> {
+  async searchPulls(searchString: string, checks: boolean, max: number, progress: (size: number) => void): Promise<GitHubPull[]> {
     info(`Searching for PULLS: '${searchString}' with the github client`)
     const transformer: (item: any) => GitHubPull | undefined = (item: any) => {
       //debug(`PR: ${asString(item)}`)
@@ -412,6 +412,7 @@ export class GithubClient {
       max,
       githubPullRequestGraphQLSearch(checks),
       {query: searchString},
+      progress,
       (data) => data.data.search.nodes,
       transformer,
     );
@@ -642,20 +643,23 @@ export class GithubClient {
     max: number,
     query: string,
     variables: any,
+    progress: (size: number) => void,
     listExtractor: (data: any) => GITHUB_TYPE[],
     transformer: (data: GITHUB_TYPE) => TYPE | undefined
   ): Promise<TYPE[]> {
     let cursor: string | undefined = undefined;
     const aggregator: Set<TYPE> = new Set<TYPE>()
     let attempt = 0;
+    progress(0)
     pagination: while (aggregator.size < max) {
+      progress(aggregator.size)
       await sleep(1000)
       const left = max - aggregator.size
       const response: AxiosResponse = await this.api.post(url, {
         variables: {
           ...variables,
           cursor: cursor,
-          max: Math.min(100, left)
+          max: Math.min(25, left)
         },
         query,
       })
@@ -685,23 +689,27 @@ export class GithubClient {
         }
       }
     }
+    progress(aggregator.size)
     return Array.from(aggregator);
   }
 
-  private async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, transformer: (data: GITHUB_TYPE) => TYPE, equality: (v1: TYPE, v2: TYPE) => boolean): Promise<TYPE[]> {
+  private async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, progress: (size: number) => void, transformer: (data: GITHUB_TYPE) => TYPE, equality: (v1: TYPE, v2: TYPE) => boolean): Promise<TYPE[]> {
     const aggregator: Set<TYPE> = new Set<TYPE>()
-    let page = 1
-    let attempt = 0
+    let page = 1;
+    const per_page = 25;
+    let attempt = 0;
+    progress(0);
     pagination: while (aggregator.size < max) {
-      await sleep(1000)
-      debug(`Fetching page ${page} with ${aggregator.size} found already`)
+      progress(aggregator.size)
+      await sleep(1000);
+      debug(`Fetching page ${page} with ${aggregator.size} found already`);
       const response = await this.api.get(url, {
         params: {
           ...params,
           page,
-          per_page: 100,
+          per_page,
         },
-      })
+      });
       trace('Received response: ' + asString(response))
       const status: ResponseStatus = await this.retryOnThrottle(attempt, response)
       switch (status) {
@@ -724,12 +732,13 @@ export class GithubClient {
             aggregator.add(item);
             if (aggregator.size === max) break pagination;
           }
-          if (data.items.length < 100) break pagination
+          if (data.items.length < per_page) break pagination
           attempt = 0
           page++
         }
       }
     }
+    progress(aggregator.size)
     return Array.from(aggregator);
   }
 

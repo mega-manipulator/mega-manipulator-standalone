@@ -7,7 +7,7 @@ import {fs, path} from "@tauri-apps/api";
 import {createDir, FileEntry, removeDir} from "@tauri-apps/api/fs";
 import {copyDir} from "../file/copyDirService";
 import {runCommand, saveResultToStorage} from "../work/workLog";
-import {debug, error, info} from "tauri-plugin-log-api";
+import {debug, error, info, warn} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 import {getMainBranchName} from "../file/cloneDir";
 import {requireZeroStatus} from "../file/simpleActionWithResult";
@@ -58,14 +58,18 @@ export async function clone(input: CloneWorkInput, listener: (progress: WorkProg
     try {
       const keepPath = await getGitDir(input.settings.keepLocalReposPath, hit);
       const clonePath = await getGitDir(input.settings.clonePath, hit);
-      await info(`Clone ${hit.sshClone}, keepPath:${keepPath}, clonePath:${clonePath}`);
+      if (!hit.sshClone) {
+        warn(`No sshClone defined for ${asString(hit)}`)
+        result.result[i].output.status = "failed";
+        continue
+      }
+      info(`Clone ${hit.sshClone}, keepPath:${keepPath}, clonePath:${clonePath}`);
       const cloneResult = await cloneIfNeeded(keepPath, hit.sshClone, input.fetchIfLocal, meta);
       if (!input.onlyKeep) {
         await restoreRepoFromKeep(keepPath, clonePath, hit.branch ?? branch, meta, input.sparseCheckout);
       }
 
       result.result[i].output.status = "ok";
-      result.status = "ok";
       listener(progressTracker.progress(cloneResult));
     } catch (e) {
       const strErr = asString(e);
@@ -76,6 +80,7 @@ export async function clone(input: CloneWorkInput, listener: (progress: WorkProg
       result.status = "failed";
     }
   }
+  result.status = (result.status !== "failed" && !result.result.some((r) => r.output.status === "failed") ? "ok" : "failed");
   await saveResultToStorage(result);
   return time;
 }

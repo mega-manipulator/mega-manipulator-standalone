@@ -34,7 +34,7 @@ export const SearchPage: React.FC = () => {
   const cloneModalProps = cloneModalPropsWrapper.cloneModalPropsWrapper
   useEffect(() => {
     cloneModalProps.setSourceString(`Clone from search '${searchHostKey}'`)
-  }, [searchHostKey])
+  }, [cloneModalProps, searchHostKey])
   const [searchType, setSearchType] = useState<SearchHostType>('LOCAL')
   useEffect(() => {
     let type:SearchHostType = 'LOCAL'
@@ -45,7 +45,7 @@ export const SearchPage: React.FC = () => {
       }
     }
     setSearchType(type);
-  }, [settings, searchFieldProps])
+  }, [settings, searchFieldProps, searchHostKey])
 
   const searchHostSelect = <FormControl>
     <FormHelperText>Search host</FormHelperText>

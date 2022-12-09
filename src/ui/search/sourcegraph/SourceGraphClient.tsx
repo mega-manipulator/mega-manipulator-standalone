@@ -87,23 +87,13 @@ export class SourceGraphClient {
   }
 
   async searchCode(searchString: string, max?: number): Promise<SearchHit[]> {
-    const CancelToken = axios.CancelToken;
-    const source = CancelToken.source();
-    const handle: SourceGraphSearchHandle = {
-      cancel: () => {
-        return;
-      },
-    };
-    handle.cancel = () => {
-      source.cancel('Manual cancel by user');
-    };
-    const selfRef: SourceGraphClient = this;
     const searchHits = new Set<SearchHit>();
     try {
       debug('Requesting data from sourcegraph')
       const response = await axios({
         method: "POST",
-        url: `${selfRef.searchSettings.baseUrl}/.api/graphql`,
+        timeout: 60000,
+        url: `${this.searchSettings.baseUrl}/.api/graphql`,
         headers: {
           Authorization: `token ${this.token}`,
           Accept: 'application/json',
@@ -142,35 +132,27 @@ export class SourceGraphClient {
     } catch (e: unknown) {
       error(`Failed in some way: ${asString(e)}`);
     }
-    const hits = Array.from(searchHits.values());
-    debug('Response handle received for GraphQL response: ' + asString(hits.length))
-    return hits;
+    return Array.from(searchHits.values());
   }
 
   private sgRepoStringToSearchHit(repoString?: string): SearchHit | undefined {
     try {
-
       if (repoString) {
         const parts: string[] = repoString.split('/')
         trace('Parts: ' + parts)
         if (parts.length === 3) {
-          // TODO: Get our code host from sourceGraph code host
           const sgCodeHost = parts[0];
           trace(`sgCodeHost: ${sgCodeHost}`)
-          const codeHostKey = this.searchSettings.codeHosts[sgCodeHost]
-          if (!codeHostKey) throw new Error(`CodeHost '${sgCodeHost}->${codeHostKey}' not mapped, ${asString(this.searchSettings.codeHosts)}`)
+          const codeHostKey: string | undefined = this.searchSettings.codeHosts[sgCodeHost]
 
           const codeHost = this.settings.codeHosts[codeHostKey]
           const searchHost = this.searchHostKey;
           const owner = parts[1];
           const repoName = parts[2];
           const cloneURL = cloneUrl(codeHost, owner, repoName)
-          if (!cloneURL) {
-            throw new Error('Unable to resolve clone url for repo: ' + searchHost + '/' + codeHostKey + '/' + owner + '/' + repoName)
-          }
           return ({
             searchHost,
-            codeHost: codeHostKey,
+            codeHost: codeHostKey ?? sgCodeHost,
             owner,
             repo: repoName,
             sshClone: cloneURL,

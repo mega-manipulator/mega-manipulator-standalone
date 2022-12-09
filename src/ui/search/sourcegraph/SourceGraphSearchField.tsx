@@ -1,10 +1,11 @@
 import React, {useCallback, useContext, useEffect, useState} from "react";
 import {SearchFieldProps} from "../types";
-import {Alert, Button, FormControl, FormHelperText, MenuItem, Select} from "@mui/material";
+import {Alert, Button, FormControl, FormHelperText} from "@mui/material";
 import {warn} from "tauri-plugin-log-api";
 import {useSourceGraphClient} from "./SourceGraphClient";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {MemorableTextField} from "../../components/MemorableTextField";
+import {NumberField} from "../../components/NumberField";
 
 export type SourceGraphSearchFieldProps = {
   readonly searchFieldProps: SearchFieldProps;
@@ -37,7 +38,7 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
     } else {
       warn('Search Client was undefined')
     }
-  }, [clientWrapper, max, searchTerm])
+  }, [clientWrapper.client, max, props.searchFieldProps, searchTerm, setSearchHits])
 
   /*Render*/
   if (clientWrapper.error) {
@@ -46,31 +47,32 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
   return <>
     <FormControl>
       <FormHelperText>Max hits</FormHelperText>
-      <Select
-        value={max}
-        onChange={(event) => setMax(+event.target.value)}
-      >
-        {[10, 50, 100, 1000].map((i: number, idx) => <MenuItem key={idx} value={i}>{i}</MenuItem>)}
-      </Select>
+      <NumberField
+        text={{style: {width:'4em'}}}
+        num={{
+          value: max,
+          setValue: setMax,
+        }}
+      />
     </FormControl>
 
-    <div>
+    <FormControl fullWidth>
+      <FormHelperText>Search String</FormHelperText>
       <MemorableTextField
         memProps={{
           value: searchTerm,
           valueChange: setSearchTerm,
           megaFieldIdentifier: 'sgSearchField',
-          maxMemory:25,
+          maxMemory: 25,
           saveOnEnter: true,
           enterAction: search,
         }}
         textProps={{
           fullWidth: true,
-          label: 'Search String',
           autoComplete: 'new-password',
         }}
       />
-    </div>
+    </FormControl>
 
     <Button
       variant={"contained"} color={"primary"}

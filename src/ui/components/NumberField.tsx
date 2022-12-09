@@ -1,46 +1,39 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {TextField} from "@mui/material";
 import {TextFieldProps} from "@mui/material/TextField/TextField";
 
-type NumberFieldProps = {
+export type NumberFieldProps = {
   value: number,
-  valueText: string,
-  setValueText: (valueText: string) => void,
-  error: boolean,
+  setValue:(_value: number)=>void,
+  numberValidation?: (_n: number) => boolean,
 }
 
-export function useNumberFieldProps(
-  defaultValue: number,
-  numberValidation: (n: number) => boolean,
-): NumberFieldProps {
-  const [value, setValue] = useState<number>(defaultValue);
-  const [valueText, setValueText] = useState<string>(`${defaultValue}`);
+export const NumberField: React.FC<{ num: NumberFieldProps, text?: TextFieldProps }> = ({num, text}) => {
+  const [valueText, setValueText] = useState<string>(`${num.value}`);
   const [error, setError] = useState<boolean>(false);
-  useEffect(() => {
-    const number: number = +valueText;
-    if (isNaN(number)) {
-      setError(true)
-    } else if (numberValidation(number)) {
-      setError(false)
-      setValue(number)
-    } else {
-      setError(true)
-    }
-  }, [valueText])
-  return {
-    value,
-    valueText,
-    setValueText,
-    error,
-  }
-}
-
-export const NumberField: React.FC<{ num: NumberFieldProps, text: TextFieldProps }> = ({num, text}) => {
   return <TextField
     {...text}
-    value={num.valueText}
-    onChange={(evt) => num.setValueText(evt.target.value)}
-    onBlur={()=>num.setValueText(`${num.value}`)}
-    error={num.error}
+    value={valueText}
+    onChange={(evt) => {
+      const valueText = evt.target.value;
+      setValueText(valueText)
+      const number: number = +valueText;
+      if (isNaN(number)) {
+        setError(true)
+      } else if (!num.numberValidation) {
+        setError(false)
+        num.setValue(number)
+      } else if (num.numberValidation(number)) {
+        setError(false)
+        num.setValue(number)
+      } else {
+        setError(true)
+      }
+    }}
+    onBlur={() => {
+      setValueText(`${num.value}`)
+      setError(false)
+    }}
+    error={error}
   />
 }

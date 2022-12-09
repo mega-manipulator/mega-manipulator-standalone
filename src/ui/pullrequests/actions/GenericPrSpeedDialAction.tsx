@@ -94,14 +94,14 @@ export const GenericPrSpeedDialModal: React.FC<GenericPrSpeedDialActionProps> = 
     if (disabled) {
       setIsModalOpen(false)
     }
-  }, [disabled]);
+  }, [disabled, setIsModalOpen]);
   useEffect(() => {
     setState('ready')
     setErr(undefined)
     setWorkRef(undefined)
     setProgress(undefined)
     setWorkStatus(undefined)
-  }, [isModalOpen]);
+  }, [isModalOpen, setState]);
 
 
   const progressCallback = useCallback((current: number, total: number) => {
@@ -138,10 +138,14 @@ export const GenericPrSpeedDialModal: React.FC<GenericPrSpeedDialActionProps> = 
       {/* Buttons */}
       <ButtonRow>
         <Button
+          variant={"outlined"}
+          color={"secondary"}
           disabled={state === "running"}
           onClick={() => state !== "running" && setIsModalOpen(false)}
         >Cancel</Button>
         <Button
+          variant={"contained"}
+          color={"warning"}
           disabled={state !== "ready"}
           onClick={() => {
             setState("running")

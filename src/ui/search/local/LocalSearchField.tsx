@@ -28,7 +28,7 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
   const [searchError, setSearchError] = useState<string | null>(null)
   useEffect(() => {
     searchFieldProps?.setState(localSearchClientWrapper ? 'ready' : 'loading')
-  }, [localSearchClientWrapper])
+  }, [localSearchClientWrapper, searchFieldProps])
 
   const [codeHost, setCodeHost] = useState<string>('*')
   const [owner, setOwner] = useState<string>('*')
@@ -50,7 +50,7 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
         error(msg)
         setSearchError(msg)
       })
-  }, [program, searchTerm, file, searchFieldProps, searchFieldProps.max, codeHost, owner, repo])
+  }, [searchFieldProps, setSearchHits, localSearchClientWrapper.client, program, searchTerm, file, codeHost, owner, repo])
 
   if (!settings) {
     return <CircularProgress/>
@@ -92,7 +92,6 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
     <FormControl>
       <FormHelperText>Program</FormHelperText>
       <Select
-        label={'Program'}
         value={program}
         onChange={(p) => setProgram(p.target.value)}
       >

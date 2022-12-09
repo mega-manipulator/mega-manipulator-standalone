@@ -2,7 +2,7 @@ import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useState} from "react";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
-import {Alert, FormControlLabel, Switch} from "@mui/material";
+import {Alert, FormControl, FormHelperText, Switch} from "@mui/material";
 import AlarmOnIcon from '@mui/icons-material/AlarmOn';
 
 export function useGitHubDraftPrSpeedDial() {
@@ -22,7 +22,7 @@ export function useGitHubDraftPrSpeedDial() {
     return {
       time: 0
     }
-  }, [selected, filter])
+  }, [selected, ghClient, draft, filter])
 
   return useGenericPrSpeedDialActionProps(
     'Change Draft status',
@@ -33,14 +33,18 @@ export function useGitHubDraftPrSpeedDial() {
           variant={"outlined"} color={"warning"}
       >{clientInitError}</Alert>}
       <div>
-        <FormControlLabel
-          control={<Switch checked={draft} onClick={() => setDraft(!draft)}/>}
-          label={<>Set the PRs as {draft ? 'drafts' : 'ready for review'}</>}/>
+        <FormControl>
+          <FormHelperText><>Set the PRs as {draft ? 'drafts' : 'ready for review'}</>
+          </FormHelperText>
+          <Switch checked={draft} onClick={() => setDraft(!draft)}/>
+        </FormControl>
       </div>
       <div>
-        <FormControlLabel
-          control={<Switch checked={filter} onClick={() => setFilter(!filter)}/>}
-          label={<>Filter only {draft ? 'ready' : 'draft'} PRs</>}/>
+        <FormControl>
+          <FormHelperText><>Filter only {draft ? 'ready' : 'draft'} PRs</>
+          </FormHelperText>
+          <Switch checked={filter} onClick={() => setFilter(!filter)}/>
+        </FormControl>
       </div>
     </>,
     action,

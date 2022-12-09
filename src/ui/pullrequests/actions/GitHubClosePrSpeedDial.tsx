@@ -2,7 +2,7 @@ import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useMemo, useState} from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
-import {Alert, Checkbox, FormControlLabel} from "@mui/material";
+import {Alert, Checkbox, FormControl, FormHelperText} from "@mui/material";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {MemorableTextField} from "../../components/MemorableTextField";
 
@@ -35,19 +35,22 @@ export function useGitHubClosePrSpeedDial() {
       {closedPrs.length !== 0 &&
           <Alert color={"warning"} variant={"outlined"}>{closedPrs.length} of the selected PRs are already closed
               🤦</Alert>}
-      <FormControlLabel
-        control={<Checkbox value={dropBranch} onClick={() => setDropBranch(!dropBranch)}/>}
-        label={'Drop Branch after closing PR, CANNOT BE UNDONE'}/>
-      <MemorableTextField
-        memProps={{
-          megaFieldIdentifier: 'closePrComment',
-          value: closeComment,
-          valueChange: setCloseComment,
-        }}
-        textProps={{
-          label: 'Close Comment',
-        }}
-      />
+      <FormControl>
+        <FormHelperText>Drop Branch after closing PR, CANNOT BE UNDONE</FormHelperText>
+        <Checkbox value={dropBranch} onClick={() => setDropBranch(!dropBranch)}/>
+      </FormControl>
+
+
+      <FormControl fullWidth>
+        <FormHelperText>Close Comment</FormHelperText>
+        <MemorableTextField
+          memProps={{
+            megaFieldIdentifier: 'closePrComment',
+            value: closeComment,
+            valueChange: setCloseComment,
+          }}
+        />
+      </FormControl>
     </>,
     action
   )

@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from "react";
-import {Alert, Box, Button, LinearProgress, Tooltip} from "@mui/material";
+import {Alert, Box, Button, FormControl, FormHelperText, LinearProgress, Tooltip} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
 import {pathToSearchHit} from "../../service/file/cloneDir";
 import {SearchHit} from "../search/types";
@@ -26,7 +26,7 @@ export const PullRequestView: React.FC = () => {
     if (hits && codeHostKeySet.size === 1) {
       setCodeHostKey(hits[0]?.codeHost)
     }
-  }, [hits]);
+  }, [hits, setCodeHostKey]);
   useEffect(() => {
     if (!selected) {
       setHits(undefined)
@@ -56,7 +56,7 @@ export const PullRequestView: React.FC = () => {
           error(`Failed create pull requests: ${msg}`)
           setErr(msg)
         })
-  }, [hits, title, body])
+  }, [title, body, hits, ghClient])
 
   // Render
   if (clientInitError) {
@@ -98,33 +98,37 @@ export const PullRequestView: React.FC = () => {
 
     {/* Form */}
     <div>
-      <MemorableTextField
-        memProps={{
-          megaFieldIdentifier: 'pullTitle',
-          value: title,
-          valueChange: setTitle,
-        }}
-        textProps={{
-          fullWidth: true,
-          label: 'Title',
-        }}
-      />
+      <FormControl fullWidth>
+        <FormHelperText>Title</FormHelperText>
+        <MemorableTextField
+          memProps={{
+            megaFieldIdentifier: 'pullTitle',
+            value: title,
+            valueChange: setTitle,
+          }}
+          textProps={{
+            fullWidth: true,
+          }}
+        />
+      </FormControl>
     </div>
     <div>
-      <MemorableTextField
-        memProps={{
-          megaFieldIdentifier: 'pullBody',
-          value: body,
-          valueChange: setBody,
-        }}
-        textProps={{
-          fullWidth: true,
-          label: 'Body',
-          multiline: true,
-          minRows: 3,
-          placeholder: "Body",
-        }}
-      />
+      <FormControl fullWidth>
+        <FormHelperText>Body</FormHelperText>
+        <MemorableTextField
+          memProps={{
+            megaFieldIdentifier: 'pullBody',
+            value: body,
+            valueChange: setBody,
+          }}
+          textProps={{
+            fullWidth: true,
+            multiline: true,
+            minRows: 3,
+            placeholder: "Body",
+          }}
+        />
+      </FormControl>
     </div>
 
     {ghClient && <Button

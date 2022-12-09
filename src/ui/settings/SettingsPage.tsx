@@ -5,6 +5,8 @@ import {usePassword} from "../../hooks/usePassword";
 import {
   Button,
   CircularProgress,
+  FormControl,
+  FormHelperText,
   Grid,
   Paper,
   Table,
@@ -155,39 +157,45 @@ export const SettingsPage = () => {
     </span>
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
-        <TextField
-          id='keep-local-repos-path-text-field'
-          fullWidth
-          label='Keep Local Repos path'
-          variant="outlined"
-          value={keepLocalRepos}
-          onChange={(event) => setKeepLocalRepos(event.target.value)}
-        />
+        <FormControl fullWidth>
+          <FormHelperText>Keep Local Repos path</FormHelperText>
+          <TextField
+            id='keep-local-repos-path-text-field'
+            fullWidth
+            variant="outlined"
+            value={keepLocalRepos}
+            onChange={(event) => setKeepLocalRepos(event.target.value)}
+          />
+        </FormControl>
       </Grid>
       <Grid item xs={12} md={6}>
-        <TextField
-          id='clone-repo-path-text-field'
-          fullWidth
-          label={'Clone Repos path'}
-          variant={"outlined"}
-          value={clonePath}
-          onChange={(event) => setClonePath(event.target.value)}
-        />
+        <FormControl fullWidth>
+          <FormHelperText>Clone Repos path</FormHelperText>
+          <TextField
+            id='clone-repo-path-text-field'
+            fullWidth
+            variant={"outlined"}
+            value={clonePath}
+            onChange={(event) => setClonePath(event.target.value)}
+          />
+        </FormControl>
       </Grid>
       <Grid item xs={12} md={6}>
-        <MemorableTextField
-          memProps={{
-            megaFieldIdentifier: 'editorApplicationPath',
-            value: editorApplicationPath,
-            valueChange: setEditorApplicationPath,
-          }}
-          textProps={{
-            id: 'editorApplication-text-field',
-            fullWidth: true,
-            label: 'Editor Application path',
-            variant: "outlined",
-          }}
-        />
+        <FormControl fullWidth>
+          <FormHelperText>Editor Application path</FormHelperText>
+          <MemorableTextField
+            memProps={{
+              megaFieldIdentifier: 'editorApplicationPath',
+              value: editorApplicationPath,
+              valueChange: setEditorApplicationPath,
+            }}
+            textProps={{
+              id: 'editorApplication-text-field',
+              fullWidth: true,
+              variant: "outlined",
+            }}
+          />
+        </FormControl>
       </Grid>
       <Grid item xs={12}>
         <Button

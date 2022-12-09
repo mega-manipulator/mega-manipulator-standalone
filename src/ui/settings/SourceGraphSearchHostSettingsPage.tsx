@@ -66,7 +66,7 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
     } else {
       setSearchHost(defaultSourceGraphSettings)
     }
-  }, [settings])
+  }, [setSearchHost, settings])
   const [errors, setErrors] = useState<string[]>([])
   const [warnings, setWarnings] = useState<string[]>([])
   useEffect(() => {
@@ -101,7 +101,7 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
       })
     }
     setWarnings(warnAggregate)
-  }, [searchHostEdit, searchHostKey, newSearchHostKey])
+  }, [searchHostEdit, searchHostKey, newSearchHostKey, megaSettings?.codeHosts])
   const validateSearchHost: boolean = useMemo(() => {
     return errors.length === 0;
   }, [errors])
@@ -167,16 +167,20 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
           </TableRow>)}
         </TableBody>
       </Table>
-      <TextField
-        label={'New Sourcegraph mapping name'}
-        value={newMappingKey}
-        onChange={(event) => setNewMappingKey(event.target.value)}
-      />
-      <TextField
-        label={'New Code Host mapping key'}
-        value={newMappingValue}
-        onChange={(event) => setNewMappingValue(event.target.value)}
-      />
+      <FormControl>
+        <FormHelperText>New Sourcegraph mapping name</FormHelperText>
+        <TextField
+          value={newMappingKey}
+          onChange={(event) => setNewMappingKey(event.target.value)}
+        />
+      </FormControl>
+      <FormControl>
+        <FormHelperText>New Code Host mapping key</FormHelperText>
+        <TextField
+          value={newMappingValue}
+          onChange={(event) => setNewMappingValue(event.target.value)}
+        />
+      </FormControl>
       <Button
         variant={"outlined"}
         onClick={() => {

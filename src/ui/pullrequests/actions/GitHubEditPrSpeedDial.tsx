@@ -1,7 +1,7 @@
 import {useCallback, useContext, useEffect, useState} from "react";
 import EditIcon from '@mui/icons-material/Edit';
 import {MegaContext} from "../../../hooks/MegaContext";
-import {Alert, Typography} from "@mui/material";
+import {Alert, FormControl, FormHelperText, Typography} from "@mui/material";
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {MemorableTextField} from "../../components/MemorableTextField";
@@ -23,7 +23,7 @@ export function useGitHubEditPrSpeedDialProps() {
     return {
       time: result?.time ?? 0,
     }
-  }, [selected, body, title])
+  }, [selected, ghClient, title, body])
   useEffect(() => {
     setTitle(selected[0]?.title ?? '')
     setBody(selected[0]?.body ?? '')
@@ -39,30 +39,34 @@ export function useGitHubEditPrSpeedDialProps() {
           color={"warning"}
       >{clientInitError}</Alert>}
       <Typography variant={'h4'}>Edit selected PRs ({selected.length})</Typography>
-      <MemorableTextField
-        memProps={{
-          megaFieldIdentifier: 'pullTitle',
-          value: title,
-          valueChange: setTitle,
-        }}
-        textProps={{
-          fullWidth: true,
-          label: 'Title',
-        }}
-      />
-      <MemorableTextField
-        memProps={{
-          megaFieldIdentifier: 'pullBody',
-          value: body,
-          valueChange: setBody,
-        }}
-        textProps={{
-          fullWidth: true,
-          multiline: true,
-          minRows: 5,
-          label: 'Body',
-        }}
-      />
+      <FormControl fullWidth>
+        <FormHelperText>Title</FormHelperText>
+        <MemorableTextField
+          memProps={{
+            megaFieldIdentifier: 'pullTitle',
+            value: title,
+            valueChange: setTitle,
+          }}
+          textProps={{
+            fullWidth: true,
+          }}
+        />
+      </FormControl>
+      <FormControl fullWidth>
+        <FormHelperText>Body</FormHelperText>
+        <MemorableTextField
+          memProps={{
+            megaFieldIdentifier: 'pullBody',
+            value: body,
+            valueChange: setBody,
+          }}
+          textProps={{
+            fullWidth: true,
+            multiline: true,
+            minRows: 5,
+          }}
+        />
+      </FormControl>
     </>,
     action,
   )

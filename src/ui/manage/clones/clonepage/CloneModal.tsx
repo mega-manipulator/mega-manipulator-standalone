@@ -4,7 +4,8 @@ import {
   Box,
   Button,
   Checkbox,
-  FormControlLabel,
+  FormControl,
+  FormHelperText,
   LinearProgress,
   Modal,
   Skeleton,
@@ -90,54 +91,58 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
                   into {settings?.clonePath}?</Typography>
           </div>
         {selected.some((s) => s && s.branch === undefined) && <div>
-            <TextField
-                fullWidth
-                variant={"filled"}
-                label={'branch name'}
-                value={branch}
-                onChange={(event) => setBranch(event.target.value)}
-            />
+            <FormControl>
+                <FormHelperText>Branch name</FormHelperText>
+                <TextField
+                    fullWidth
+                    variant={"filled"}
+                    value={branch}
+                    onChange={(event) => setBranch(event.target.value)}
+                />
+            </FormControl>
         </div>}
           <div>
               <Tooltip
                   title={"Run 'git fetch' on the clones found locally, but it's faster not to run the fetch"} arrow>
-                  <FormControlLabel control={
-                    <Checkbox checked={fetchIfLocal} onClick={() => setFetchIfLocal(!fetchIfLocal)}/>
-                  } label={<Typography>Fetch if exists locally?</Typography>}/>
+                  <FormControl>
+                      <FormHelperText><Typography>Fetch if exists locally?</Typography></FormHelperText>
+                      <Checkbox checked={fetchIfLocal} onClick={() => setFetchIfLocal(!fetchIfLocal)}/>
+                  </FormControl>
               </Tooltip>
           </div>
           <div>
-              <Tooltip
-                  title={"Only clone to keep dir."} arrow>
-                  <FormControlLabel control={
-                    <Checkbox checked={onlyKeep} onClick={() => {
-                      setOnlyKeep(!onlyKeep)
-                      setFetchIfLocal(false)
-                      setDoSpaseCheckout(false)
-                    }}/>
-                  } label={<Typography>Skip workdir copy?</Typography>}/>
+              <Tooltip title={"Only clone to keep dir."} arrow>
+                  <FormControl>
+                      <FormHelperText><Typography>Skip workdir copy?</Typography></FormHelperText>
+                      <Checkbox checked={onlyKeep} onClick={() => {
+                        setOnlyKeep(!onlyKeep)
+                        setFetchIfLocal(false)
+                        setDoSpaseCheckout(false)
+                      }}/>
+                  </FormControl>
               </Tooltip>
           </div>
 
           <div>
-              <FormControlLabel control={
-                <Checkbox checked={doSparseCheckout} onClick={() => setDoSpaseCheckout(!doSparseCheckout)}/>
-              } label={'Sparse checkout?'}/>
+              <FormControl>
+                  <FormHelperText>Sparse checkout?</FormHelperText>
+                  <Checkbox checked={doSparseCheckout} onClick={() => setDoSpaseCheckout(!doSparseCheckout)}/>
+              </FormControl>
           </div>
           <div>
             {doSparseCheckout ?
               <MemorableTextField
                 memProps={{
-                  megaFieldIdentifier:'sparseCheckout',
-                  value:sparseCheckout,
-                  valueChange:setSpaseCheckout,
+                  megaFieldIdentifier: 'sparseCheckout',
+                  value: sparseCheckout,
+                  valueChange: setSpaseCheckout,
                 }}
                 textProps={{
-                  multiline:true,
-                  fullWidth:true,
-                  "aria-label":"minimum height",
-                  minRows:3,
-                  placeholder:"Minimum 3 rows",
+                  multiline: true,
+                  fullWidth: true,
+                  "aria-label": "minimum height",
+                  minRows: 3,
+                  placeholder: "Minimum 3 rows",
                 }}
               /> : <Skeleton animation={false}>
                 <TextareaAutosize

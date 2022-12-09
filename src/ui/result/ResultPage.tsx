@@ -14,7 +14,8 @@ import {
   Box,
   Button,
   Checkbox,
-  FormControlLabel,
+  FormControl,
+  FormHelperText,
   IconButton,
   Modal,
   Tooltip,
@@ -114,8 +115,10 @@ export const ResultPage: React.FC = () => {
       width: 200,
       renderCell: ({id}) => (<Box><Tooltip title={'Delete result, wont even show you a popup!!'}>
         <IconButton
-          onClick={()=>{deleteResultFromStorage(`${id}`).then(()=>setReload(reload+1))}}
-          ><DeleteForeverIcon/></IconButton>
+          onClick={() => {
+            deleteResultFromStorage(`${id}`).then(() => setReload(reload + 1))
+          }}
+        ><DeleteForeverIcon/></IconButton>
       </Tooltip></Box> as ReactNode)
     }
   ]
@@ -141,10 +144,10 @@ export const ResultPage: React.FC = () => {
     </Box>
     <div>
       <Tooltip title={'No warning, or confirm dialog, just BAM!'}>
-      <Button
-        variant={"outlined"} color={"warning"}
-        onClick={()=> pruneOldestResultsFromStorage(100).then(()=>setReload(reload+1))}
-      >Remove oldest Results, leaving only 100</Button>
+        <Button
+          variant={"outlined"} color={"warning"}
+          onClick={() => pruneOldestResultsFromStorage(100).then(() => setReload(reload + 1))}
+        >Remove oldest Results, leaving only 100</Button>
       </Tooltip>
     </div>
   </>
@@ -171,14 +174,16 @@ const ResultTable: React.FC<ResultTableProps> = ({work}: ResultTableProps) => {
   return <>
     <div><Typography><b><u>What:</u></b> {work.kind}, {work.name}</Typography></div>
     <div><Alert color={statusToColor(work.status)}>Full Result: {work.status}</Alert></div>
-    <FormControlLabel label={<Typography>Show raw JSON</Typography>}
-                      control={<Checkbox value={showJson} onClick={() => setShowJson(!showJson)}/>}/>
+    <FormControl>
+      <FormHelperText><Typography>Show raw JSON</Typography></FormHelperText>
+      <Checkbox value={showJson} onClick={() => setShowJson(!showJson)}/>
+    </FormControl>
     {showJson && <>
         <hr/>
       {work.input && <Typography>Input: {JSON.stringify(work.input)}</Typography>}
         <Typography variant={'h4'}>Results:</Typography>
-        <Typography style={{fontStyle: 'italic', color: 'text.secondary'}}>Click the JSON to expand/collapse
-            it</Typography>
+        <Typography style={{fontStyle: 'italic', color: 'text.secondary'}}
+        >Click the JSON to expand/collapse it</Typography>
         <hr/>
       {work.result.map((r, index) => <ResultItem key={index} {...r} />)}
     </>}

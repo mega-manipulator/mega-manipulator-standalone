@@ -1,6 +1,6 @@
 import {MegaContext} from "../../hooks/MegaContext";
 import React, {useCallback, useContext, useEffect, useState} from "react";
-import {Button, FormControlLabel, IconButton, Switch, Tooltip, Typography} from "@mui/material";
+import {Button, FormControl, FormHelperText, IconButton, Switch, Tooltip, Typography} from "@mui/material";
 import FileOpenIcon from '@mui/icons-material/FileOpen';
 import {
   gitGetStagedFiles,
@@ -34,7 +34,7 @@ export const StageView: React.FC = () => {
         .then((diffs) => setUnStagedFiles(diffs.map((d) => d.diffFiles)))
         .catch((e) => error('Failed getting the unstage info ' + asString(e)));
     }
-  }, [stagedFiles, unStagedFiles, selected, loaded, showStage]);
+  }, [showStage, loaded, selected, settings]);
   useEffect(() => {
     setLoaded(false)
     setShowStage(false)
@@ -43,10 +43,10 @@ export const StageView: React.FC = () => {
   }, [selected]);
 
   return <>
-    <FormControlLabel
-      control={<Switch checked={showStage} onClick={loadStagingInfo}/>}
-      label={'Show staging info'}
-    />
+    <FormControl>
+      <FormHelperText>Show staging info</FormHelperText>
+      <Switch checked={showStage} onClick={loadStagingInfo}/>
+    </FormControl>
 
     {/* Staging info */}
     {showStage && <p>
@@ -65,7 +65,7 @@ export const StageView: React.FC = () => {
           ><RemoveIcon/>
           </IconButton>
         </Tooltip>
-        <Tooltip title={'Reset entire repo (TODO 🤦)'}><IconButton onClick={()=>window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
+        <Tooltip title={'Reset entire repo (TODO 🤦)'}><IconButton onClick={() => window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
         {stagedFiles[idx]
           ? <>
             <Typography color={"#6A6"}>Staged files ({stagedFiles[idx].length}): </Typography>
@@ -76,7 +76,8 @@ export const StageView: React.FC = () => {
                 ><RemoveIcon/>
                 </IconButton>
               </Tooltip>
-              <Tooltip title={'Reset file (TODO 🤦)'}><IconButton onClick={()=>window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
+              <Tooltip title={'Reset file (TODO 🤦)'}><IconButton
+                onClick={() => window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
               {s}
             </>)}</>
           : <Typography>Nothing staged</Typography>}
@@ -89,7 +90,8 @@ export const StageView: React.FC = () => {
                 ><AddIcon/>
                 </IconButton>
               </Tooltip>
-              <Tooltip title={'Reset file (TODO 🤦)'}><IconButton onClick={()=>window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
+              <Tooltip title={'Reset file (TODO 🤦)'}><IconButton
+                onClick={() => window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
               {s}
             </>)}</>
           : <Typography>Nothing unstaged</Typography>}

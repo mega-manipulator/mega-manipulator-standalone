@@ -1,7 +1,8 @@
 import React, {useContext, useState} from "react";
 import {WizardComponent} from "../wizard/WizardComponent";
 import {
-  FormControlLabel,
+  FormControl,
+  FormHelperText,
   IconButton,
   ListItemButton,
   ListItemButtonProps,
@@ -45,15 +46,14 @@ export const MakeChangesWizard: React.FC<{listItemButtonProps:ListItemButtonProp
           description: <>
             <Typography>Run Scripted Change on {selected.length} projects?</Typography>
             <Typography>The script will execute in the root of every project folder, and can be run in sequence or in parallel.</Typography>
-            <FormControlLabel
-              control={
+            <FormControl>
+              <FormHelperText>{runMode}</FormHelperText>
                 <Switch
                   checked={runMode === 'parallel'}
                   onClick={() => setRunMode(runMode === 'parallel' ? 'sequential' : "parallel")}
                 />
-              }
-              label={runMode}
-            />
+            </FormControl>
+
             <Tooltip title={'Open change-script'}><IconButton
               onClick={() => path.join(settings.clonePath, scriptFile).then((file) => open(file))}
             ><FileOpenIcon/></IconButton></Tooltip>

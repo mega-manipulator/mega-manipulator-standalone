@@ -3,7 +3,7 @@ import {GitHubSearchHostSettings} from "../../hooks/settings";
 import {PasswordForm} from "./PasswordForm";
 import {useMutableState} from "../../hooks/useMutableState";
 import {confirm} from "@tauri-apps/api/dialog";
-import {Alert, Button, Grid, TextField, Typography} from "@mui/material";
+import {Alert, Button, FormControl, FormHelperText, Grid, TextField, Typography} from "@mui/material";
 import {useNavigate, useParams} from "react-router-dom";
 import {locations} from "../route/locations";
 import {info, warn} from "tauri-plugin-log-api";
@@ -27,7 +27,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     } else {
       setSettings(null)
     }
-  }, [megaSettings])
+  }, [megaSettings, searchHostKey])
   const [searchHostKeyVal, setSearchHostKeyVal] = useState<string>(searchHostKey ?? '')
   const [searchHostKeySame, setSearchHostKeySame] = useState(0)
   const [searchHost, updateSearchHost, setSearchHost] = useMutableState<GitHubSearchHostSettings>(defaultSearchHost)
@@ -35,7 +35,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     if (settings !== null) {
       setSearchHost(settings)
     }
-  }, [settings])
+  }, [setSearchHost,settings])
   useEffect(() => {
     if (megaSettings !== null) {
       setSearchHostKeySame(Object.keys(megaSettings.searchHosts).filter((it) => it === searchHostKeyVal).length)
@@ -51,6 +51,8 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     if (searchHost?.username === undefined || searchHost.username.length < 1) errors.push('Username is undefined')
     if (searchHost?.baseUrl === undefined || searchHost.baseUrl.length < 1) errors.push('BaseURL is undefined')
     if (searchHost?.baseUrl !== undefined && !searchHost.baseUrl.match(/^https*:\/\/.*[^/]$/)) errors.push('BaseURL is malformed')
+    if (searchHost?.baseUrl !== undefined && (searchHost.baseUrl.startsWith('https://github.com') || searchHost.baseUrl.startsWith('http://github.com'))) errors.push('GitHub base url is https://api.github.com')
+    if (searchHost?.baseUrl !== undefined && (searchHost.baseUrl.startsWith('https://api.github.com') || searchHost.baseUrl.startsWith('http://api.github.com')) && searchHost.baseUrl !== 'https://api.github.com') errors.push('GitHub base url is https://api.github.com')
     if (errors.length === 0) setValidationError(undefined); else setValidationError(errors.join(', '));
   }, [searchHost, searchHostKeyVal, searchHostKey, searchHostKeySame])
   const header = useMemo(() => `${searchHostKey === undefined ? 'Create' : `Edit ${searchHostKey}`} (GitHub Search Host)`, [searchHostKey])
@@ -59,34 +61,40 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     <Typography variant={"h4"}>{header}</Typography>
     <Grid>
       <Grid item sm={12} lg={6}>
-        <TextField
-          variant={"outlined"}
-          label={'Search Host Key'}
-          disabled={searchHostKey !== undefined}
-          placeholder="Search Host Key"
-          value={searchHostKeyVal}
-          onChange={(event) => setSearchHostKeyVal(event.target.value)}
-        />
+        <FormControl>
+          <FormHelperText>Search Host Key</FormHelperText>
+          <TextField
+            variant={"outlined"}
+            disabled={searchHostKey !== undefined}
+            placeholder="Search Host Key"
+            value={searchHostKeyVal}
+            onChange={(event) => setSearchHostKeyVal(event.target.value)}
+          />
+        </FormControl>
       </Grid>
       <Grid item sm={12} lg={6}>
-        <TextField
-          variant={"outlined"}
-          label={'Username'}
-          placeholder="Username"
-          value={searchHost?.username}
-          onChange={(event) => updateSearchHost((draft) => {
-            draft.username = event.target.value
-          })}/>
+        <FormControl>
+          <FormHelperText>Username</FormHelperText>
+          <TextField
+            variant={"outlined"}
+            placeholder="Username"
+            value={searchHost?.username}
+            onChange={(event) => updateSearchHost((draft) => {
+              draft.username = event.target.value
+            })}/>
+        </FormControl>
       </Grid>
       <Grid item sm={12} lg={6}>
-        <TextField
-          variant={"outlined"}
-          label={'BaseURL'}
-          placeholder="BaseURL"
-          value={searchHost?.baseUrl}
-          onChange={(event) => updateSearchHost((draft) => {
-            draft.baseUrl = event.target.value
-          })}/>
+        <FormControl>
+          <FormHelperText>BaseURL</FormHelperText>
+          <TextField
+            variant={"outlined"}
+            placeholder="BaseURL"
+            value={searchHost?.baseUrl}
+            onChange={(event) => updateSearchHost((draft) => {
+              draft.baseUrl = event.target.value
+            })}/>
+        </FormControl>
       </Grid>
     </Grid>
     <Grid>

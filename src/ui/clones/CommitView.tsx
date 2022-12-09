@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from "react";
-import {Alert, Button, CircularProgress, Tooltip} from "@mui/material";
+import {Alert, Button, CircularProgress, FormControl, FormHelperText, Tooltip} from "@mui/material";
 import {gitCommit} from "../../service/file/gitCommit";
 import {asString} from "../../hooks/logWrapper";
 import {MegaContext} from "../../hooks/MegaContext";
@@ -39,7 +39,7 @@ export const CommitView: React.FC = () => {
     })
       .then((result) => setResultNumber(result))
       .catch((e) => setErr(asString(e)))
-  }, [commitMessage]);
+  }, [selected, settings, commitMessage]);
 
   return <>
     {err && <Alert>{err}</Alert>}
@@ -54,19 +54,22 @@ export const CommitView: React.FC = () => {
             >Result: {result}</Alert>
         </Tooltip>}
     <div>
-      <MemorableTextField
-        textProps={{
-          minRows: 5,
-          fullWidth: true,
-          label: 'Commit message',
-          disabled: used,
-        }}
-        memProps={{
-          megaFieldIdentifier: 'commitMessageField',
-          value: commitMessage,
-          valueChange: setCommitMessage,
-        }}
-      />
+      <FormControl fullWidth>
+        <FormHelperText>Commit message</FormHelperText>
+        <MemorableTextField
+          textProps={{
+            minRows: 5,
+            fullWidth: true,
+            disabled: used,
+            placeholder: 'Made some improvements to the flux capacitor',
+          }}
+          memProps={{
+            megaFieldIdentifier: 'commitMessageField',
+            value: commitMessage,
+            valueChange: setCommitMessage,
+          }}
+        />
+      </FormControl>
     </div>
     {used && !resultNumber && <CircularProgress/>}
     <Button

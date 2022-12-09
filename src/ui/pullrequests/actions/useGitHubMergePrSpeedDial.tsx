@@ -3,7 +3,7 @@ import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useEffect, useMemo, useState} from "react";
 import CallMergeIcon from '@mui/icons-material/CallMerge';
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
-import {Alert, FormControlLabel, MenuItem, Select, Switch} from "@mui/material";
+import {Alert, FormControl, FormHelperText, MenuItem, Select, Switch} from "@mui/material";
 import {GithubMergeMethodResponse, GitHubPull} from "../../../hooks/github.com";
 import {MemorableTextField} from "../../components/MemorableTextField";
 
@@ -59,7 +59,7 @@ export function useGitHubMergePrSpeedDial() {
       }
     }
     return []
-  }, [selected])
+  }, [customMerge, merge, selected])
   // * PRs that are already merged
   const prsThatAreAlreadyMerged = useMemo(() => selected.filter((s) => s && s.mergedAt), [selected]);
   const draftPrs = useMemo(() => selected.filter((s) => s && s.draft), [selected]);
@@ -82,51 +82,71 @@ export function useGitHubMergePrSpeedDial() {
       >{draftPrs.length} PRs are merely drafts</Alert>}
 
       <div>
-        <FormControlLabel
-          control={<Switch checked={dropBranch} onClick={() => setDropBranch(!dropBranch)}/>}
-          label={<>Drop branch after merge {dropBranch ? '🧨' : '🛟'}</>}/>
+        <FormControl>
+          <FormHelperText><>Drop branch after merge {dropBranch ? '🧨' : '🛟'}</>
+          </FormHelperText>
+          <Switch checked={dropBranch} onClick={() => setDropBranch(!dropBranch)}/>
+        </FormControl>
       </div>
-      <FormControlLabel
-        control={<Switch checked={customCommit} onClick={() => setCustomCommit(!customCommit)}/>}
-        label={customCommit ? 'Custom commit message ✅' : 'Override default/generated commit messages'}/>
+      <FormControl>
+        <FormHelperText>{customCommit ? 'Custom commit message ✅' : 'Override default/generated commit messages'}</FormHelperText>
+        <Switch checked={customCommit} onClick={() => setCustomCommit(!customCommit)}/>
+      </FormControl>
       {customCommit && <div>
-          <MemorableTextField
-              memProps={{
-                megaFieldIdentifier: 'mergeTitle',
-                value: title,
-                valueChange: setTitle,
-              }}
-              textProps={{
-                label: 'Commit title',
-                disabled: !customCommit,
-              }}
-          />
-          <MemorableTextField
-              memProps={{
-                megaFieldIdentifier: 'mergeBody',
-                value: message,
-                valueChange: setMessage,
-              }}
-              textProps={{
-                label: 'Commit message',
-                disabled: !customCommit,
-              }}
-          />
+          <FormControl fullWidth>
+              <FormHelperText>Commit title</FormHelperText>
+              <MemorableTextField
+                  memProps={{
+                    megaFieldIdentifier: 'mergeTitle',
+                    value: title,
+                    valueChange: setTitle,
+                  }}
+                  textProps={{
+                    disabled: !customCommit,
+                    style: {minWidth: '25em'},
+                    fullWidth: true,
+                    multiline: true,
+                  }}
+              />
+          </FormControl>
+          <FormControl fullWidth>
+              <FormHelperText>Commit message</FormHelperText>
+              <MemorableTextField
+                  memProps={{
+                    megaFieldIdentifier: 'mergeBody',
+                    value: message,
+                    valueChange: setMessage,
+                  }}
+                  textProps={{
+                    disabled: !customCommit,
+                    style: {minWidth: '25em'},
+                    fullWidth: true,
+                    multiline: true,
+                  }}
+              />
+          </FormControl>
       </div>}
-      <FormControlLabel
-        control={<Switch checked={customMerge} onClick={() => setCustomMerge(!customMerge)}/>}
-        label={'Use preferred merge strategy'}/>
-      {customMerge && <div>
-          <Select
-              disabled={!customMerge}
-              value={merge}>
-            {mergeAlternatives.map((v, i) => <MenuItem
-              key={i}
-              value={v.type}
-              onClick={() => setMerge(v.type)}
-            >{v.name}</MenuItem>)}
-          </Select>
-      </div>}
+
+      <div>
+        <FormControl>
+          <FormHelperText>Use preferred merge strategy</FormHelperText>
+          <Switch checked={customMerge} onClick={() => setCustomMerge(!customMerge)}/>
+        </FormControl>
+        {customMerge && <div>
+            <FormControl>
+                <FormHelperText>Merge strategy</FormHelperText>
+                <Select
+                    disabled={!customMerge}
+                    value={merge}>
+                  {mergeAlternatives.map((v, i) => <MenuItem
+                    key={i}
+                    value={v.type}
+                    onClick={() => setMerge(v.type)}
+                  >{v.name}</MenuItem>)}
+                </Select>
+            </FormControl>
+        </div>}
+      </div>
     </>,
     action,
   )

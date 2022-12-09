@@ -3,7 +3,7 @@ import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useState} from "react";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
-import {Alert, MenuItem, Select} from "@mui/material";
+import {Alert, FormControl, FormHelperText, MenuItem, Select} from "@mui/material";
 import {MemorableTextField} from "../../components/MemorableTextField";
 
 export function useGitHubReviewPrSpeedDial() {
@@ -25,7 +25,7 @@ export function useGitHubReviewPrSpeedDial() {
         time: 0,
       }
     },
-    [selected, body, event],
+    [ghClient, selected, body, event],
   );
 
   return useGenericPrSpeedDialActionProps(
@@ -34,20 +34,24 @@ export function useGitHubReviewPrSpeedDial() {
     <CheckCircleIcon/>,
     <>
       {clientInitError && <Alert color={"warning"} variant={"outlined"}>{clientInitError}</Alert>}
-      <Select label={'Approval'}>
-        <MenuItem value={'REQUEST_CHANGES'} onSelect={() => setEvent('REQUEST_CHANGES')}>Request Changes</MenuItem>
-        <MenuItem value={'APPROVE'} onSelect={() => setEvent('APPROVE')}>Approve</MenuItem>
-      </Select>
-      <MemorableTextField
-        memProps={{
-          megaFieldIdentifier: 'prReviewComment',
-          value: body,
-          valueChange: setBody,
-        }}
-        textProps={{
-          label: 'Review message',
-        }}
-      />
+      <FormControl>
+        <FormHelperText>Approval</FormHelperText>
+        <Select>
+          <MenuItem value={'REQUEST_CHANGES'} onSelect={() => setEvent('REQUEST_CHANGES')}>Request Changes</MenuItem>
+          <MenuItem value={'APPROVE'} onSelect={() => setEvent('APPROVE')}>Approve</MenuItem>
+        </Select>
+      </FormControl>
+      <FormControl fullWidth>
+        <FormHelperText>Review message</FormHelperText>
+        <MemorableTextField
+          memProps={{
+            megaFieldIdentifier: 'prReviewComment',
+            value: body,
+            valueChange: setBody,
+          }}
+          textProps={{ style:{width:'15em'}}}
+        />
+      </FormControl>
     </>,
     action
   )

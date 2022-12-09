@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useState} from "react";
 import {GenericMultiProjectMenuItem} from "./GenericMultiProjectMenuItem";
-import {Alert, Button, FormControlLabel, Switch, Typography} from "@mui/material";
+import {Alert, Button, FormControl, FormHelperText, Switch, Typography} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
 import {openDirs, runScriptInParallel, runScriptSequentially} from "../../service/file/scriptFile";
 import {WorkResultStatus} from "../../service/types";
@@ -32,15 +32,13 @@ export const ExecuteScriptedChangeMenuItem: React.FC = () => {
         onClick={() => path.join(settings.clonePath, 'mega-manipulator.bash')
           .then((p) => openDirs(settings, [p]))}
       >Open script in editor</Button>
-      <FormControlLabel
-        control={
-          <Switch
-            checked={runMode === 'parallel'}
-            onClick={() => setRunMode(runMode === 'parallel' ? 'sequential' : "parallel")}
-          />
-        }
-        label={runMode}
-      />
+      <FormControl>
+        <FormHelperText>{runMode}</FormHelperText>
+        <Switch
+          checked={runMode === 'parallel'}
+          onClick={() => setRunMode(runMode === 'parallel' ? 'sequential' : "parallel")}
+        />
+      </FormControl>
     </>}
     action={async () => {
       switch (runMode) {

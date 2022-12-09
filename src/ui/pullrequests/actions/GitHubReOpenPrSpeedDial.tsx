@@ -1,7 +1,7 @@
 import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useMemo, useState} from "react";
-import {Alert, FormControlLabel, Switch, Tooltip} from "@mui/material";
+import {Alert, FormControl, FormHelperText, Switch, Tooltip} from "@mui/material";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {open} from "@tauri-apps/api/shell";
 import RotateRightIcon from '@mui/icons-material/RotateRight';
@@ -48,24 +48,27 @@ export function useGitHubReOpenPrSpeedDial() {
       {clientInitError && <Alert variant={"outlined"} color={"error"}>{clientInitError}</Alert>}
 
       <div>
-        <FormControlLabel
-          control={<Switch
+        <FormControl>
+          <FormHelperText>Comment</FormHelperText>
+          <Switch
             onClick={() => setDoComment(!doComment)}
             checked={doComment}
-          />}
-          label={'Comment'}/>
+          />
+        </FormControl>
       </div>
-      {doComment && <MemorableTextField
-          memProps={{
-            megaFieldIdentifier: 'reOpenPrComment',
-            value: reopenComment,
-            valueChange: setReopenComment,
-          }}
-          textProps={{
-            disabled: doComment,
-            label: 'Re-open comment',
-          }}
-      />}
+      {doComment && <FormControl fullWidth>
+          <FormHelperText>Re-open comment</FormHelperText>
+          <MemorableTextField
+              memProps={{
+                megaFieldIdentifier: 'reOpenPrComment',
+                value: reopenComment,
+                valueChange: setReopenComment,
+              }}
+              textProps={{
+                disabled: doComment,
+              }}
+          />
+      </FormControl>}
     </>,
     action
   )

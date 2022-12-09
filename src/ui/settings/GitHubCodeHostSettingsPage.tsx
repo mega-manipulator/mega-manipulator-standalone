@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useMemo, useState} from "react";
 import {confirm} from "@tauri-apps/api/dialog";
-import {Alert, Button, Grid, TextField, Typography} from "@mui/material";
+import {Alert, Button, FormControl, FormHelperText, Grid, TextField, Typography} from "@mui/material";
 import {useNavigate, useParams} from "react-router-dom";
 import {locations} from "../route/locations";
 import {info, warn} from "tauri-plugin-log-api";
@@ -16,10 +16,7 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
   const [codeHostVal, setCodeHostVal] = useState<GitHubCodeHostSettings>();
   useEffect(() => {
     setCodeHostVal(codeHost?.github ?? {
-      baseUrl: 'https://api.github.com',
-      cloneHost: 'github.com',
-      hostType: "CODE",
-      username: 'jensim',
+      baseUrl: 'https://api.github.com', cloneHost: 'github.com', hostType: "CODE", username: 'jensim',
     })
   }, [codeHost])
   useEffect(() => {
@@ -39,8 +36,10 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
     if (codeHostVal?.username === undefined || codeHostVal.username.length < 1) errors.push('Username is undefined')
     if (codeHostVal?.baseUrl === undefined || codeHostVal.baseUrl.length < 1) errors.push('BaseURL is undefined')
     if (codeHostVal?.baseUrl !== undefined && !codeHostVal.baseUrl.match(/^https*:\/\/.*[^/]$/)) errors.push('BaseURL is malformed')
+    if (codeHostVal?.baseUrl !== undefined && (codeHostVal.baseUrl.startsWith('https://github.com') || codeHostVal.baseUrl.startsWith('http://github.com'))) errors.push('GitHub base url is https://api.github.com')
+    if (codeHostVal?.baseUrl !== undefined && (codeHostVal.baseUrl.startsWith('https://api.github.com') || codeHostVal.baseUrl.startsWith('http://api.github.com')) && codeHostVal.baseUrl !== 'https://api.github.com') errors.push('GitHub base url is https://api.github.com')
     if (errors.length === 0) setValidationError(undefined); else setValidationError(errors.join(', '));
-  }, [codeHostVal, codeHostKeyVal])
+  }, [codeHostVal, codeHostKeyVal, codeHostKey, codeHostKeySame])
   const header = useMemo(() => `${codeHostKey === undefined ? 'Create' : `Edit ${codeHostKey}`} (GitHub Code Host)`, [codeHostKey])
   const nav = useNavigate()
 
@@ -60,35 +59,40 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
                 nav(locations.settings.link)
               }
             })
-          }
-          }>Delete</Button>}
+          }}>Delete</Button>}
         </div>
         <Grid>
             <Grid item sm={12} lg={6}>
-                <TextField
-                    variant={"outlined"}
-                    label={'Code Host Key'}
-                    disabled={codeHostKey !== undefined}
-                    placeholder="Code Host Key"
-                    value={codeHostKeyVal}
-                    onChange={(event) => setCodeHostKeyVal(event.target.value)}
-                />
+                <FormControl>
+                    <FormHelperText>Code Host Key</FormHelperText>
+                    <TextField
+                        variant={"outlined"}
+                        disabled={codeHostKey !== undefined}
+                        placeholder="Code Host Key"
+                        value={codeHostKeyVal}
+                        onChange={(event) => setCodeHostKeyVal(event.target.value)}
+                    />
+                </FormControl>
             </Grid>
             <Grid item sm={12} lg={6}>
-                <TextField
-                    variant={"outlined"}
-                    label={'Username'}
-                    placeholder="Username"
-                    value={codeHostVal?.username}
-                    onChange={(event) => setCodeHostVal({...codeHostVal, username: event.target.value})}/>
+                <FormControl>
+                    <FormHelperText>Username</FormHelperText>
+                    <TextField
+                        variant={"outlined"}
+                        placeholder="Username"
+                        value={codeHostVal?.username}
+                        onChange={(event) => setCodeHostVal({...codeHostVal, username: event.target.value})}/>
+                </FormControl>
             </Grid>
             <Grid item sm={12} lg={6}>
-                <TextField
-                    variant={"outlined"}
-                    label={'Username'}
-                    placeholder="BaseURL"
-                    value={codeHostVal?.baseUrl}
-                    onChange={(event) => setCodeHostVal({...codeHostVal, baseUrl: event.target.value})}/>
+                <FormControl>
+                    <FormHelperText>BaseURL</FormHelperText>
+                    <TextField
+                        variant={"outlined"}
+                        placeholder="BaseURL"
+                        value={codeHostVal?.baseUrl}
+                        onChange={(event) => setCodeHostVal({...codeHostVal, baseUrl: event.target.value})}/>
+                </FormControl>
             </Grid>
         </Grid>
         <Button
@@ -102,8 +106,7 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
                   info('Creating new Code host config node')
                   updateMegaSettings(async (settingsDraft) => {
                     settingsDraft.codeHosts[codeHostKeyVal] = {
-                      type: 'GITHUB',
-                      github: codeHostVal,
+                      type: 'GITHUB', github: codeHostVal,
                     }
                   });
                   nav(locations.settings.link)
@@ -115,8 +118,7 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
                 info('Updating old Code host config node')
                 updateMegaSettings(async (settingsDraft) => {
                   settingsDraft.codeHosts[codeHostKeyVal] = {
-                    type: 'GITHUB',
-                    github: codeHostVal,
+                    type: 'GITHUB', github: codeHostVal,
                   }
                 })
               }

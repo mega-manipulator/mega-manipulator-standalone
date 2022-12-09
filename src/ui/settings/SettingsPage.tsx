@@ -20,9 +20,9 @@ import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
 import {createDefault, MegaSettingsType} from "../../hooks/settings";
 import {error, info} from "tauri-plugin-log-api";
-import {asString} from "../../hooks/logWrapper";
 import {NewSearchHostButton} from "./NewSearchHostButton";
 import {MegaContext} from "../../hooks/MegaContext";
+import {MemorableTextField} from "../components/MemorableTextField";
 
 type SearchHostRowProps = {
   searchHostKey: string,
@@ -121,7 +121,7 @@ export const SettingsPage = () => {
 
   const [keepLocalRepos, setKeepLocalRepos] = useState<string>()
   const [clonePath, setClonePath] = useState<string>()
-  const [editorApplicationPath, setEditorApplicationPath] = useState<string>();
+  const [editorApplicationPath, setEditorApplicationPath] = useState<string>('');
 
   const [state, setState] = useState<'loading' | 'ready'>('loading')
   useEffect(() => {
@@ -133,7 +133,7 @@ export const SettingsPage = () => {
     } else {
       setKeepLocalRepos(undefined)
       setClonePath(undefined)
-      setEditorApplicationPath(undefined)
+      setEditorApplicationPath('')
       setState('loading')
     }
   }, [megaSettings])
@@ -175,25 +175,30 @@ export const SettingsPage = () => {
         />
       </Grid>
       <Grid item xs={12} md={6}>
-        <TextField
-          id='editorApplication-text-field'
-          fullWidth
-          label={'Editor Application path'}
-          variant={"outlined"}
-          value={editorApplicationPath}
-          onChange={(event) => setEditorApplicationPath(event.target.value)}
+        <MemorableTextField
+          memProps={{
+            megaFieldIdentifier: 'editorApplicationPath',
+            value: editorApplicationPath,
+            valueChange: setEditorApplicationPath,
+          }}
+          textProps={{
+            id: 'editorApplication-text-field',
+            fullWidth: true,
+            label: 'Editor Application path',
+            variant: "outlined",
+          }}
         />
       </Grid>
       <Grid item xs={12}>
         <Button
           variant={"contained"}
           onClick={() => {
-            updateMegaSettings(async (draft) => {
+            updateMegaSettings((draft) => {
               if (clonePath) draft.clonePath = clonePath;
               if (keepLocalRepos) draft.keepLocalReposPath = keepLocalRepos;
               if (editorApplicationPath) draft.editorApplication = editorApplicationPath;
-            }).then(() => info('Updated settings'))
-              .catch((e) => error(`Failed updating settings: ${asString(e)}`))
+            })
+            info('Updated settings')
           }}
         >Save settings</Button>
       </Grid>

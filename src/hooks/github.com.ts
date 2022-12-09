@@ -484,7 +484,7 @@ export class GithubClient {
     })
   }
 
-  async closePullRequests(input: { prs: GitHubPull[], comment: string, dropBranch: boolean }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+  async closePullRequests(input: { prs: GitHubPull[], comment?: string, dropBranch: boolean }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
     return await this.patchPullRequests({...input, body: {state: "closed"}}, progressCallback);
   }
 
@@ -506,7 +506,7 @@ export class GithubClient {
           await sleep(1000);
           return await this.api.patch(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}`, input.body, {})
         })
-        if (result.status === 200 && input.comment) {
+        if (result.status === 200) {
           await this.commentPr(pr, input.comment, meta)
         }
         if (result.status === 200 && input.dropBranch === true) {
@@ -530,11 +530,13 @@ export class GithubClient {
     });
   }
 
-  private async commentPr(pr: GitHubPull, comment: string, meta: WorkMeta) {
-    await this.evalRequest('Comment PullRequest', meta, async () => {
-      await sleep(1000)
-      return await this.api.post(`/repos/${pr.owner?.login}/${pr.repo}/issues/${pr.prNumber}/comments`, {body: comment}, {})
-    });
+  private async commentPr(pr: GitHubPull, comment: string | undefined, meta: WorkMeta) {
+    if (comment && comment.length !== 0) {
+      await this.evalRequest('Comment PullRequest', meta, async () => {
+        await sleep(1000)
+        return await this.api.post(`/repos/${pr.owner?.login}/${pr.repo}/issues/${pr.prNumber}/comments`, {body: comment}, {})
+      });
+    }
   }
 
   createPullRequests(input: GitHubPullRequestInput, progressCallback: (done: number) => void): Promise<SimpleGitActionReturn> {

@@ -19,7 +19,6 @@ import {
 import {debug} from "tauri-plugin-log-api";
 import {locations} from "../route/locations";
 import {PasswordForm} from "./PasswordForm";
-import {asString} from "../../hooks/logWrapper";
 import DeleteIcon from '@mui/icons-material/Delete';
 import {MegaSettingsType, SourceGraphSearchHostSettings} from "../../hooks/settings";
 import {MegaContext} from "../../hooks/MegaContext";
@@ -196,7 +195,7 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
         disabled={!validateSearchHost}
         onClick={() => {
           if (searchHostEdit && validateSearchHost) {
-            updateMegaSettings(async (draft) => {
+            updateMegaSettings((draft) => {
               if (searchHostKey) {
                 draft.searchHosts[searchHostKey].type = "SOURCEGRAPH"
                 draft.searchHosts[searchHostKey].sourceGraph = searchHostEdit
@@ -206,8 +205,8 @@ export const SourceGraphSearchHostSettingsPage: React.FC = () => {
                   sourceGraph: searchHostEdit,
                 }
               }
-            }).then(() => nav(locations.settings.link))
-              .catch((e) => setErrors([...errors, asString(e)]))
+            })
+            nav(locations.settings.link)
           }
         }}>Save</Button>
     </div>

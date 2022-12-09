@@ -1,7 +1,6 @@
 import {
   Alert,
   Avatar,
-  Backdrop,
   Box,
   CircularProgress,
   Drawer,
@@ -22,6 +21,8 @@ import {OpenProjectsMenuItem, OpenWorkdirMenuItem} from "./OpenProjectsMenuItem"
 import {ExecuteScriptedChangeMenuItem} from "./ExecuteScriptedChangeMenuItem";
 import {MakeChangesWizard} from "./MakeChangesWizard";
 import ReplayIcon from '@mui/icons-material/Replay';
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import {openDirs} from "../../service/file/scriptFile";
 
 const renderBoolCell = (params: GridRenderCellParams) => {
   const report = params.value as Report
@@ -60,13 +61,11 @@ const columns: GridColDef[] = [
 
 export const ClonesPage: React.FC = () => {
   const {settings, clones: {setPaths, setSelected, selectedModel}} = useContext(MegaContext)
-  const [state, setState] = useState<'loading' | 'ready'>('loading')
 
   const [repoStates, setRepoStates] = useState<RepoBadStatesReport[]>([])
   const [selectedRepos, setSelectedRepos] = useState<RepoBadStatesReport[]>([])
   const [reloader, setReloader] = useState(0)
   useEffect(() => {
-    setState('loading')
     if (settings !== null) {
       (async () => {
         const paths = await listRepos(settings.clonePath);
@@ -75,12 +74,11 @@ export const ClonesPage: React.FC = () => {
           const trimmedRepoPath = path.substring((settings.clonePath?.length ?? -1) + 1)
           return new RepoBadStatesReport(path, trimmedRepoPath);
         }));
-        setState('ready')
         const analysis = await Promise.all(paths.map((path) => analyzeRepoForBadStates(settings, path)))
         setRepoStates(analysis)
       })()
     }
-  }, [settings, reloader, setPaths])
+  }, [settings, reloader])
   const reloadTrigger = useCallback(() => {
     setSelectedRepos([])
     setReloader((reloader + 1) % 10)
@@ -89,11 +87,14 @@ export const ClonesPage: React.FC = () => {
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
 
   return <>
-    <Backdrop open={state === 'loading'} sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}>
-      <CircularProgress/>
-    </Backdrop>
     <Typography variant={'h4'}>Clones</Typography>
-    <div>WorkDir: {settings.clonePath}</div>
+    <div>
+      WorkDir: {settings.clonePath} <Tooltip title={'Open work dir in editor application'}>
+      <IconButton onClick={()=>openDirs(settings,[settings.clonePath])}>
+      <OpenInNewIcon/>
+    </IconButton>
+      </Tooltip>
+    </div>
     <Tooltip title={'Reload repos'}><IconButton onClick={reloadTrigger}><ReplayIcon/></IconButton></Tooltip>
     <Box sx={{width: '100%'}}>
       <DataGridPro

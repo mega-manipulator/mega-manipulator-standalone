@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from "react";
-import {Alert, Button, CircularProgress, TextField, Tooltip} from "@mui/material";
+import {Alert, Button, CircularProgress, Tooltip} from "@mui/material";
 import {gitCommit} from "../../service/file/gitCommit";
 import {asString} from "../../hooks/logWrapper";
 import {MegaContext} from "../../hooks/MegaContext";
@@ -7,6 +7,7 @@ import {WorkResultStatus} from "../../service/types";
 import {getResultFromStorage} from "../../service/work/workLog";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
+import {MemorableTextField} from "../components/MemorableTextField";
 
 export const CommitView: React.FC = () => {
   const nav = useNavigate()
@@ -53,13 +54,18 @@ export const CommitView: React.FC = () => {
             >Result: {result}</Alert>
         </Tooltip>}
     <div>
-      <TextField
-        minRows={5}
-        fullWidth
-        label={'Commit message'}
-        disabled={used}
-        value={commitMessage}
-        onChange={(event) => setCommitMessage(event.target.value)}
+      <MemorableTextField
+        textProps={{
+          minRows: 5,
+          fullWidth: true,
+          label: 'Commit message',
+          disabled: used,
+        }}
+        memProps={{
+          megaFieldIdentifier: 'commitMessageField',
+          value: commitMessage,
+          valueChange: setCommitMessage,
+        }}
       />
     </div>
     {used && !resultNumber && <CircularProgress/>}

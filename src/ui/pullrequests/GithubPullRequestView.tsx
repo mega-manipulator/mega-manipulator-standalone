@@ -1,5 +1,5 @@
 import {SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
-import React from "react";
+import React, {useState} from "react";
 import EditIcon from '@mui/icons-material/Edit'
 import {useGitHubEditPrSpeedDialProps} from "./actions/GitHubEditPrSpeedDial";
 import {GitHubPullRequestSearch} from "./GitHubPullRequestSearch";
@@ -16,6 +16,7 @@ import {useGitHubOpenPrInBrowserSpeedDial} from "./actions/GitHubOpenPrInBrowser
 
 export const GithubPullRequestView: React.FC = () => {
   const cloneModalProps = useCloneModalProps()
+  const [isDialOpen, setIsDialOpen] = useState(false);
 
   const items = [
     useGitHubEditPrSpeedDialProps(),
@@ -37,8 +38,11 @@ export const GithubPullRequestView: React.FC = () => {
     {items.map((item, idx) => <GenericPrSpeedDialModal key={idx} {...item} />)}
 
     <SpeedDial
+      open={isDialOpen}
+      onClose={()=>setIsDialOpen(false)}
+      onClick={()=> setIsDialOpen(true)}
       ariaLabel="SpeedDial openIcon example"
-      sx={{position: 'fixed', bottom: 16, left: 16}}
+      sx={{position: 'fixed', bottom: 16, right: 16}}
       icon={<SpeedDialIcon icon={<EditIcon/>}/>}
     >
       {items.filter((item) => !item.disabled)

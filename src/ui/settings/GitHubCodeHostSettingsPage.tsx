@@ -27,7 +27,7 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
   }, [codeHostKey]);
   const [codeHostKeySame, setCodeHostKeySame] = useState(0)
   useEffect(() => {
-      setCodeHostKeySame(Object.keys(megaSettings.codeHosts).filter((it) => it === codeHostKeyVal).length)
+    setCodeHostKeySame(Object.keys(megaSettings.codeHosts).filter((it) => it === codeHostKeyVal).length)
   }, [codeHostKeyVal, megaSettings])
   const [validationError, setValidationError] = useState<string>()
   useEffect(() => {
@@ -66,7 +66,8 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
         <Grid>
             <Grid item sm={12} lg={6}>
                 <TextField
-                    variant={"outlined"} label={'Code Host Key'}
+                    variant={"outlined"}
+                    label={'Code Host Key'}
                     disabled={codeHostKey !== undefined}
                     placeholder="Code Host Key"
                     value={codeHostKeyVal}
@@ -75,14 +76,16 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
             </Grid>
             <Grid item sm={12} lg={6}>
                 <TextField
-                    variant={"outlined"} label={'Username'}
+                    variant={"outlined"}
+                    label={'Username'}
                     placeholder="Username"
                     value={codeHostVal?.username}
                     onChange={(event) => setCodeHostVal({...codeHostVal, username: event.target.value})}/>
             </Grid>
             <Grid item sm={12} lg={6}>
                 <TextField
-                    variant={"outlined"} label={'Username'}
+                    variant={"outlined"}
+                    label={'Username'}
                     placeholder="BaseURL"
                     value={codeHostVal?.baseUrl}
                     onChange={(event) => setCodeHostVal({...codeHostVal, baseUrl: event.target.value})}/>

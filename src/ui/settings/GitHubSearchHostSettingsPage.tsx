@@ -9,10 +9,10 @@ import {locations} from "../route/locations";
 import {info, warn} from "tauri-plugin-log-api";
 import {MegaContext} from "../../hooks/MegaContext";
 
-const defaultSearchHost:GitHubSearchHostSettings = {
+const defaultSearchHost: GitHubSearchHostSettings = {
   baseUrl: 'https://api.github.com',
-  hostType:"SEARCH",
-  username:'',
+  hostType: "SEARCH",
+  username: '',
   codeHostKey: 'github.com',
 }
 
@@ -59,28 +59,34 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
     <Typography variant={"h4"}>{header}</Typography>
     <Grid>
       <Grid item sm={12} lg={6}>
-        <TextField variant={"outlined"} label={'Search Host Key'}
-                   disabled={searchHostKey !== undefined}
-                   placeholder="Search Host Key"
-                   value={searchHostKeyVal}
-                   onChange={(event) => setSearchHostKeyVal(event.target.value)}
+        <TextField
+          variant={"outlined"}
+          label={'Search Host Key'}
+          disabled={searchHostKey !== undefined}
+          placeholder="Search Host Key"
+          value={searchHostKeyVal}
+          onChange={(event) => setSearchHostKeyVal(event.target.value)}
         />
       </Grid>
       <Grid item sm={12} lg={6}>
-        <TextField variant={"outlined"} label={'Username'}
-                   placeholder="Username"
-                   value={searchHost?.username}
-                   onChange={(event) => updateSearchHost((draft) => {
-                     draft.username = event.target.value
-                   })}/>
+        <TextField
+          variant={"outlined"}
+          label={'Username'}
+          placeholder="Username"
+          value={searchHost?.username}
+          onChange={(event) => updateSearchHost((draft) => {
+            draft.username = event.target.value
+          })}/>
       </Grid>
       <Grid item sm={12} lg={6}>
-        <TextField variant={"outlined"} label={'BaseURL'}
-                   placeholder="BaseURL"
-                   value={searchHost?.baseUrl}
-                   onChange={(event) => updateSearchHost((draft) => {
-                     draft.baseUrl = event.target.value
-                   })}/>
+        <TextField
+          variant={"outlined"}
+          label={'BaseURL'}
+          placeholder="BaseURL"
+          value={searchHost?.baseUrl}
+          onChange={(event) => updateSearchHost((draft) => {
+            draft.baseUrl = event.target.value
+          })}/>
       </Grid>
     </Grid>
     <Grid>
@@ -117,7 +123,7 @@ export const GitHubSearchHostSettingsPage: React.FC = () => {
         </Button>
       </Grid>
       {validationError &&
-        <Grid item sm={12} lg={6}><Alert severity={"warning"} color={"warning"}>{validationError}</Alert></Grid>}
+          <Grid item sm={12} lg={6}><Alert severity={"warning"} color={"warning"}>{validationError}</Alert></Grid>}
       <Grid item sm={12} lg={6}>
         <Button
           color={"warning"}

@@ -19,7 +19,7 @@ export const ExecuteScriptedChangeMenuItem: React.FC = () => {
     openButtonText={`Run Scripted Change`}
     confirm={<>
       {Object.keys(result).length === 0 ?
-        <Typography>Run Scripted Change on {selected.length} projects</Typography> :
+        <Typography variant={'h6'}>Run Scripted Change on {selected.length} projects</Typography> :
         <>{Object.keys(result).map((k, i) => <Alert
           key={i}
           variant={"outlined"}

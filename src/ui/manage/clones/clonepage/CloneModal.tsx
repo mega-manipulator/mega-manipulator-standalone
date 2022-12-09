@@ -3,13 +3,11 @@ import {
   Alert,
   Box,
   Button,
-  Checkbox,
   FormControl,
   FormHelperText,
   LinearProgress,
   Modal,
-  Skeleton,
-  TextareaAutosize,
+  Switch,
   TextField,
   Tooltip,
   Typography
@@ -106,7 +104,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
                   title={"Run 'git fetch' on the clones found locally, but it's faster not to run the fetch"} arrow>
                   <FormControl>
                       <FormHelperText><Typography>Fetch if exists locally?</Typography></FormHelperText>
-                      <Checkbox checked={fetchIfLocal} onClick={() => setFetchIfLocal(!fetchIfLocal)}/>
+                      <Switch checked={fetchIfLocal} onClick={() => setFetchIfLocal(!fetchIfLocal)}/>
                   </FormControl>
               </Tooltip>
           </div>
@@ -114,7 +112,7 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
               <Tooltip title={"Only clone to keep dir."} arrow>
                   <FormControl>
                       <FormHelperText><Typography>Skip workdir copy?</Typography></FormHelperText>
-                      <Checkbox checked={onlyKeep} onClick={() => {
+                      <Switch checked={onlyKeep} onClick={() => {
                         setOnlyKeep(!onlyKeep)
                         setFetchIfLocal(false)
                         setDoSpaseCheckout(false)
@@ -124,33 +122,27 @@ export const CloneModal: React.FC<CloneModalPropsWrapper> = (
           </div>
 
           <div>
-              <FormControl>
+              <FormControl fullWidth>
                   <FormHelperText>Sparse checkout?</FormHelperText>
-                  <Checkbox checked={doSparseCheckout} onClick={() => setDoSpaseCheckout(!doSparseCheckout)}/>
+                  <Switch checked={doSparseCheckout} onClick={() => setDoSpaseCheckout(!doSparseCheckout)}/>
               </FormControl>
+              {doSparseCheckout &&
+                <MemorableTextField
+                  memProps={{
+                    megaFieldIdentifier: 'sparseCheckout',
+                    value: sparseCheckout,
+                    valueChange: setSpaseCheckout,
+                  }}
+                  textProps={{
+                    multiline: true,
+                    fullWidth: true,
+                    "aria-label": "minimum height",
+                    minRows: 3,
+                    placeholder: "Minimum 3 rows",
+                  }}
+                /> }
           </div>
           <div>
-            {doSparseCheckout ?
-              <MemorableTextField
-                memProps={{
-                  megaFieldIdentifier: 'sparseCheckout',
-                  value: sparseCheckout,
-                  valueChange: setSpaseCheckout,
-                }}
-                textProps={{
-                  multiline: true,
-                  fullWidth: true,
-                  "aria-label": "minimum height",
-                  minRows: 3,
-                  placeholder: "Minimum 3 rows",
-                }}
-              /> : <Skeleton animation={false}>
-                <TextareaAutosize
-                  aria-label="minimum height"
-                  minRows={3}
-                  placeholder="Minimum 3 rows"
-                />
-              </Skeleton>}
           </div>
       </>}
 

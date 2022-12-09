@@ -44,7 +44,7 @@ export const MakeChangesWizard: React.FC<{listItemButtonProps:ListItemButtonProp
         {
           name: 'Run Change Script',
           description: <>
-            <Typography>Run Scripted Change on {selected.length} projects?</Typography>
+            <Typography variant={'h6'}>Run Scripted Change on {selected.length} projects?</Typography>
             <Typography>The script will execute in the root of every project folder, and can be run in sequence or in parallel.</Typography>
             <FormControl>
               <FormHelperText>{runMode}</FormHelperText>

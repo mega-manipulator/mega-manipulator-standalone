@@ -41,7 +41,8 @@ jobs:
             })
             return data.id
   build-tauri:
-    needs: create-release
+    needs:
+      - create-release
     strategy:
       fail-fast: false
       matrix:
@@ -50,8 +51,6 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: mega-manipulator/tauri-setup-action@main
-      - name: install app dependencies and build it
-        run: yarn && yarn build
       - uses: tauri-apps/tauri-action@v0
         env:
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
@@ -62,8 +61,9 @@ jobs:
 
   publish-release:
     runs-on: ubuntu-20.04
-    needs: [ create-release, build-tauri ]
-
+    needs:
+      - create-release
+      - build-tauri
     steps:
       - name: publish release
         id: publish-release

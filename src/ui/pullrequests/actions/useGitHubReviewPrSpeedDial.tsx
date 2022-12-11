@@ -1,4 +1,4 @@
-import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useState} from "react";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -28,7 +28,7 @@ export function useGitHubReviewPrSpeedDial() {
     [ghClient, selected, body, event],
   );
 
-  return useGenericPrSpeedDialActionProps(
+  return useGenericSpeedDialActionProps(
     'Review Pull requests',
     selected.length === 0,
     <CheckCircleIcon/>,

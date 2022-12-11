@@ -1,4 +1,4 @@
-import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useEffect, useMemo, useState} from "react";
 import CallMergeIcon from '@mui/icons-material/CallMerge';
@@ -65,7 +65,7 @@ export function useGitHubMergePrSpeedDial() {
   const draftPrs = useMemo(() => selected.filter((s) => s && s.draft), [selected]);
   // TODO * PRs that don't pass their checks
 
-  return useGenericPrSpeedDialActionProps(
+  return useGenericSpeedDialActionProps(
     'Merge Pull Requests',
     selected.length === 0,
     <CallMergeIcon/>,

@@ -18,9 +18,11 @@ import FileOpenIcon from "@mui/icons-material/FileOpen";
 import {path} from "@tauri-apps/api";
 import {CommitView} from "./CommitView";
 import {PushView} from "./PushView";
-import {PullRequestView} from "./PullRequestView";
+import {CreatePullRequestView} from "./CreatePullRequestView";
+import {ProgressReporter} from "./GenericMultiProjectMenuItem";
+import {debug} from "tauri-plugin-log-api";
 
-export const MakeChangesWizard: React.FC<{listItemButtonProps:ListItemButtonProps}> = ({listItemButtonProps}) => {
+export const MakeChangesWizard: React.FC<{ listItemButtonProps: ListItemButtonProps }> = ({listItemButtonProps}) => {
   // Wizard
   const {settings, clones: {selected}} = useContext(MegaContext);
   const [isOpen, setIsOpen] = useState(false);
@@ -45,13 +47,14 @@ export const MakeChangesWizard: React.FC<{listItemButtonProps:ListItemButtonProp
           name: 'Run Change Script',
           description: <>
             <Typography variant={'h6'}>Run Scripted Change on {selected.length} projects?</Typography>
-            <Typography>The script will execute in the root of every project folder, and can be run in sequence or in parallel.</Typography>
+            <Typography>The script will execute in the root of every project folder, and can be run in sequence or in
+              parallel.</Typography>
             <FormControl>
               <FormHelperText>{runMode}</FormHelperText>
-                <Switch
-                  checked={runMode === 'parallel'}
-                  onClick={() => setRunMode(runMode === 'parallel' ? 'sequential' : "parallel")}
-                />
+              <Switch
+                checked={runMode === 'parallel'}
+                onClick={() => setRunMode(runMode === 'parallel' ? 'sequential' : "parallel")}
+              />
             </FormControl>
 
             <Tooltip title={'Open change-script'}><IconButton
@@ -59,11 +62,14 @@ export const MakeChangesWizard: React.FC<{listItemButtonProps:ListItemButtonProp
             ><FileOpenIcon/></IconButton></Tooltip>
           </>,
           action: () => {
+            const progress: ProgressReporter = () => {
+              debug('Making progress 🤷')
+            };
             switch (runMode) {
               case "parallel":
-                return runScriptInParallel({settings, filePaths: selected})
+                return runScriptInParallel({settings, filePaths: selected}, progress)
               case "sequential":
-                return runScriptSequentially({settings, filePaths: selected})
+                return runScriptSequentially({settings, filePaths: selected}, progress)
             }
           }
         },
@@ -88,7 +94,7 @@ export const MakeChangesWizard: React.FC<{listItemButtonProps:ListItemButtonProp
         // Pull request
         {
           name: 'Pull Request',
-          description: <PullRequestView/>,
+          description: <CreatePullRequestView/>,
         }
       ]}
     />

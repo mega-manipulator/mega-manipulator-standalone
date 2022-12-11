@@ -1,4 +1,4 @@
-import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useMemo, useState} from "react";
 import {Alert, FormControl, FormHelperText, Switch, Tooltip} from "@mui/material";
@@ -28,7 +28,7 @@ export function useGitHubReOpenPrSpeedDial() {
   const droppedBranches = useMemo(() => selected.filter((s) => s !== undefined && s.head === undefined), [selected]);
   const openPrs = useMemo(() => selected.filter((s) => s !== undefined && s.state === 'OPEN'), [selected]);
 
-  return useGenericPrSpeedDialActionProps(
+  return useGenericSpeedDialActionProps(
     'Re-open selected Pull requests',
     selected.length === 0,
     <RotateRightIcon/>,

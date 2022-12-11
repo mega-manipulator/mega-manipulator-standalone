@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useMemo} from "react";
 import {MegaContext} from "../../../hooks/MegaContext";
-import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
 import {Alert, Tooltip, Typography} from "@mui/material";
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import {SearchHit} from "../../search/types";
@@ -31,7 +31,7 @@ export function useGitHubClonePrSpeedDial(setCloneModalOpen: (isOpen: boolean) =
     return {time: 0}
   }, [codeHostKey, selectedPulls, setCloneModalOpen, setHits, setSelectedSearchHits])
 
-  return useGenericPrSpeedDialActionProps(
+  return useGenericSpeedDialActionProps(
     'Clone selected Pull requests',
     selectedPulls.length === 0,
     <CloudDownloadIcon/>,

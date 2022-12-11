@@ -1,31 +1,18 @@
-import React, {useCallback, useContext, useState} from "react";
+import React, {useContext, useState} from "react";
 import {GenericMultiProjectMenuItem} from "./GenericMultiProjectMenuItem";
-import {Alert, Button, FormControl, FormHelperText, Switch, Typography} from "@mui/material";
+import {Button, FormControl, FormHelperText, Switch, Typography} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
 import {openDirs, runScriptInParallel, runScriptSequentially} from "../../service/file/scriptFile";
-import {WorkResultStatus} from "../../service/types";
 import {path} from "@tauri-apps/api";
 
 export const ExecuteScriptedChangeMenuItem: React.FC = () => {
   const {settings, clones: {selected}} = useContext(MegaContext);
   const [runMode, setRunMode] = useState<'sequential' | 'parallel'>('sequential');
-  const [result, setResult] = useState<{ [wrs: string]: number }>({})
-  const progressCallback: (_path: string, _status: WorkResultStatus) => void = useCallback((_path: string, status: WorkResultStatus) => {
-    result[status] = (result[status] ?? 0) + 1
-    setResult(result)
-  }, [result]);
 
   return <GenericMultiProjectMenuItem
     openButtonText={`Run Scripted Change`}
     confirm={<>
-      {Object.keys(result).length === 0 ?
-        <Typography variant={'h6'}>Run Scripted Change on {selected.length} projects</Typography> :
-        <>{Object.keys(result).map((k, i) => <Alert
-          key={i}
-          variant={"outlined"}
-          color={k === 'ok' ? "success" : "warning"}
-        >{k} {result[k]}</Alert>)}</>
-      }
+      <Typography variant={'h6'}>Run Scripted Change on {selected.length} projects</Typography>
       <Button
         variant={"outlined"}
         color={"primary"}
@@ -40,18 +27,18 @@ export const ExecuteScriptedChangeMenuItem: React.FC = () => {
         />
       </FormControl>
     </>}
-    action={async () => {
+    action={async (progress) => {
       switch (runMode) {
         case "parallel":
-          await runScriptInParallel({settings, filePaths: selected}, progressCallback)
+          await runScriptInParallel({settings, filePaths: selected}, progress)
           break;
         case "sequential":
-          await runScriptSequentially({settings, filePaths: selected}, progressCallback)
+          await runScriptSequentially({settings, filePaths: selected}, progress)
           break;
       }
     }}
     closeAction={() => {
-      setResult({})
+      return;
     }}
     isAvailable={async () => selected.length !== 0}
   />

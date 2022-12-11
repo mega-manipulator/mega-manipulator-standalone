@@ -1,4 +1,4 @@
-import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useMemo, useState} from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -26,7 +26,7 @@ export function useGitHubClosePrSpeedDial() {
     }
   }, [selected, closeComment, ghClient, dropBranch])
   const closedPrs = useMemo(() => selected.filter((s) => s !== undefined && s.state === 'CLOSED'), [selected]);
-  return useGenericPrSpeedDialActionProps(
+  return useGenericSpeedDialActionProps(
     'Close selected Pull requests',
     selected.length === 0,
     <DeleteIcon/>,

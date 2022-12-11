@@ -1,4 +1,4 @@
-import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useState} from "react";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
@@ -24,7 +24,7 @@ export function useGitHubDraftPrSpeedDial() {
     }
   }, [selected, ghClient, draft, filter])
 
-  return useGenericPrSpeedDialActionProps(
+  return useGenericSpeedDialActionProps(
     'Change Draft status',
     selected.length === 0,
     <AlarmOnIcon/>,

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Alert, Box, Button, LinearProgress, Modal, SpeedDialAction, Tooltip, Typography} from "@mui/material";
+import {Alert, Box, Button, LinearProgress, Modal, Tooltip, Typography} from "@mui/material";
 import {modalStyle} from "../../modal/megaModal";
 import {ButtonRow} from "../../components/ButtonRow";
 import {SimpleGitActionReturn} from "../../../service/file/simpleActionWithResult";
@@ -8,9 +8,8 @@ import {getResultFromStorage} from "../../../service/work/workLog";
 import {asString} from "../../../hooks/logWrapper";
 import {useNavigate} from "react-router-dom";
 import {locations} from "../../route/locations";
-import {debug} from "tauri-plugin-log-api";
 
-export type GenericPrSpeedDialActionProps = {
+export type GenericSpeedDialActionProps = {
   tooltipTitle: string,
   disabled: boolean,
   icon: React.ReactNode,
@@ -22,13 +21,13 @@ export type GenericPrSpeedDialActionProps = {
   setState: (state: 'ready' | 'running' | 'done') => void,
 }
 
-export function useGenericPrSpeedDialActionProps(
+export function useGenericSpeedDialActionProps(
   tooltipTitle: string,
   disabled: boolean,
   icon: React.ReactNode,
   description: JSX.Element,
   action: (progressCallback: (current: number, total: number) => void) => Promise<SimpleGitActionReturn>,
-): GenericPrSpeedDialActionProps {
+): GenericSpeedDialActionProps {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [state, setState] = useState<'ready' | 'running' | 'done'>('ready');
   return {
@@ -44,28 +43,7 @@ export function useGenericPrSpeedDialActionProps(
   }
 }
 
-export const GenericPrSpeedDialAction: React.FC<GenericPrSpeedDialActionProps> = (
-  {
-    icon,
-    tooltipTitle,
-    disabled,
-    setIsModalOpen,
-  }) => {
-  if (disabled)
-    return null
-  else
-    return <SpeedDialAction
-      icon={icon}
-      tooltipTitle={tooltipTitle}
-      onClick={() => {
-        debug('Open clocked!')
-        if (!disabled) {
-          setIsModalOpen(true)
-        }
-      }}
-    />
-}
-export const GenericPrSpeedDialModal: React.FC<GenericPrSpeedDialActionProps> = (
+export const GenericSpeedDialModal: React.FC<GenericSpeedDialActionProps> = (
   {
     disabled,
     action,
@@ -74,7 +52,7 @@ export const GenericPrSpeedDialModal: React.FC<GenericPrSpeedDialActionProps> = 
     setIsModalOpen,
     state,
     setState
-  }: GenericPrSpeedDialActionProps
+  }: GenericSpeedDialActionProps
 ) => {
   const nav = useNavigate()
   const [err, setErr] = useState<string>();

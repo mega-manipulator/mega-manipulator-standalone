@@ -10,7 +10,7 @@ import {locations} from "../route/locations";
 import {debug, error} from "tauri-plugin-log-api";
 import {MemorableTextField} from "../components/MemorableTextField";
 
-export const PullRequestView: React.FC = () => {
+export const CreatePullRequestView: React.FC = () => {
   const [title, setTitle] = useState<string>('');
   const [body, setBody] = useState<string>('');
 
@@ -36,7 +36,7 @@ export const PullRequestView: React.FC = () => {
         .catch((e) => setErr(asString(e)))
     }
   }, [selected]);
-  const trigger = useCallback(() => {
+  const action = useCallback(() => {
     if (!title || title.length === 0) {
       setErr('PR Title not set')
       return
@@ -135,7 +135,7 @@ export const PullRequestView: React.FC = () => {
         disabled={!title || !body}
         color={"primary"}
         variant={"contained"}
-        onClick={trigger}
+        onClick={action}
     >Create PRs 🚀</Button>}
   </Box>
 };

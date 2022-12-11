@@ -1,14 +1,16 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Box, Button, ListItemButton, Modal, Typography} from "@mui/material";
+import {Box, Button, LinearProgress, ListItemButton, Modal, Typography} from "@mui/material";
 import {modalStyle} from "../modal/megaModal";
 import {error} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 import {ButtonRow} from "../components/ButtonRow";
 
+export type ProgressReporter = (_current: number, _total: number) => void;
+
 type GenericMultiProjectMenuItemProps = {
   openButtonText: string;
   confirm: string | JSX.Element,
-  action: () => Promise<void>;
+  action: (progress: ProgressReporter) => Promise<void>;
   closeAction?: () => void,
   runButtonText?: string,
   cancelButtonText?: string,
@@ -37,6 +39,12 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
     isAvailable().then((available) => setAvailable(available))
       .catch((e) => error(`Failed evaluating availability for '${openButtonText}' due to: ${asString(e)}`))
   }, [isAvailable, openButtonText]);
+  const [progressTotal, setProgressTotal] = useState<number | null>(null);
+  const [progressCurrent, setProgressCurrent] = useState<number | null>(null);
+  const progressor: ProgressReporter = useCallback((current, total) => {
+    setProgressCurrent(current)
+    setProgressTotal(total)
+  }, []);
   const close = useCallback(() => {
     if (state !== 'running') {
       setState('ready')
@@ -45,10 +53,14 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
     }
   }, [state, closeAction]);
 
+
   return <>
     <ListItemButton disabled={!available} onClick={() => setIsOpen(true)}>{openButtonText}</ListItemButton>
     <Modal open={isOpen} onClose={close}>
       <Box sx={modalStyle}>
+        {progressTotal && progressCurrent && <Box width={'100%'}>
+            <LinearProgress value={progressCurrent / progressTotal * 100.0} /> {progressCurrent} / {progressTotal}
+        </Box>}
         {typeof confirm === 'string' ? <Typography>{confirm}</Typography> : confirm}
         <ButtonRow>
           {state === 'ready' && <Button
@@ -63,12 +75,13 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
           >{closeButtonText}</Button>
           }
           <Button
+            disabled={state !== "ready"}
             variant={"contained"}
             color={"error"}
             onClick={() => {
-              action()
-                .then(close)
-                .catch((e) => error(`Failed '${openButtonText}' due to: ${asString(e)}`).then(() => setState('done')))
+              action(progressor)
+                .catch((e) => error(`Failed '${openButtonText}' due to: ${asString(e)}`)
+                .finally(() => setState('done')))
             }}>{runButtonText}</Button>
         </ButtonRow>
       </Box>

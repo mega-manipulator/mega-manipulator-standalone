@@ -1,4 +1,4 @@
-import {useGenericPrSpeedDialActionProps} from "./GenericPrSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useState} from "react";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -30,7 +30,7 @@ export function useGitHubOpenPrInBrowserSpeedDial() {
     progress(selected.length, selected.length)
     return ({time: 0})
   }, [selected, type])
-  return useGenericPrSpeedDialActionProps(
+  return useGenericSpeedDialActionProps(
     'Open selected Pull Requests in browser',
     selected.length === 0,
     <OpenInNewIcon/>,

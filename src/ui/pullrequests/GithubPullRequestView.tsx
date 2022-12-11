@@ -3,7 +3,7 @@ import React, {useState} from "react";
 import EditIcon from '@mui/icons-material/Edit'
 import {useGitHubEditPrSpeedDialProps} from "./actions/GitHubEditPrSpeedDial";
 import {GitHubPullRequestSearch} from "./GitHubPullRequestSearch";
-import {GenericPrSpeedDialModal} from "./actions/GenericPrSpeedDialAction";
+import {GenericSpeedDialModal} from "./actions/GenericSpeedDialAction";
 import {debug} from "tauri-plugin-log-api";
 import {useGitHubClosePrSpeedDial} from "./actions/GitHubClosePrSpeedDial";
 import {useGitHubReOpenPrSpeedDial} from "./actions/GitHubReOpenPrSpeedDial";
@@ -35,7 +35,7 @@ export const GithubPullRequestView: React.FC = () => {
     <GitHubPullRequestSearch/>
     <CloneModal {...cloneModalProps}/>
     {/* Generic Action Modals */}
-    {items.map((item, idx) => <GenericPrSpeedDialModal key={idx} {...item} />)}
+    {items.map((item, idx) => <GenericSpeedDialModal key={idx} {...item} />)}
 
     <SpeedDial
       open={isDialOpen}

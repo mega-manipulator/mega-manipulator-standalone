@@ -1,8 +1,7 @@
 import {Alert, Box, IconButton, Tooltip, Typography} from "@mui/material";
-import {DataGridPro} from "@mui/x-data-grid-pro";
+import {DataGridPro, GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid-pro";
 import React, {useContext} from "react";
 import {MegaContext} from "../../hooks/MegaContext";
-import {GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
 import {GithubPrCheck, GitHubPull, GithubUser} from "../../hooks/github.com";
 import {open} from '@tauri-apps/api/shell';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -34,7 +33,7 @@ const OpenableUrlColum: React.FC<GridRenderCellParams<string, GitHubPull, unknow
   </Tooltip>
 }
 const ReviewDecisionColum: React.FC<GridRenderCellParams<string, GitHubPull, unknown>> = ({value}) => {
-  switch (value){
+  switch (value) {
     case 'APPROVED':
       return <Tooltip title={'Approved'}><Typography color={"green"}><CheckCircleIcon/></Typography></Tooltip>
     case 'REVIEW_REQUIRED':
@@ -45,8 +44,12 @@ const ReviewDecisionColum: React.FC<GridRenderCellParams<string, GitHubPull, unk
       return <Tooltip title={'Unknown'}><CancelIcon/></Tooltip>
   }
 }
-const StatusCheckRollupColum: React.FC<GridRenderCellParams<string, GitHubPull, unknown>> = ({value,row:{checks}}) => {
-  const checkToAlert = (check:GithubPrCheck) => <Alert color={check.conclusion === 'SUCCESS' ? 'success' : 'warning'}>{check.name} {check.status} {check.conclusion}</Alert>
+const StatusCheckRollupColum: React.FC<GridRenderCellParams<string, GitHubPull, unknown>> = ({
+                                                                                               value,
+                                                                                               row: {checks}
+                                                                                             }) => {
+  const checkToAlert = (check: GithubPrCheck) => <Alert
+    color={check.conclusion === 'SUCCESS' ? 'success' : 'warning'}>{check.name} {check.status} {check.conclusion}</Alert>
   const c = checks?.map((c) => checkToAlert(c)) ?? []
   switch (value) {
     case 'SUCCESS':
@@ -94,7 +97,7 @@ const cols: GridColDef[] = [
   {...defaultGridColDef, field: 'id', minWidth: 25, hide: true,},
   {...defaultGridColDef, field: 'prId', minWidth: 25, hide: true,},
   {...defaultGridColDef, field: 'prNumber', minWidth: 25, hide: true,},
-  {...defaultGridColDef, field: 'owner', sortComparator:compareGitHubUser, renderCell: GithubUserColumn},
+  {...defaultGridColDef, field: 'owner', sortComparator: compareGitHubUser, renderCell: GithubUserColumn},
   {...defaultGridColDef, field: 'repo', width: 175},
   {...defaultGridColDef, field: 'author', sortComparator: compareGitHubUser, renderCell: GithubUserColumn},
   {...defaultGridColDef, field: 'title'},

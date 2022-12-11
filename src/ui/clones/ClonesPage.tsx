@@ -12,10 +12,9 @@ import {
 } from "@mui/material";
 import React, {useCallback, useContext, useEffect, useState} from "react";
 import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, Report} from "../../service/file/cloneDir";
-import {GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid";
+import {DataGridPro, GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid-pro";
 import MenuIcon from "@mui/icons-material/Menu";
 import {DeleteMenuItem} from "./DeleteMenuItem";
-import {DataGridPro} from "@mui/x-data-grid-pro";
 import {MegaContext} from "../../hooks/MegaContext";
 import {OpenProjectsMenuItem, OpenWorkdirMenuItem} from "./OpenProjectsMenuItem";
 import {ExecuteScriptedChangeMenuItem} from "./ExecuteScriptedChangeMenuItem";
@@ -40,7 +39,7 @@ const renderBoolCell = (params: GridRenderCellParams) => {
   }
 };
 
-const boolCellProps:Partial<GridColDef<any,RepoBadStatesReport,boolean>> = {
+const boolCellProps: Partial<GridColDef<any, RepoBadStatesReport, boolean>> = {
   width: 175,
   minWidth: 50,
   maxWidth: 500,
@@ -52,11 +51,25 @@ const boolCellProps:Partial<GridColDef<any,RepoBadStatesReport,boolean>> = {
 const columns: GridColDef[] = [
   {field: 'id', hideable: true, minWidth: 25, maxWidth: 100, hide: true},
   {field: 'repoPathShort', headerName: 'Repo Path', width: 400, maxWidth: 800, editable: false, resizable: true},
-  {field: 'repoPathLong', headerName: 'Repo Path (Long)', width: 800, maxWidth: 800, editable: false, resizable: true, hideable:true, hide:true},
+  {
+    field: 'repoPathLong',
+    headerName: 'Repo Path (Long)',
+    width: 800,
+    maxWidth: 800,
+    editable: false,
+    resizable: true,
+    hideable: true,
+    hide: true
+  },
   {field: 'noCodeHostConfig', headerName: 'Has Code Host Config', ...boolCellProps,},
   {field: 'uncommittedChanges', headerName: 'Uncommitted Changes', ...boolCellProps,},
   {field: 'onDefaultBranch', headerName: 'Not On Default Branch', ...boolCellProps,},
-  {field: 'noDiffWithOriginHead', headerName: 'Has Diff With Origin Head', ...boolCellProps, hideable:true, hide:true,},
+  {
+    field: 'noDiffWithOriginHead',
+    headerName: 'Has Diff With Origin Head', ...boolCellProps,
+    hideable: true,
+    hide: true,
+  },
 ];
 
 export const ClonesPage: React.FC = () => {
@@ -90,10 +103,10 @@ export const ClonesPage: React.FC = () => {
     <Typography variant={'h4'}>Clones</Typography>
     <div>
       WorkDir: {settings.clonePath} <Tooltip title={'Open work dir in editor application'}>
-      <IconButton onClick={()=>openDirs(settings,[settings.clonePath])}>
-      <OpenInNewIcon/>
-    </IconButton>
-      </Tooltip>
+      <IconButton onClick={() => openDirs(settings, [settings.clonePath])}>
+        <OpenInNewIcon/>
+      </IconButton>
+    </Tooltip>
     </div>
     <Tooltip title={'Reload repos'}><IconButton onClick={reloadTrigger}><ReplayIcon/></IconButton></Tooltip>
     <Box sx={{width: '100%'}}>
@@ -119,7 +132,7 @@ export const ClonesPage: React.FC = () => {
       />
     </Box>
     <Tooltip title={selectedRepos.length === 0 ? 'Select some repos to do some harm' : 'Repo Actions'}>
-      <Avatar style={{position:"fixed", bottom: "10px", left: "10px"}}>
+      <Avatar style={{position: "fixed", bottom: "10px", left: "10px"}}>
         <IconButton onClick={() => setActionsMenuOpen(true)}>
           <MenuIcon/>
         </IconButton>
@@ -129,7 +142,8 @@ export const ClonesPage: React.FC = () => {
       <Typography>Do stuff with {selectedRepos.length} repos</Typography>
       <List>
         <MakeChangesWizard listItemButtonProps={{disabled: selectedRepos.length === 0}}/>
-        <DeleteMenuItem listItemButtonProps={{disabled: selectedRepos.length === 0}} reloadCallback={reloadTrigger} settings={settings} repos={selectedRepos}/>
+        <DeleteMenuItem listItemButtonProps={{disabled: selectedRepos.length === 0}} reloadCallback={reloadTrigger}
+                        settings={settings} repos={selectedRepos}/>
         <OpenProjectsMenuItem/>
         <OpenWorkdirMenuItem/>
         <ExecuteScriptedChangeMenuItem/>

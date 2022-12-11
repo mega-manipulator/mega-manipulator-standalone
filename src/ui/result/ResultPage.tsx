@@ -7,7 +7,7 @@ import {
   pruneOldestResultsFromStorage
 } from "../../service/work/workLog";
 import {WorkResult, WorkResultOutput, WorkResultStatus} from "../../service/types";
-import {GridColDef} from "@mui/x-data-grid";
+import {DataGridPro, GridColDef} from "@mui/x-data-grid-pro";
 import {
   Alert,
   AlertColor,
@@ -23,7 +23,6 @@ import {
 } from "@mui/material";
 import {locations} from "../route/locations";
 import {modalStyle} from "../modal/megaModal";
-import {DataGridPro} from "@mui/x-data-grid-pro";
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 type WorkResultWithId = WorkResult<unknown, unknown, unknown> & { id: string }

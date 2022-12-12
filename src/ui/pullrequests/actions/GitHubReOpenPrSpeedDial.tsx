@@ -1,4 +1,4 @@
-import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "../../components/speeddial/GenericSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useMemo, useState} from "react";
 import {Alert, FormControl, FormHelperText, Switch, Tooltip} from "@mui/material";

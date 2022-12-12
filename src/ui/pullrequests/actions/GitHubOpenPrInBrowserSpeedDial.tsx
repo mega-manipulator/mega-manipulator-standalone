@@ -1,4 +1,4 @@
-import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "../../components/speeddial/GenericSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useState} from "react";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";

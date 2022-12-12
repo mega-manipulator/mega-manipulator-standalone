@@ -5,7 +5,7 @@ import {sleep, sleepUntilEpocSecond} from "../service/delay";
 import {debug, info, trace, warn} from "tauri-plugin-log-api";
 import {MegaSettingsType} from "./settings";
 import {getCurrentBranchName, getMainBranchName} from "../service/file/cloneDir";
-import {simpleActionWithResult, SimpleGitActionReturn} from "../service/file/simpleActionWithResult";
+import {SimpleActionReturn, simpleActionWithResult} from "../service/file/simpleActionWithResult";
 import {WorkMeta, WorkResult, WorkResultKind, WorkResultOutput, WorkResultStatus} from "../service/types";
 import {saveResultToStorage} from "../service/work/workLog";
 
@@ -573,7 +573,7 @@ export class GithubClient {
     }
   }
 
-  createPullRequests(input: GitHubPullRequestInput, progressCallback: (done: number) => void): Promise<SimpleGitActionReturn> {
+  createPullRequests(input: GitHubPullRequestInput, progressCallback: (done: number) => void): Promise<SimpleActionReturn> {
     progressCallback(0)
     return simpleActionWithResult({
       ...input,

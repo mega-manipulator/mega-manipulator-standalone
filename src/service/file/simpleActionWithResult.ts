@@ -1,7 +1,7 @@
 import {SearchHit} from "../../ui/search/types";
 import {MegaSettingsType} from "../../hooks/settings";
 import {homeDir} from "@tauri-apps/api/path";
-import {WorkMeta, WorkResult, WorkResultKind, WorkResultStatus} from "../types";
+import {ProgressReporter, WorkMeta, WorkResult, WorkResultKind, WorkResultStatus} from "../types";
 import {path} from "@tauri-apps/api";
 import {saveResultToStorage} from "../work/workLog";
 import {error} from "tauri-plugin-log-api";
@@ -42,10 +42,11 @@ async function hitToSearchHit(hit: SearchHit | string): Promise<SearchHit> {
 
 export interface SimpleActionWithResultProps extends SimpleActionProps {
   readonly workResultKind: WorkResultKind,
-  readonly sourceString: string
+  readonly sourceString: string,
+  readonly progress: ProgressReporter,
 }
 
-export interface SimpleGitActionReturn {
+export interface SimpleActionReturn {
   time: number,
 }
 
@@ -54,7 +55,7 @@ export interface SimpleGitActionReturn {
  * @param input
  * @param action
  */
-export async function simpleActionWithResult(input: SimpleActionWithResultProps, action: (index: number, hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => Promise<void>): Promise<SimpleGitActionReturn> {
+export async function simpleActionWithResult(input: SimpleActionWithResultProps, action: (index: number, hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => Promise<void>): Promise<SimpleActionReturn> {
   const time: number = new Date().getTime()
   const clonePath: string = await validClonePath(input.settings)
 
@@ -65,27 +66,29 @@ export async function simpleActionWithResult(input: SimpleActionWithResultProps,
     time,
     input,
     result: [],
-  }
+  };
   for (let i = 0; i < input.hits.length; i++) {
+    input.progress(i, input.hits.length);
     const hit = await hitToSearchHit(input.hits[i]);
     workResult.result[i] = {
       input: hit,
       output: {
         status: "in-progress"
       }
-    }
+    };
   }
+  input.progress(input.hits.length, input.hits.length);
   for (let i = 0; i < workResult.result.length; i++) {
-    const current = workResult.result[i].input
-    const p = await path.join(clonePath, current.codeHost, current.owner, current.repo)
+    const current = workResult.result[i].input;
+    const p = await path.join(clonePath, current.codeHost, current.owner, current.repo);
     const meta: WorkMeta = {workLog: []};
     workResult.result[i].output.meta = meta;
-    await action(i, current, p, meta, (sts: WorkResultStatus) => workResult.result[i].output.status = sts)
+    await action(i, current, p, meta, (sts: WorkResultStatus) => workResult.result[i].output.status = sts);
   }
   if (workResult.result.some(r => r.output.status !== 'ok')) {
-    workResult.status = "failed"
+    workResult.status = "failed";
   } else {
-    workResult.status = "ok"
+    workResult.status = "ok";
   }
   await saveResultToStorage(workResult);
   return {time};

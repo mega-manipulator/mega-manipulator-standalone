@@ -2,11 +2,12 @@ import {SearchHit} from "../../ui/search/types";
 import {
   simpleAction,
   SimpleActionProps,
+  SimpleActionReturn,
   simpleActionWithResult,
   SimpleActionWithResultProps
 } from "./simpleActionWithResult";
 import {runCommand} from "../work/workLog";
-import {WorkMeta, WorkResultKind, WorkResultStatus} from "../types";
+import {ProgressReporter, WorkMeta, WorkResultKind, WorkResultStatus} from "../types";
 import {Command} from "@tauri-apps/api/shell";
 import {getCurrentBranchName, getMainBranchName} from "./cloneDir";
 import {asString} from "../../hooks/logWrapper";
@@ -21,13 +22,20 @@ export class GitStageInput implements SimpleActionWithResultProps {
   readonly settings: MegaSettingsType;
   readonly sourceString: string;
   readonly workResultKind: WorkResultKind;
+  readonly progress: ProgressReporter;
 
-  constructor(settings: MegaSettingsType, hits: SearchHit[] | string[], files?: string[]) {
+  constructor(
+    settings: MegaSettingsType,
+    hits: SearchHit[] | string[],
+    progress: ProgressReporter,
+    files?: string[],
+  ) {
     this.files = files;
     this.workResultKind = "gitStage";
     this.sourceString = 'Stage files';
     this.hits = hits;
     this.settings = settings;
+    this.progress = progress;
   }
 }
 
@@ -55,21 +63,19 @@ export interface GitCommitInput extends SimpleActionWithResultProps {
   readonly commitMessage: string;
 }
 
-export async function gitCommit(input: GitCommitInput): Promise<number> {
-  const res = await simpleActionWithResult(input, async (_index, _hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
+export async function gitCommit(input: GitCommitInput): Promise<SimpleActionReturn> {
+  return await simpleActionWithResult(input, async (_index, _hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
     const res = await runCommand('git', ['commit', '-m', input.commitMessage], path, meta)
     res.code === 0 ? statusReport('ok') : statusReport('failed')
   })
-  return res.time
 }
 
-export async function gitPush(input: SimpleActionWithResultProps): Promise<number> {
-  const res = await simpleActionWithResult(input, async (_index, _hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
+export async function gitPush(input: SimpleActionWithResultProps): Promise<SimpleActionReturn> {
+  return await simpleActionWithResult(input, async (_index, _hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
     const branchName = await getCurrentBranchName(path)
     const res = await runCommand('git', ['push', 'origin', branchName], path, meta)
     res.code === 0 ? statusReport('ok') : statusReport('failed')
   })
-  return res.time
 }
 
 export interface GitDiff {

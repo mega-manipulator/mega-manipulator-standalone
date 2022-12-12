@@ -6,6 +6,7 @@ import {asString} from "../../hooks/logWrapper";
 import {FileEntry} from "@tauri-apps/api/fs";
 import {WorkResult, WorkResultStatus} from "../types";
 import {saveResultToStorage} from "../work/workLog";
+import {SimpleActionReturn} from "./simpleActionWithResult";
 
 export const scriptFile = 'mega-manipulator.bash'
 const scriptFileContent = `#!/bin/bash
@@ -61,14 +62,14 @@ type RunScriptInput = {
   filePaths: string[],
 }
 
-export async function runScriptSequentially(input: RunScriptInput, progressCallback: (idx: number, total: number) => void): Promise<WorkResultStatus> {
+export async function runScriptSequentially(input: RunScriptInput, progressCallback: (idx: number, total: number) => void): Promise<SimpleActionReturn> {
   const scriptPath: string = await createScriptFileIfNotExists(input.settings)
   const workResult = newWorkResult(input);
   for (let index = 0; index < input.filePaths.length; index++) {
     await doWork(input, workResult, scriptPath, index, () => progressCallback(index, input.filePaths.length))
   }
   await saveResultToStorage(workResult)
-  return workResult.result.some((w) => w.output.status !== "ok") ? "failed" : "ok"
+  return workResult
 }
 
 async function doWork(input: RunScriptInput, workResult: WorkResult<RunScriptInput, string, unknown>, scriptPath: string, index: number, progressCallback: () => void) {
@@ -106,12 +107,12 @@ function newWorkResult(input: RunScriptInput): WorkResult<RunScriptInput, string
   };
 }
 
-export async function runScriptInParallel(input: RunScriptInput, progressCallback: (idx: number, total: number) => void): Promise<WorkResultStatus> {
+export async function runScriptInParallel(input: RunScriptInput, progressCallback: (idx: number, total: number) => void): Promise<SimpleActionReturn> {
   const scriptPath = await createScriptFileIfNotExists(input.settings)
   const workResult = newWorkResult(input);
   await Promise.all(workResult.result.map((_, index) => doWork(input, workResult, scriptPath, index, () => progressCallback(index, input.filePaths.length))))
   await saveResultToStorage(workResult)
-  return workResult.result.some((w) => w.output.status !== "ok") ? "failed" : "ok"
+  return workResult
 }
 
 export async function getScriptInfo(settings: MegaSettingsType): Promise<{ scriptPath: string, scriptContent: string }> {

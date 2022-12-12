@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import {GenericSpeedDialActionProps} from "../../pullrequests/actions/GenericSpeedDialAction";
+import {GenericSpeedDialActionProps} from "./GenericSpeedDialAction";
 
 type GenericSpeedDialProps = {
   items: GenericSpeedDialActionProps[],

@@ -1,7 +1,7 @@
 import React from "react";
 import {useGitHubEditPrSpeedDialProps} from "./actions/GitHubEditPrSpeedDial";
 import {GitHubPullRequestSearch} from "./GitHubPullRequestSearch";
-import {GenericSpeedDialActionProps, GenericSpeedDialModal} from "./actions/GenericSpeedDialAction";
+import {GenericSpeedDialActionProps, GenericSpeedDialModal} from "../components/speeddial/GenericSpeedDialAction";
 import {useGitHubClosePrSpeedDial} from "./actions/GitHubClosePrSpeedDial";
 import {useGitHubReOpenPrSpeedDial} from "./actions/GitHubReOpenPrSpeedDial";
 import {useGitHubClonePrSpeedDial} from "./actions/GitHubClonePrSpeedDial";

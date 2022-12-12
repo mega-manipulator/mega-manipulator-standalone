@@ -2,7 +2,7 @@ import {useCallback, useContext, useEffect, useState} from "react";
 import EditIcon from '@mui/icons-material/Edit';
 import {MegaContext} from "../../../hooks/MegaContext";
 import {Alert, FormControl, FormHelperText, Typography} from "@mui/material";
-import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "../../components/speeddial/GenericSpeedDialAction";
 import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
 import {MemorableTextField} from "../../components/MemorableTextField";
 

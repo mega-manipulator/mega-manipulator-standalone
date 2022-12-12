@@ -1,24 +1,31 @@
-import React, {useContext} from "react";
+import {useContext} from "react";
 import {MegaContext} from "../../hooks/MegaContext";
 import {openDirs} from "../../service/file/scriptFile";
-import {os} from "@tauri-apps/api";
-import {GenericMultiProjectMenuItem} from "./GenericMultiProjectMenuItem";
+import {
+  GenericSpeedDialActionProps,
+  useGenericSpeedDialActionProps
+} from "../components/speeddial/GenericSpeedDialAction";
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
-export const OpenProjectsMenuItem: React.FC = () => {
+export function useOpenProjectsMenuItem(): GenericSpeedDialActionProps {
   const {clones: {selected}, settings} = useContext(MegaContext);
-  return <GenericMultiProjectMenuItem
-    openButtonText={'Open with EditorApplication'}
-    confirm={`Really open ${selected.length} instances of with ${settings.editorApplication}?`}
-    action={() => openDirs(settings, selected)}
-    isAvailable={() => os.type().then((type) => type === "Darwin" && selected.length !== 0)} // TODO: Do something for windows and Linux
-  />
+  return useGenericSpeedDialActionProps(
+    'Open selected with EditorApplication',
+    selected.length === 0,
+    <OpenInNewIcon fontSize={'small'}/>,
+    <>{`Really open all (${selected.length}) selected projects, at once in ${settings.editorApplication}? Each in a new separate window.`}</>,
+    async () => openDirs(settings, selected).then(() => ({time: 0}))
+  )
 }
-export const OpenWorkdirMenuItem: React.FC = () => {
+
+export function useOpenWorkdirMenuItem(): GenericSpeedDialActionProps {
   const {clones: {paths}, settings} = useContext(MegaContext);
-  return <GenericMultiProjectMenuItem
-    openButtonText={'Open entire workdir with EditorApplication'}
-    confirm={`Really open entire workdir, with ${paths.length} projects, at once in ${settings.editorApplication}?`}
-    action={() => openDirs(settings, [settings.clonePath])}
-    isAvailable={() => os.type().then((type) => type === "Darwin")} // TODO: Do something for windows and Linux
-  />
+  return useGenericSpeedDialActionProps(
+    'Open entire workdir with EditorApplication',
+    false,
+    <OpenInNewIcon fontSize={'large'}/>,
+    <>{`Really open entire workdir, with ${paths.length} projects, at once in ${settings.editorApplication}? In a single window.`}</>,
+    async () => openDirs(settings, [settings.clonePath]).then(() => ({time: 0}))
+  )
 }
+

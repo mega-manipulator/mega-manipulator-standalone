@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useMemo} from "react";
 import {MegaContext} from "../../../hooks/MegaContext";
-import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "../../components/speeddial/GenericSpeedDialAction";
 import {Alert, Tooltip, Typography} from "@mui/material";
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import {SearchHit} from "../../search/types";

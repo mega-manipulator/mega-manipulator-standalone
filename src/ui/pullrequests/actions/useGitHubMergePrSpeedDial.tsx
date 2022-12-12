@@ -1,4 +1,4 @@
-import {useGenericSpeedDialActionProps} from "./GenericSpeedDialAction";
+import {useGenericSpeedDialActionProps} from "../../components/speeddial/GenericSpeedDialAction";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useEffect, useMemo, useState} from "react";
 import CallMergeIcon from '@mui/icons-material/CallMerge';

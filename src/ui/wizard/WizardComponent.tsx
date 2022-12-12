@@ -1,49 +1,56 @@
-import {Alert, Box, Button, LinearProgress, Modal, Step, StepButton, Stepper} from "@mui/material";
-import {modalStyle} from "../modal/megaModal";
+import {Alert, Box, Button, LinearProgress, Step, StepButton, Stepper} from "@mui/material";
 import React, {useCallback, useState} from "react";
 import {ProgressReporter, WorkResultStatus} from "../../service/types";
 import {asString} from "../../hooks/logWrapper";
 import {ButtonRow} from "../components/ButtonRow";
+import {
+  GenericSpeedDialActionProps,
+  useGenericSpeedDialActionProps
+} from "../components/speeddial/GenericSpeedDialAction";
+import {getResultFromStorage} from "../../service/work/workLog";
 
-type WizardStepProps = {
-  name: string,
-  description: JSX.Element,
-  action?: (progress:ProgressReporter) => Promise<WorkResultStatus>,
-}
-
-type WizardComponentProps = {
-  isOpen: boolean,
-  setIsOpen: (isOpen: boolean) => void,
-  currentStep: number,
-  setCurrentStep: (currentStep: number) => void,
-  steps: WizardStepProps[],
-}
-
-export const WizardComponent: React.FC<WizardComponentProps> = (props) => {
+export function useWizardComponent(
+  tooltipTitle: string,
+  disabled: boolean,
+  icon: React.ReactNode,
+  steps: GenericSpeedDialActionProps[],
+): GenericSpeedDialActionProps {
   const [status, setStatus] = useState<WorkResultStatus | 'ready'>('ready');
+  const [workRef, setWorkRef] = useState<number>();
+  const setResult = useCallback((newWorkRef: number) => {
+    setWorkRef(newWorkRef)
+    if (newWorkRef === 0 || undefined) {
+      setStatus("unknown")
+    } else {
+      getResultFromStorage(`${newWorkRef}`)
+        .then((result) => setStatus(result?.status ?? "unknown"))
+    }
+  }, []);
+
+  const [step, setStep] = useState<number>(0)
   const [err, setErr] = useState<string>()
   const [progressTotal, setProgressTotal] = useState<number | null>(null);
   const [progressCurrent, setProgressCurrent] = useState<number | null>(null);
-  const progressReporter:ProgressReporter = useCallback((current, total)=>{
+  const progressReporter: ProgressReporter = useCallback((current, total) => {
     setProgressTotal(total)
     setProgressCurrent(current)
-  },[]);
-  const setStep = useCallback((step: number) => {
-    if (step < (props.steps.length - 1)) {
-      props.setCurrentStep(step)
-    }
-  }, [props]);
-  const closeCallback = useCallback(() => {
+  }, []);
+  const setStepProxy = useCallback((newstep: number) => {
     if (status !== "in-progress") {
-      setStatus('ready')
-      setErr(undefined)
-      props.setIsOpen(false)
-
+      if (newstep < (steps.length)) {
+        setErr(undefined)
+        setProgressTotal(null)
+        setProgressCurrent(null)
+        setStep(newstep)
+      }
     }
-  }, [props, status]);
+  }, [status, steps.length]);
 
-  return <Modal open={props.isOpen} onClose={closeCallback}>
-    <Box sx={modalStyle}>
+  return useGenericSpeedDialActionProps(
+    tooltipTitle,
+    disabled,
+    icon,
+    <>
       {/* ERRORS */}
       <div>
         {err && <Alert color={"error"} variant={"filled"}>{err}</Alert>}
@@ -51,13 +58,9 @@ export const WizardComponent: React.FC<WizardComponentProps> = (props) => {
 
       {/* STEPPER */}
       <div>
-        <Stepper nonLinear activeStep={props.currentStep}>
-          {props.steps.map((s, i) => <Step key={i}>
-            <StepButton onClick={() => {
-              if (status !== "in-progress") {
-                props.setCurrentStep(i)
-              }
-            }}>{s.name}</StepButton>
+        <Stepper nonLinear activeStep={step}>
+          {steps.map((s, i) => <Step key={i}>
+            <StepButton onClick={() => setStepProxy(i)}>{s.tooltipTitle}</StepButton>
           </Step>)}
         </Stepper>
       </div>
@@ -66,46 +69,55 @@ export const WizardComponent: React.FC<WizardComponentProps> = (props) => {
 
       {/* PROGRESS */}
       {progressCurrent && progressTotal && <div><Box width={"100%"}>
-          <LinearProgress value={progressCurrent / progressTotal * 100.0} variant={"determinate"}/> {progressCurrent} / {progressTotal}
+          <LinearProgress
+              value={progressCurrent / progressTotal * 100.0}
+              variant={"determinate"}
+          /> {progressCurrent} / {progressTotal}
       </Box></div>}
+
+      {workRef && status && <Alert
+          variant={status === "failed" ? 'filled' : 'outlined'}
+          color={status === "failed" ? 'warning' : status === "ok" ? 'success' : 'info'}
+      >Result: {status === "unknown" ? 'probably ok' : status}</Alert>}
 
       {/* STEP CONTENT */}
       <div>
-        {props.steps[props.currentStep].description}
+        {steps[step].description}
       </div>
 
       {/* BUTTONS */}
-      <ButtonRow>
-        <Button
-          disabled={status === 'in-progress'}
-          variant={"outlined"}
-          color={"secondary"}
-          onClick={closeCallback}
-        >Cancel</Button>
-        {props.steps[props.currentStep].action && <Button
-            disabled={status !== 'ready'}
-            variant={"contained"}
-            color={"error"}
-            onClick={() => {
-              const action = props.steps[props.currentStep].action;
-              if (action) {
-                setStatus("in-progress")
-                action(progressReporter)
-                  .then((s) => setStatus(s))
-                  .catch((e) => {
-                    setStatus("failed")
-                    setErr('Action Failed' + asString(e))
-                  })
-              }
-            }}
-        >Run</Button>}
-        <Button
-          disabled={status === 'in-progress'}
+
+    </>,
+    undefined,
+    (closeCallback) => <ButtonRow>
+      <Button
+        disabled={status === 'in-progress'}
+        variant={"outlined"}
+        color={"secondary"}
+        onClick={closeCallback}
+      >Close</Button>
+      {steps[step].action && <Button
+          disabled={status !== 'ready' || steps[step].disabled}
           variant={"contained"}
-          color={status === "failed" ? "error" : "warning"}
-          onClick={() => setStep(props.currentStep + 1)}
-        >{status === 'ready' ? 'Skip' : 'Next'}</Button>
-      </ButtonRow>
-    </Box>
-  </Modal>
+          color={"error"}
+          onClick={() => {
+            const action = steps[step].action;
+            if (action) {
+              setStatus("in-progress")
+              action(progressReporter)
+                .then((s) => setResult(s.time))
+                .catch((e) => {
+                  setStatus("failed")
+                  setErr('Action Failed' + asString(e))
+                });
+            }
+          }}
+      >Run</Button>}
+      <Button
+        disabled={status === 'in-progress'}
+        variant={"contained"}
+        color={status === "failed" ? "error" : "warning"}
+        onClick={() => setStepProxy(step + 1)}
+      >{status === 'ready' ? 'Skip' : 'Next'}</Button>
+    </ButtonRow>);
 }

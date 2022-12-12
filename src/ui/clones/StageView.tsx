@@ -1,5 +1,5 @@
 import {MegaContext} from "../../hooks/MegaContext";
-import React, {useCallback, useContext, useEffect, useState} from "react";
+import {useCallback, useContext, useState} from "react";
 import {Button, FormControl, FormHelperText, IconButton, Switch, Tooltip, Typography} from "@mui/material";
 import FileOpenIcon from '@mui/icons-material/FileOpen';
 import {
@@ -15,8 +15,13 @@ import {open} from "@tauri-apps/api/shell";
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import {
+  GenericSpeedDialActionProps,
+  useGenericSpeedDialActionProps
+} from "../components/speeddial/GenericSpeedDialAction";
+import {ButtonRow} from "../components/ButtonRow";
 
-export const StageView: React.FC = () => {
+export function useStageView(): GenericSpeedDialActionProps {
   const {clones: {selected}, settings} = useContext(MegaContext);
   const [stagedFiles, setStagedFiles] = useState<string[][]>([] as (string[][]));
   const [unStagedFiles, setUnStagedFiles] = useState<string[][]>([] as (string[][]));
@@ -24,105 +29,110 @@ export const StageView: React.FC = () => {
   const [loaded, setLoaded] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
   const loadStagingInfo = useCallback(() => {
-    setShowStage(!showStage)
-    if (!loaded) {
-      setLoaded(true)
-      gitGetStagedFiles({hits: selected, settings})
-        .then((diffs) => setStagedFiles(diffs.map((d) => d.diffFiles)))
-        .catch((e) => error('Failed getting the stage info ' + asString(e)));
-      gitGetUnStagedFiles({hits: selected, settings})
-        .then((diffs) => setUnStagedFiles(diffs.map((d) => d.diffFiles)))
-        .catch((e) => error('Failed getting the unstage info ' + asString(e)));
-    }
-  }, [showStage, loaded, selected, settings]);
-  useEffect(() => {
-    setLoaded(false)
-    setShowStage(false)
-    setStagedFiles([])
-    setUnStagedFiles([])
-  }, [selected]);
+    setShowStage(true)
+    setLoaded(true)
+    gitGetStagedFiles({hits: selected, settings})
+      .then((diffs) => setStagedFiles(diffs.map((d) => d.diffFiles)))
+      .catch((e) => error('Failed getting the stage info ' + asString(e)));
+    gitGetUnStagedFiles({hits: selected, settings})
+      .then((diffs) => setUnStagedFiles(diffs.map((d) => d.diffFiles)))
+      .catch((e) => error('Failed getting the unstage info ' + asString(e)));
+  }, [selected, settings]);
 
-  return <>
-    <FormControl>
-      <FormHelperText>Show staging info</FormHelperText>
-      <Switch checked={showStage} onClick={loadStagingInfo}/>
-    </FormControl>
+  return useGenericSpeedDialActionProps(
+    'Staging',
+    selected.length === 0,
+    <></>, //TODO
+    <>
+      <FormControl>
+        <FormHelperText>Show staging info</FormHelperText>
+        <Switch checked={showStage} onClick={loadStagingInfo}/>
+      </FormControl>
 
-    {/* Staging info */}
-    {showStage && <p>
-      {selected.map((a, idx) => <>
-        <Typography>{a} </Typography>
-        <Tooltip title={'Open project'}><IconButton onClick={() => open(a)}><FileOpenIcon/></IconButton></Tooltip>
-        <Tooltip title={'Stage all'}>
-          <IconButton
-            onClick={() => gitStage(new GitStageInput(settings, [a])).then(() => setLoaded(false))}
-          ><AddIcon/>
-          </IconButton>
-        </Tooltip>
-        <Tooltip title={'UnStage all'}>
-          <IconButton
-            onClick={() => gitUnStage(new GitStageInput(settings, [a])).then(() => setLoaded(false))}
-          ><RemoveIcon/>
-          </IconButton>
-        </Tooltip>
-        <Tooltip title={'Reset entire repo (TODO 🤦)'}><IconButton onClick={() => window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
-        {stagedFiles[idx]
-          ? <>
-            <Typography color={"#6A6"}>Staged files ({stagedFiles[idx].length}): </Typography>
-            {stagedFiles[idx].map((s) => <>
-              <Tooltip title={`UnStage ${s}`}>
-                <IconButton
-                  onClick={() => gitUnStage(new GitStageInput(settings, [a], [s])).then(() => setLoaded(false))}
-                ><RemoveIcon/>
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={'Reset file (TODO 🤦)'}><IconButton
-                onClick={() => window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
-              {s}
-            </>)}</>
-          : <Typography>Nothing staged</Typography>}
-        {unStagedFiles[idx]
-          ? <><Typography color={"#A66"}>UnStaged files ({unStagedFiles[idx].length}): </Typography>
-            {unStagedFiles[idx].map((s) => <>
-              <Tooltip title={`Stage ${s}`}>
-                <IconButton
-                  onClick={() => gitStage(new GitStageInput(settings, [a], [s])).then(() => setLoaded(false))}
-                ><AddIcon/>
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={'Reset file (TODO 🤦)'}><IconButton
-                onClick={() => window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
-              {s}
-            </>)}</>
-          : <Typography>Nothing unstaged</Typography>}
-        <hr/>
-      </>)}
-    </p>}
+      {/* Staging info */}
+      {showStage && <p>
+        {selected.map((a, idx) => <>
+          <Typography>{a} </Typography>
+          <Tooltip title={'Open project'}><IconButton onClick={() => open(a)}><FileOpenIcon/></IconButton></Tooltip>
+          <Tooltip title={'Stage all'}>
+            <IconButton
+              onClick={() => gitStage(new GitStageInput(settings, [a], () => {
+                return;
+              })).then(() => setLoaded(false))}
+            ><AddIcon/>
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={'UnStage all'}>
+            <IconButton
+              onClick={() => gitUnStage(new GitStageInput(settings, [a], () => {
+                return;
+              })).then(() => setLoaded(false))}
+            ><RemoveIcon/>
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={'Reset entire repo (TODO 🤦)'}><IconButton
+            onClick={() => window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
+          {stagedFiles[idx]
+            ? <>
+              <Typography color={"#6A6"}>Staged files ({stagedFiles[idx].length}): </Typography>
+              {stagedFiles[idx].map((s) => <>
+                <Tooltip title={`UnStage ${s}`}>
+                  <IconButton
+                    onClick={() => gitUnStage(new GitStageInput(settings, [a], () => {
+                      return;
+                    }, [s])).then(() => setLoaded(false))}
+                  ><RemoveIcon/>
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={'Reset file (TODO 🤦)'}><IconButton
+                  onClick={() => window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
+                {s}
+              </>)}</>
+            : <Typography>Nothing staged</Typography>}
+          {unStagedFiles[idx]
+            ? <><Typography color={"#A66"}>UnStaged files ({unStagedFiles[idx].length}): </Typography>
+              {unStagedFiles[idx].map((s) => <>
+                <Tooltip title={`Stage ${s}`}>
+                  <IconButton
+                    onClick={() => gitStage(new GitStageInput(settings, [a], () => {
+                      return;
+                    }, [s])).then(() => setLoaded(false))}
+                  ><AddIcon/>
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={'Reset file (TODO 🤦)'}><IconButton
+                  onClick={() => window.alert(`It's on my todo-list!`)}><RestartAltIcon/></IconButton></Tooltip>
+                {s}
+              </>)}</>
+            : <Typography>Nothing unstaged</Typography>}
+          <hr/>
+        </>)}
+      </p>}
 
+    </>,
+    undefined,
+    (closeCallback) => <ButtonRow>
+      <Button
+        disabled={isStaging}
+        onClick={closeCallback}
+      >Close</Button>
 
-    {/* Buttons */}
-    <p style={{
-      display: "grid",
-      gridAutoFlow: "column",
-      gridColumnGap: '10px',
-    }}>
       <Button
         disabled={loaded}
         variant={"outlined"}
         onClick={loadStagingInfo}
       >Load staging status</Button>
+
       <Button
         disabled={isStaging}
         variant={"contained"}
         color={"success"}
         onClick={() => {
-          setIsStaging(true)
-          gitStage(new GitStageInput(settings, selected))
+          gitStage(new GitStageInput(settings, selected, () => {
+            return;
+          }))
+            .then(loadStagingInfo)
             .catch((e) => error(`Something failed staging files: ${asString(e)}`))
-            .then(() => {
-              setIsStaging(false);
-              setLoaded(false)
-            })
         }}
       ><AddIcon/>Stage all</Button>
       <Button
@@ -131,14 +141,14 @@ export const StageView: React.FC = () => {
         color={"secondary"}
         onClick={() => {
           setIsStaging(true)
-          gitUnStage(new GitStageInput(settings, selected))
+          gitUnStage(new GitStageInput(settings, selected, () => {
+            return;
+          }))
+            .then(() => setIsStaging(false))
+            .then(loadStagingInfo)
             .catch((e) => error(`Something failed un-staging files: ${asString(e)}`))
-            .then(() => {
-              setIsStaging(false)
-              setLoaded(false)
-            })
         }}
-      ><RemoveIcon/> Un-Stage all</Button>
-    </p>
-  </>
+      ><RemoveIcon/>Un-Stage all</Button>
+    </ButtonRow>
+  )
 }

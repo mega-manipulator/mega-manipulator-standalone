@@ -1,8 +1,8 @@
 import React, {useCallback, useState} from "react";
 import {Alert, Box, Button, LinearProgress, Modal, Tooltip, Typography} from "@mui/material";
 import {modalStyle} from "../../modal/megaModal";
-import {ButtonRow} from "../../components/ButtonRow";
-import {SimpleGitActionReturn} from "../../../service/file/simpleActionWithResult";
+import {ButtonRow} from "../ButtonRow";
+import {SimpleActionReturn} from "../../../service/file/simpleActionWithResult";
 import {WorkResultStatus} from "../../../service/types";
 import {getResultFromStorage} from "../../../service/work/workLog";
 import {asString} from "../../../hooks/logWrapper";
@@ -14,7 +14,8 @@ export type GenericSpeedDialActionProps = {
   disabled: boolean,
   icon: React.ReactNode,
   description: JSX.Element,
-  action?: (progressCallback: (current: number, total: number) => void) => Promise<SimpleGitActionReturn>,
+  action?: (progressCallback: (current: number, total: number) => void) => Promise<SimpleActionReturn>,
+  overrideButtons?: (closeCallback: () => void) => JSX.Element,
   isModalOpen: boolean,
   setIsModalOpen: (isModalOpen: boolean) => void,
   state: 'ready' | 'running' | 'done',
@@ -34,7 +35,8 @@ export function useGenericSpeedDialActionProps(
   disabled: boolean,
   icon: React.ReactNode,
   description: JSX.Element,
-  action: (progressCallback: (current: number, total: number) => void) => Promise<SimpleGitActionReturn>,
+  action?: (progressCallback: (current: number, total: number) => void) => Promise<SimpleActionReturn>,
+  overrideButtons?: (closeCallback: () => void) => JSX.Element,
 ): GenericSpeedDialActionProps {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [err, setErr] = useState<string>();
@@ -58,6 +60,7 @@ export function useGenericSpeedDialActionProps(
     icon,
     description,
     action,
+    overrideButtons,
     isModalOpen,
     setIsModalOpen: setModalIsOpenProxy,
     state,
@@ -77,6 +80,7 @@ export function useGenericSpeedDialActionProps(
 export const GenericSpeedDialModal: React.FC<GenericSpeedDialActionProps> = (
   {
     action,
+    overrideButtons,
     description,
     isModalOpen,
     setIsModalOpen,
@@ -138,7 +142,7 @@ export const GenericSpeedDialModal: React.FC<GenericSpeedDialActionProps> = (
         {description}
       </div>
       {/* Buttons */}
-      <ButtonRow>
+      {overrideButtons !== undefined ? overrideButtons( () => setIsModalOpen(false)) : <ButtonRow>
         <Button
           variant={"outlined"}
           color={"secondary"}
@@ -157,7 +161,7 @@ export const GenericSpeedDialModal: React.FC<GenericSpeedDialActionProps> = (
                 .finally(() => setState("done"))
             }}
         >Execute</Button>}
-      </ButtonRow>
+      </ButtonRow>}
     </Box>
   </Modal>
 }

@@ -1,9 +1,11 @@
 import React, {useContext, useState} from "react";
 import {GenericMultiProjectMenuItem} from "./GenericMultiProjectMenuItem";
-import {Button, FormControl, FormHelperText, Switch, Typography} from "@mui/material";
+import {FormControl, FormHelperText, IconButton, Switch, Tooltip, Typography} from "@mui/material";
 import {MegaContext} from "../../hooks/MegaContext";
-import {openDirs, runScriptInParallel, runScriptSequentially} from "../../service/file/scriptFile";
+import {runScriptInParallel, runScriptSequentially, scriptFile} from "../../service/file/scriptFile";
 import {path} from "@tauri-apps/api";
+import {open} from "@tauri-apps/api/shell";
+import FileOpenIcon from "@mui/icons-material/FileOpen";
 
 export const ExecuteScriptedChangeMenuItem: React.FC = () => {
   const {settings, clones: {selected}} = useContext(MegaContext);
@@ -12,13 +14,8 @@ export const ExecuteScriptedChangeMenuItem: React.FC = () => {
   return <GenericMultiProjectMenuItem
     openButtonText={`Run Scripted Change`}
     confirm={<>
-      <Typography variant={'h6'}>Run Scripted Change on {selected.length} projects</Typography>
-      <Button
-        variant={"outlined"}
-        color={"primary"}
-        onClick={() => path.join(settings.clonePath, 'mega-manipulator.bash')
-          .then((p) => openDirs(settings, [p]))}
-      >Open script in editor</Button>
+      <Typography variant={'h6'}>Run Scripted Change on {selected.length} projects?</Typography>
+      <Typography>The script will execute in the root of every project folder, and can be run in sequence or in parallel.</Typography>
       <FormControl>
         <FormHelperText>{runMode}</FormHelperText>
         <Switch
@@ -26,6 +23,10 @@ export const ExecuteScriptedChangeMenuItem: React.FC = () => {
           onClick={() => setRunMode(runMode === 'parallel' ? 'sequential' : "parallel")}
         />
       </FormControl>
+
+      <Tooltip title={'Open change-script'}><IconButton
+        onClick={() => path.join(settings.clonePath, scriptFile).then((file) => open(file))}
+      ><FileOpenIcon/></IconButton></Tooltip>
     </>}
     action={async (progress) => {
       switch (runMode) {

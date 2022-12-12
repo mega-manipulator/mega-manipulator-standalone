@@ -19,8 +19,7 @@ import {path} from "@tauri-apps/api";
 import {CommitView} from "./CommitView";
 import {PushView} from "./PushView";
 import {CreatePullRequestView} from "./CreatePullRequestView";
-import {ProgressReporter} from "./GenericMultiProjectMenuItem";
-import {debug} from "tauri-plugin-log-api";
+import {ProgressReporter} from "../../service/types";
 
 export const MakeChangesWizard: React.FC<{ listItemButtonProps: ListItemButtonProps }> = ({listItemButtonProps}) => {
   // Wizard
@@ -61,10 +60,7 @@ export const MakeChangesWizard: React.FC<{ listItemButtonProps: ListItemButtonPr
               onClick={() => path.join(settings.clonePath, scriptFile).then((file) => open(file))}
             ><FileOpenIcon/></IconButton></Tooltip>
           </>,
-          action: () => {
-            const progress: ProgressReporter = () => {
-              debug('Making progress 🤷')
-            };
+          action: (progress: ProgressReporter) => {
             switch (runMode) {
               case "parallel":
                 return runScriptInParallel({settings, filePaths: selected}, progress)

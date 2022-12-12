@@ -4,8 +4,8 @@ import {modalStyle} from "../modal/megaModal";
 import {error} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 import {ButtonRow} from "../components/ButtonRow";
+import {ProgressReporter} from "../../service/types";
 
-export type ProgressReporter = (_current: number, _total: number) => void;
 
 type GenericMultiProjectMenuItemProps = {
   openButtonText: string;
@@ -59,7 +59,7 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
     <Modal open={isOpen} onClose={close}>
       <Box sx={modalStyle}>
         {progressTotal && progressCurrent && <Box width={'100%'}>
-            <LinearProgress value={progressCurrent / progressTotal * 100.0} /> {progressCurrent} / {progressTotal}
+            <LinearProgress value={progressCurrent / progressTotal * 100.0}/> {progressCurrent} / {progressTotal}
         </Box>}
         {typeof confirm === 'string' ? <Typography>{confirm}</Typography> : confirm}
         <ButtonRow>
@@ -81,7 +81,7 @@ export const GenericMultiProjectMenuItem: React.FC<GenericMultiProjectMenuItemPr
             onClick={() => {
               action(progressor)
                 .catch((e) => error(`Failed '${openButtonText}' due to: ${asString(e)}`)
-                .finally(() => setState('done')))
+                  .finally(() => setState('done')))
             }}>{runButtonText}</Button>
         </ButtonRow>
       </Box>

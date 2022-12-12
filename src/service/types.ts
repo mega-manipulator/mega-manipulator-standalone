@@ -6,6 +6,8 @@ export interface WorkProgress {
   };
 }
 
+export type ProgressReporter = (_current: number, _total: number) => void;
+
 export class WorkProgressTracker {
   get total(): number {
     return this._total;

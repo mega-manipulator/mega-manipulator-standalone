@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useState} from "react";
 import {Alert, Box, Button, LinearProgress, Modal, Tooltip, Typography} from "@mui/material";
 import {modalStyle} from "../../modal/megaModal";
 import {ButtonRow} from "../../components/ButtonRow";
@@ -14,11 +14,19 @@ export type GenericSpeedDialActionProps = {
   disabled: boolean,
   icon: React.ReactNode,
   description: JSX.Element,
-  action: (progressCallback: (current: number, total: number) => void) => Promise<SimpleGitActionReturn>,
+  action?: (progressCallback: (current: number, total: number) => void) => Promise<SimpleGitActionReturn>,
   isModalOpen: boolean,
   setIsModalOpen: (isModalOpen: boolean) => void,
   state: 'ready' | 'running' | 'done',
   setState: (state: 'ready' | 'running' | 'done') => void,
+  err: string | undefined,
+  setErr: (err: string | undefined) => void,
+  progress: number | undefined,
+  setProgress: (progress: number | undefined) => void,
+  workRef: number | undefined,
+  setWorkRef: (workRef: number | undefined) => void,
+  workStatus: WorkResultStatus | undefined,
+  setWorkStatus: (workStatus: WorkResultStatus | undefined) => void,
 }
 
 export function useGenericSpeedDialActionProps(
@@ -29,6 +37,20 @@ export function useGenericSpeedDialActionProps(
   action: (progressCallback: (current: number, total: number) => void) => Promise<SimpleGitActionReturn>,
 ): GenericSpeedDialActionProps {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [err, setErr] = useState<string>();
+  const [progress, setProgress] = useState<number>();
+  const [workRef, setWorkRef] = useState<number>();
+  const [workStatus, setWorkStatus] = useState<WorkResultStatus>();
+  const setModalIsOpenProxy = useCallback((open: boolean) => {
+    if (open) {
+      setState('ready')
+      setErr(undefined)
+      setWorkRef(undefined)
+      setProgress(undefined)
+      setWorkStatus(undefined)
+    }
+    setIsModalOpen(open)
+  }, [])
   const [state, setState] = useState<'ready' | 'running' | 'done'>('ready');
   return {
     tooltipTitle,
@@ -37,54 +59,56 @@ export function useGenericSpeedDialActionProps(
     description,
     action,
     isModalOpen,
-    setIsModalOpen,
+    setIsModalOpen: setModalIsOpenProxy,
     state,
     setState,
+
+    err,
+    setErr,
+    progress,
+    setProgress,
+    workRef,
+    setWorkRef,
+    workStatus,
+    setWorkStatus,
   }
 }
 
 export const GenericSpeedDialModal: React.FC<GenericSpeedDialActionProps> = (
   {
-    disabled,
     action,
     description,
     isModalOpen,
     setIsModalOpen,
     state,
-    setState
+    setState,
+    err,
+    setErr,
+    progress,
+    setProgress,
+    workRef,
+    setWorkRef,
+    workStatus,
+    setWorkStatus,
   }: GenericSpeedDialActionProps
 ) => {
   const nav = useNavigate()
-  const [err, setErr] = useState<string>();
-  const [progress, setProgress] = useState<number>();
-  const [workRef, setWorkRef] = useState<number>();
-  const [workStatus, setWorkStatus] = useState<WorkResultStatus>();
-  useEffect(() => {
-    if (workRef) {
+  const setStatusFromRef = useCallback((workRef: number) => {
+    setWorkRef(workRef)
+    if (workRef === 0) {
+      setWorkStatus("unknown")
+    } else if (workRef) {
       getResultFromStorage(`${workRef}`).then((result) => {
         setWorkStatus(result?.status);
       })
     } else {
       setWorkStatus("failed");
     }
-  }, [workRef]);
-  useEffect(() => {
-    if (disabled) {
-      setIsModalOpen(false)
-    }
-  }, [disabled, setIsModalOpen]);
-  useEffect(() => {
-    setState('ready')
-    setErr(undefined)
-    setWorkRef(undefined)
-    setProgress(undefined)
-    setWorkStatus(undefined)
-  }, [isModalOpen, setState]);
-
+  }, [setWorkRef, setWorkStatus])
 
   const progressCallback = useCallback((current: number, total: number) => {
     setProgress((100.0 * current) / total)
-  }, []);
+  }, [setProgress]);
 
   return <Modal
     onClose={() => state !== 'running' && setIsModalOpen(false)}
@@ -120,19 +144,19 @@ export const GenericSpeedDialModal: React.FC<GenericSpeedDialActionProps> = (
           color={"secondary"}
           disabled={state === "running"}
           onClick={() => state !== "running" && setIsModalOpen(false)}
-        >Cancel</Button>
-        <Button
-          variant={"contained"}
-          color={"warning"}
-          disabled={state !== "ready"}
-          onClick={() => {
-            setState("running")
-            action(progressCallback)
-              .then((result) => setWorkRef(result.time))
-              .catch((e) => setErr(asString(e)))
-              .finally(() => setState("done"))
-          }}
-        >Execute</Button>
+        >Close</Button>
+        {action && <Button
+            variant={"contained"}
+            color={"warning"}
+            disabled={state !== "ready"}
+            onClick={() => {
+              setState("running")
+              action(progressCallback)
+                .then((result) => setStatusFromRef(result.time))
+                .catch((e) => setErr(asString(e)))
+                .finally(() => setState("done"))
+            }}
+        >Execute</Button>}
       </ButtonRow>
     </Box>
   </Modal>

@@ -43,7 +43,7 @@ export class WorkProgressTracker {
   }
 }
 
-export type WorkResultStatus = 'ok' | 'failed' | 'in-progress'
+export type WorkResultStatus = 'ok' | 'failed' | 'in-progress' | 'unknown'
 export type WorkHistoryItem = {
   what: string,
   result: any,

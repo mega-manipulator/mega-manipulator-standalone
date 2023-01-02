@@ -13,6 +13,9 @@ import {GenericSpeedDialActionProps, GenericSpeedDialModal} from "../components/
 import {useCreatePullRequestView} from "./dialactions/CreatePullRequestView";
 import {useMakeChangesWizard} from "./dialactions/MakeChangesWizard";
 import {useCommitView} from "./dialactions/CommitView";
+import {useExecuteScriptedChangeMenuItem} from "./dialactions/ExecuteScriptedChangeMenuItem";
+import {usePushView} from "./dialactions/PushView";
+import {useStageView} from "./dialactions/StageView";
 
 export const ClonesPage: React.FC = () => {
   const {settings} = useContext(MegaContext)
@@ -20,12 +23,15 @@ export const ClonesPage: React.FC = () => {
   const tableProps = useClonesTableProps();
   const [isDialOpen, setIsDialOpen] = useState(false);
   const items: GenericSpeedDialActionProps[] = [
+    useMakeChangesWizard(),
     useCreatePullRequestView(),
     useCommitView(),
     useDeleteMenuItem(tableProps.reload),
+    useExecuteScriptedChangeMenuItem(),
     useOpenProjectsMenuItem(),
     useOpenWorkdirMenuItem(),
-    useMakeChangesWizard(),
+    usePushView(),
+    useStageView(),
   ];
 
   return <>

@@ -1,5 +1,5 @@
 import {useCallback, useContext} from "react";
-import {Typography} from "@mui/material";
+import {Alert, Typography} from "@mui/material";
 import {fs} from "@tauri-apps/api";
 import {error} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
@@ -47,10 +47,11 @@ export function useDeleteMenuItem(
     'Delete clones',
     selected.length === 0,
     <DeleteIcon/>,
-    <>
-      <Typography variant={'h6'}>Delete {selected.length} repos from workdir?</Typography>
-      <Typography>They will still be available in the keep dir to clone/copy again ⚡️</Typography>
-    </>,
+    selected.length === 0 ? <Alert color={'warning'} variant={'outlined'}>No Clones selected</Alert> :
+      <>
+        <Typography variant={'h6'}>Delete {selected.length} repos from workdir?</Typography>
+        <Typography>They will still be available in the keep dir to clone/copy again ⚡️</Typography>
+      </>,
     action,
   );
 }

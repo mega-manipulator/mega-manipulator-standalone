@@ -57,46 +57,47 @@ export function useCreatePullRequestView(): GenericSpeedDialActionProps {
     'Create Pull Request',
     selected.length === 0,
     <UnfoldLessDoubleIcon/>,
-    clientInitError ? <Alert
-      color={"error"}
-      variant={"filled"}
-    >{clientInitError}</Alert> : <>
-      <Typography variant={'h4'}>Create Pull Request</Typography>
-      <div>
-        <FormControl fullWidth>
-          <FormHelperText>Title</FormHelperText>
-          <MemorableTextField
-            memProps={{
-              megaFieldIdentifier: 'pullTitle',
-              value: title,
-              valueChange: setTitle,
-            }}
-            textProps={{
-              fullWidth: true,
-              placeholder: 'Title',
-            }}
-          />
-        </FormControl>
-      </div>
-      <div>
-        <FormControl fullWidth>
-          <FormHelperText>Body</FormHelperText>
-          <MemorableTextField
-            memProps={{
-              megaFieldIdentifier: 'pullBody',
-              value: body,
-              valueChange: setBody,
-            }}
-            textProps={{
-              fullWidth: true,
-              multiline: true,
-              minRows: 3,
-              placeholder: "Body",
-            }}
-          />
-        </FormControl>
-      </div>
-    </>,
+    selected.length === 0 ? <Alert color={'warning'} variant={'outlined'}>No Clones selected</Alert> :
+      clientInitError ? <Alert
+        color={"error"}
+        variant={"filled"}
+      >{clientInitError}</Alert> : <>
+        <Typography variant={'h4'}>Create Pull Request</Typography>
+        <div>
+          <FormControl fullWidth>
+            <FormHelperText>Title</FormHelperText>
+            <MemorableTextField
+              memProps={{
+                megaFieldIdentifier: 'pullTitle',
+                value: title,
+                valueChange: setTitle,
+              }}
+              textProps={{
+                fullWidth: true,
+                placeholder: 'Title',
+              }}
+            />
+          </FormControl>
+        </div>
+        <div>
+          <FormControl fullWidth>
+            <FormHelperText>Body</FormHelperText>
+            <MemorableTextField
+              memProps={{
+                megaFieldIdentifier: 'pullBody',
+                value: body,
+                valueChange: setBody,
+              }}
+              textProps={{
+                fullWidth: true,
+                multiline: true,
+                minRows: 3,
+                placeholder: "Body",
+              }}
+            />
+          </FormControl>
+        </div>
+      </>,
     action,
   )
 }

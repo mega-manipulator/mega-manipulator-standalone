@@ -1,5 +1,5 @@
 import {useCallback, useContext, useState} from "react";
-import {FormControl, FormHelperText} from "@mui/material";
+import {Alert, FormControl, FormHelperText, Typography} from "@mui/material";
 import {gitCommit} from "../../../service/file/gitCommit";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {ProgressReporter} from "../../../service/types";
@@ -28,7 +28,9 @@ export function useCommitView(): GenericSpeedDialActionProps {
     'Commit changes',
     selected.length === 0,
       <img width={24} height={24} src={gitCommitImage}/>,
+    selected.length === 0 ? <Alert color={'warning'} variant={'outlined'}>No Clones selected</Alert> :
     <>
+      <Typography variant={'h4'}>Commit staged changes</Typography>
       <div>
         <FormControl fullWidth>
           <FormHelperText>Commit message</FormHelperText>

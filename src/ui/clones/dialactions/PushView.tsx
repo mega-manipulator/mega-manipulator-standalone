@@ -1,5 +1,5 @@
 import {useCallback, useContext, useState} from "react";
-import {Typography} from "@mui/material";
+import {Alert, Typography} from "@mui/material";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {gitPush} from "../../../service/file/gitCommit";
 import {ProgressReporter} from "../../../service/types";
@@ -33,9 +33,8 @@ export function usePushView(): GenericSpeedDialActionProps {
     'Push changes',
     selected.length === 0 && !used,
     <BackupIcon/>,
-    selected.length === 0 ?
-      <Typography>No clones selected!</Typography> :
-      <Typography>Push commits to origin</Typography>,
+    selected.length === 0 ? <Alert color={'warning'} variant={'outlined'}>No Clones selected</Alert> :
+      <Typography variant={'h4'}>Push commits to origin</Typography>,
     trigger,
     undefined
   );

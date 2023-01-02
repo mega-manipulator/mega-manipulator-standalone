@@ -6,6 +6,7 @@ import {
   useGenericSpeedDialActionProps
 } from "../../components/speeddial/GenericSpeedDialAction";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import {Alert} from "@mui/material";
 
 export function useOpenProjectsMenuItem(): GenericSpeedDialActionProps {
   const {clones: {selected}, settings} = useContext(MegaContext);
@@ -13,7 +14,8 @@ export function useOpenProjectsMenuItem(): GenericSpeedDialActionProps {
     'Open selected with EditorApplication',
     selected.length === 0,
     <OpenInNewIcon fontSize={'small'}/>,
-    <>{`Really open all (${selected.length}) selected projects, at once in ${settings.editorApplication}? Each in a new separate window.`}</>,
+    selected.length === 0 ? <Alert color={'warning'} variant={'outlined'}>No Clones selected</Alert> :
+      <>{`Really open all (${selected.length}) selected projects, at once in ${settings.editorApplication}? Each in a new separate window.`}</>,
     async () => openDirs(settings, selected).then(() => ({time: 0}))
   )
 }

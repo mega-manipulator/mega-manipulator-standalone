@@ -1,5 +1,5 @@
 import {useCallback, useContext, useState} from "react";
-import {FormControl, FormHelperText, IconButton, Switch, Tooltip, Typography} from "@mui/material";
+import {Alert, FormControl, FormHelperText, IconButton, Switch, Tooltip, Typography} from "@mui/material";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {runScriptInParallel, runScriptSequentially, scriptFile} from "../../../service/file/scriptFile";
 import {path} from "@tauri-apps/api";
@@ -28,22 +28,23 @@ export function useExecuteScriptedChangeMenuItem(): GenericSpeedDialActionProps 
     'Scripted change',
     selected.length === 0,
     <AutoFixHighIcon/>,
-    <>
-      <Typography variant={'h6'}>Run Scripted Change on {selected.length} projects?</Typography>
-      <Typography>The script will execute in the root of every project folder, and can be run in sequence or in
-        parallel.</Typography>
-      <FormControl>
-        <FormHelperText>{runMode}</FormHelperText>
-        <Switch
-          checked={runMode === 'parallel'}
-          onClick={() => setRunMode(runMode === 'parallel' ? 'sequential' : "parallel")}
-        />
-      </FormControl>
+    selected.length === 0 ? <Alert color={'warning'} variant={'outlined'}>No Clones selected</Alert> :
+      <>
+        <Typography variant={'h4'}>Run Scripted Change on {selected.length} projects?</Typography>
+        <Typography>The script will execute in the root of every project folder, and can be run in sequence or in
+          parallel.</Typography>
+        <FormControl>
+          <FormHelperText>{runMode}</FormHelperText>
+          <Switch
+            checked={runMode === 'parallel'}
+            onClick={() => setRunMode(runMode === 'parallel' ? 'sequential' : "parallel")}
+          />
+        </FormControl>
 
-      <Tooltip title={'Open change-script'}><IconButton
-        onClick={() => path.join(settings.clonePath, scriptFile).then((file) => open(file))}
-      ><FileOpenIcon/></IconButton></Tooltip>
-    </>,
+        <Tooltip title={'Open change-script'}><IconButton
+          onClick={() => path.join(settings.clonePath, scriptFile).then((file) => open(file))}
+        ><FileOpenIcon/></IconButton></Tooltip>
+      </>,
     action,
     undefined
   );

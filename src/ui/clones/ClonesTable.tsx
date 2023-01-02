@@ -1,6 +1,6 @@
 import {DataGridPro, GridColDef, GridRenderCellParams, GridRowId} from "@mui/x-data-grid-pro";
 import {Alert, Box, CircularProgress, Tooltip} from "@mui/material";
-import React, {useCallback, useContext, useState} from "react";
+import React, {useCallback, useContext, useEffect, useState} from "react";
 import {MegaContext} from "../../hooks/MegaContext";
 import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, Report} from "../../service/file/cloneDir";
 
@@ -29,6 +29,10 @@ export function useClonesTableProps(): ClonesTableProps {
       })()
     }
   }, [setPaths, setSelected, settings]);
+  useEffect(() => {
+    reload()
+  }, [settings]);
+
   return {
     repoStates,
     setRepoStates,

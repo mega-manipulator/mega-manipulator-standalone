@@ -1,10 +1,10 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {Box, Button, LinearProgress, ListItemButton, Modal, Typography} from "@mui/material";
-import {modalStyle} from "../modal/megaModal";
+import {modalStyle} from "../../modal/megaModal";
 import {error} from "tauri-plugin-log-api";
-import {asString} from "../../hooks/logWrapper";
-import {ButtonRow} from "../components/ButtonRow";
-import {ProgressReporter} from "../../service/types";
+import {asString} from "../../../hooks/logWrapper";
+import {ButtonRow} from "../../components/ButtonRow";
+import {ProgressReporter} from "../../../service/types";
 
 
 type GenericMultiProjectMenuItemProps = {

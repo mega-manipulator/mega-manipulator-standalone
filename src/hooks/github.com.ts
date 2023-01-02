@@ -577,6 +577,7 @@ export class GithubClient {
     progressCallback(0)
     return simpleActionWithResult({
       ...input,
+      progress: (idx: number) => progressCallback(idx),
       settings: this.settings,
       sourceString: 'Create pullRequests',
       workResultKind: "gitStage",

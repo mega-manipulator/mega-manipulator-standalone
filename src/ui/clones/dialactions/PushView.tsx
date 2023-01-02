@@ -1,12 +1,12 @@
 import {useCallback, useContext, useState} from "react";
 import {Typography} from "@mui/material";
-import {MegaContext} from "../../hooks/MegaContext";
-import {gitPush} from "../../service/file/gitCommit";
-import {ProgressReporter} from "../../service/types";
+import {MegaContext} from "../../../hooks/MegaContext";
+import {gitPush} from "../../../service/file/gitCommit";
+import {ProgressReporter} from "../../../service/types";
 import {
   GenericSpeedDialActionProps,
   useGenericSpeedDialActionProps
-} from "../components/speeddial/GenericSpeedDialAction";
+} from "../../components/speeddial/GenericSpeedDialAction";
 import BackupIcon from '@mui/icons-material/Backup';
 
 export function usePushView(): GenericSpeedDialActionProps {
@@ -32,8 +32,7 @@ export function usePushView(): GenericSpeedDialActionProps {
   return useGenericSpeedDialActionProps(
     'Push changes',
     selected.length === 0 && !used,
-    <BackupIcon/>, //TODO
-
+    <BackupIcon/>,
     selected.length === 0 ?
       <Typography>No clones selected!</Typography> :
       <Typography>Push commits to origin</Typography>,

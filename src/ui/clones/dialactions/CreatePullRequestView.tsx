@@ -1,5 +1,5 @@
 import {useCallback, useContext, useEffect, useState} from "react";
-import {Alert, FormControl, FormHelperText} from "@mui/material";
+import {Alert, FormControl, FormHelperText, Typography} from "@mui/material";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {pathToSearchHit} from "../../../service/file/cloneDir";
 import {SearchHit} from "../../search/types";
@@ -61,6 +61,7 @@ export function useCreatePullRequestView(): GenericSpeedDialActionProps {
       color={"error"}
       variant={"filled"}
     >{clientInitError}</Alert> : <>
+      <Typography variant={'h4'}>Create Pull Request</Typography>
       <div>
         <FormControl fullWidth>
           <FormHelperText>Title</FormHelperText>
@@ -72,6 +73,7 @@ export function useCreatePullRequestView(): GenericSpeedDialActionProps {
             }}
             textProps={{
               fullWidth: true,
+              placeholder: 'Title',
             }}
           />
         </FormControl>

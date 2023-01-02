@@ -1,15 +1,15 @@
 import {useCallback, useContext, useState} from "react";
 import {FormControl, FormHelperText, IconButton, Switch, Tooltip, Typography} from "@mui/material";
-import {MegaContext} from "../../hooks/MegaContext";
-import {runScriptInParallel, runScriptSequentially, scriptFile} from "../../service/file/scriptFile";
+import {MegaContext} from "../../../hooks/MegaContext";
+import {runScriptInParallel, runScriptSequentially, scriptFile} from "../../../service/file/scriptFile";
 import {path} from "@tauri-apps/api";
 import {open} from "@tauri-apps/api/shell";
 import FileOpenIcon from "@mui/icons-material/FileOpen";
 import {
   GenericSpeedDialActionProps,
   useGenericSpeedDialActionProps
-} from "../components/speeddial/GenericSpeedDialAction";
-import {ProgressReporter} from "../../service/types";
+} from "../../components/speeddial/GenericSpeedDialAction";
+import {ProgressReporter} from "../../../service/types";
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 export function useExecuteScriptedChangeMenuItem(): GenericSpeedDialActionProps {

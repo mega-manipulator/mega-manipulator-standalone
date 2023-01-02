@@ -1,10 +1,10 @@
 import {useContext} from "react";
-import {MegaContext} from "../../hooks/MegaContext";
-import {openDirs} from "../../service/file/scriptFile";
+import {MegaContext} from "../../../hooks/MegaContext";
+import {openDirs} from "../../../service/file/scriptFile";
 import {
   GenericSpeedDialActionProps,
   useGenericSpeedDialActionProps
-} from "../components/speeddial/GenericSpeedDialAction";
+} from "../../components/speeddial/GenericSpeedDialAction";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 export function useOpenProjectsMenuItem(): GenericSpeedDialActionProps {

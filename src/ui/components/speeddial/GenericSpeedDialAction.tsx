@@ -3,7 +3,7 @@ import {Alert, Box, Button, LinearProgress, Modal, Tooltip, Typography} from "@m
 import {modalStyle} from "../../modal/megaModal";
 import {ButtonRow} from "../ButtonRow";
 import {SimpleActionReturn} from "../../../service/file/simpleActionWithResult";
-import {WorkResultStatus} from "../../../service/types";
+import {ProgressReporter, WorkResultStatus} from "../../../service/types";
 import {getResultFromStorage} from "../../../service/work/workLog";
 import {asString} from "../../../hooks/logWrapper";
 import {useNavigate} from "react-router-dom";
@@ -35,7 +35,7 @@ export function useGenericSpeedDialActionProps(
   disabled: boolean,
   icon: React.ReactNode,
   description: JSX.Element,
-  action?: (progressCallback: (current: number, total: number) => void) => Promise<SimpleActionReturn>,
+  action?: (progressCallback: ProgressReporter) => Promise<SimpleActionReturn>,
   overrideButtons?: (closeCallback: () => void) => JSX.Element,
 ): GenericSpeedDialActionProps {
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -1,8 +1,8 @@
-import {IconButton, SpeedDial, SpeedDialAction, SpeedDialIcon, Tooltip, Typography} from "@mui/material";
+import {Chip, IconButton, SpeedDial, SpeedDialAction, SpeedDialIcon, Tooltip, Typography} from "@mui/material";
 import React, {useContext, useState} from "react";
 import {useDeleteMenuItem} from "./dialactions/DeleteMenuItem";
 import {MegaContext} from "../../hooks/MegaContext";
-import {useOpenProjectsMenuItem, useOpenWorkdirMenuItem} from "./OpenProjectsMenuItem";
+import {useOpenProjectsMenuItem, useOpenWorkdirMenuItem} from "./dialactions/OpenProjectsMenuItem";
 import ReplayIcon from '@mui/icons-material/Replay';
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {openDirs} from "../../service/file/scriptFile";
@@ -11,7 +11,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import {debug} from "tauri-plugin-log-api";
 import {GenericSpeedDialActionProps, GenericSpeedDialModal} from "../components/speeddial/GenericSpeedDialAction";
 import {useCreatePullRequestView} from "./dialactions/CreatePullRequestView";
-import {useMakeChangesWizard} from "./MakeChangesWizard";
+import {useMakeChangesWizard} from "./dialactions/MakeChangesWizard";
+import {useCommitView} from "./dialactions/CommitView";
 
 export const ClonesPage: React.FC = () => {
   const {settings} = useContext(MegaContext)
@@ -20,6 +21,7 @@ export const ClonesPage: React.FC = () => {
   const [isDialOpen, setIsDialOpen] = useState(false);
   const items: GenericSpeedDialActionProps[] = [
     useCreatePullRequestView(),
+    useCommitView(),
     useDeleteMenuItem(tableProps.reload),
     useOpenProjectsMenuItem(),
     useOpenWorkdirMenuItem(),
@@ -50,7 +52,8 @@ export const ClonesPage: React.FC = () => {
         .map((item, idx) => <SpeedDialAction
           key={idx}
           icon={item.icon}
-          tooltipTitle={item.tooltipTitle}
+          tooltipTitle={<Chip label={item.tooltipTitle} variant={"outlined"}/>}
+          tooltipOpen={true}
           onClick={() => {
             debug('Open clocked!')
             if (!item.disabled) {

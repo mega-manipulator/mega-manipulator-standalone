@@ -159,11 +159,13 @@ type ResultTableProps = {
 function statusToColor(status: WorkResultStatus): AlertColor {
   switch (status) {
     case "ok":
-      return 'success'
+      return 'success';
     case "failed":
-      return "warning"
+      return "warning";
     case "in-progress":
-      return "info"
+      return "info";
+    default:
+      return "info";
   }
 }
 

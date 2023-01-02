@@ -1,4 +1,4 @@
-import {MegaContext} from "../../hooks/MegaContext";
+import {MegaContext} from "../../../hooks/MegaContext";
 import {useCallback, useContext, useState} from "react";
 import {Button, FormControl, FormHelperText, IconButton, Switch, Tooltip, Typography} from "@mui/material";
 import FileOpenIcon from '@mui/icons-material/FileOpen';
@@ -8,9 +8,9 @@ import {
   gitStage,
   GitStageInput,
   gitUnStage
-} from "../../service/file/gitCommit";
+} from "../../../service/file/gitCommit";
 import {error} from "tauri-plugin-log-api";
-import {asString} from "../../hooks/logWrapper";
+import {asString} from "../../../hooks/logWrapper";
 import {open} from "@tauri-apps/api/shell";
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -18,8 +18,9 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import {
   GenericSpeedDialActionProps,
   useGenericSpeedDialActionProps
-} from "../components/speeddial/GenericSpeedDialAction";
-import {ButtonRow} from "../components/ButtonRow";
+} from "../../components/speeddial/GenericSpeedDialAction";
+import {ButtonRow} from "../../components/ButtonRow";
+import ApprovalIcon from '@mui/icons-material/Approval';
 
 export function useStageView(): GenericSpeedDialActionProps {
   const {clones: {selected}, settings} = useContext(MegaContext);
@@ -42,11 +43,11 @@ export function useStageView(): GenericSpeedDialActionProps {
   return useGenericSpeedDialActionProps(
     'Staging',
     selected.length === 0,
-    <></>, //TODO
+    <ApprovalIcon/>,
     <>
       <FormControl>
         <FormHelperText>Show staging info</FormHelperText>
-        <Switch checked={showStage} onClick={loadStagingInfo}/>
+        <Switch checked={showStage} onClick={()=>setShowStage(!showStage)}/>
       </FormControl>
 
       {/* Staging info */}
@@ -149,6 +150,7 @@ export function useStageView(): GenericSpeedDialActionProps {
             .catch((e) => error(`Something failed un-staging files: ${asString(e)}`))
         }}
       ><RemoveIcon/>Un-Stage all</Button>
+      
     </ButtonRow>
   )
 }

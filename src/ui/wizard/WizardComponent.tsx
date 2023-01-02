@@ -89,7 +89,7 @@ export function useWizardComponent(
 
     </>,
     undefined,
-    (closeCallback) => <ButtonRow>
+    steps[step].overrideButtons ?? ((closeCallback) => <ButtonRow>
       <Button
         disabled={status === 'in-progress'}
         variant={"outlined"}
@@ -113,11 +113,5 @@ export function useWizardComponent(
             }
           }}
       >Run</Button>}
-      <Button
-        disabled={status === 'in-progress'}
-        variant={"contained"}
-        color={status === "failed" ? "error" : "warning"}
-        onClick={() => setStepProxy(step + 1)}
-      >{status === 'ready' ? 'Skip' : 'Next'}</Button>
-    </ButtonRow>);
+    </ButtonRow>));
 }

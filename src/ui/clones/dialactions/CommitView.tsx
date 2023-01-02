@@ -1,34 +1,33 @@
 import {useCallback, useContext, useState} from "react";
 import {FormControl, FormHelperText} from "@mui/material";
-import {gitCommit} from "../../service/file/gitCommit";
-import {MegaContext} from "../../hooks/MegaContext";
-import {ProgressReporter} from "../../service/types";
-import {MemorableTextField} from "../components/MemorableTextField";
+import {gitCommit} from "../../../service/file/gitCommit";
+import {MegaContext} from "../../../hooks/MegaContext";
+import {ProgressReporter} from "../../../service/types";
+import {MemorableTextField} from "../../components/MemorableTextField";
 import {
   GenericSpeedDialActionProps,
   useGenericSpeedDialActionProps
-} from "../components/speeddial/GenericSpeedDialAction";
+} from "../../components/speeddial/GenericSpeedDialAction";
+import gitCommitImage from '../../../assets/git-commit.svg'
 
 export function useCommitView(): GenericSpeedDialActionProps {
   const {clones: {selected}, settings} = useContext(MegaContext);
 
   const [commitMessage, setCommitMessage] = useState('');
-  const trigger = useCallback(async (progress: ProgressReporter) => {
-    const n = await gitCommit({
+  const trigger = useCallback(async (progress: ProgressReporter) =>
+    await gitCommit({
       hits: selected,
       settings,
       commitMessage,
       sourceString: `Commit to ${selected.length} repos`,
       workResultKind: 'gitCommit',
       progress,
-    });
-    return {time: n};
-  }, [selected, settings, commitMessage]);
+    }), [selected, settings, commitMessage]);
 
   return useGenericSpeedDialActionProps(
     'Commit changes',
     selected.length === 0,
-    <></>, // TODO
+      <img width={24} height={24} src={gitCommitImage}/>,
     <>
       <div>
         <FormControl fullWidth>

@@ -31,6 +31,7 @@ const allSearchTypes: SearchType[] = ['REPO', 'CODE']
 
 export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchFieldProps}) => {
   const {search: {setHits: setSearchHits}} = useContext(MegaContext);
+  const [err, setErr] = useState<string>();
   const {
     ghClient,
     clientInitError
@@ -41,11 +42,12 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
   const [searchTerm, setSearchTerm] = useState('user:mega-manipulator foo');
   const [max, setMax] = useState(100)
   const [searchType, setSearchType] = useState<SearchType>('REPO')
-  const [progress, setProgress] = useState<number | null>(null)
+  const [progress, setProgress] = useState<number>()
   const search = useCallback(() => {
     if (ghClient !== undefined) {
       searchFieldProps?.setState('searching')
-      setProgress(null)
+      setErr(undefined)
+      setProgress(0)
       setSearchHits([])
       let promise;
       switch (searchType) {
@@ -59,11 +61,15 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
           promise = Promise.reject(`Unknown search type: ${searchType}`)
       }
       if (promise !== undefined) {
-        promise.then((hits) => {
-          setSearchHits(hits)
-          info(`Found ${hits.length} hits`)
-        })
-          .catch((e) => error(`Failed searching ${asString(e)}`))
+        promise
+          .then((hits) => {
+            setSearchHits(hits)
+            info(`Found ${hits.length} hits`)
+          })
+          .catch((e) => {
+            setErr(asString(e, 2))
+            error(`Failed searching ${asString(e)}`)
+          })
           .then(() => info('Done'))
           .then(() => searchFieldProps?.setState("ready"))
       }
@@ -119,13 +125,20 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
       }}
     />
 
+    {err && <Tooltip title={<pre>{err}</pre>}><Alert color={"error"} variant={"outlined"}>Error occurred
+        😱</Alert></Tooltip>}
+
+    {progress !== undefined && <div><Box sx={{paddingTop: 1, width: '100%'}}>
+        <LinearProgress title={'progress'} color={"primary"} value={progress / max * 100}
+                        variant={"determinate"}/> {progress}/{max}
+    </Box></div>}
+
     <Button
       variant={"contained"} color={"primary"}
       disabled={searchFieldProps?.state !== 'ready' || searchTerm.length === 0}
-      onClick={search}>{searchFieldProps?.state === 'searching' && <CircularProgress size={'1em'}/>}Search</Button>
-    {progress && <Box sx={{width: '50%'}}>
-        <LinearProgress value={progress / max * 100} variant={"determinate"}/> {progress}/{max}
-    </Box>}
+      onClick={search}
+    >{searchFieldProps?.state === 'searching' && <CircularProgress size={'1em'}/>}Search</Button>
+
     {docLink && <Tooltip title={`Click to open ${searchType} search documentation in browser`}>
         <IconButton onClick={() => {
           debug('Opening docs')

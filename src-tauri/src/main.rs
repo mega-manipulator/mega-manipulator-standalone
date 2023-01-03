@@ -1,6 +1,6 @@
 #![cfg_attr(
-all(not(debug_assertions), target_os = "windows"),
-windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
 )]
 #![forbid(unsafe_code)]
 #![deny(warnings)]
@@ -8,7 +8,7 @@ windows_subsystem = "windows"
 use std::fs;
 
 use log::LevelFilter;
-use tauri_plugin_log::{LoggerBuilder, LogTarget, RotationStrategy};
+use tauri_plugin_log::{LogTarget, LoggerBuilder, RotationStrategy};
 
 #[tauri::command]
 fn store_password(username: String, password: String) -> Result<(), String> {

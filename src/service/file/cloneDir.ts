@@ -8,13 +8,13 @@ import {WorkMeta} from "../types";
 import {runCommand} from "../work/workLog";
 import {requireZeroStatus} from "./simpleActionWithResult";
 
-export async function listRepos(basePath?: string): Promise<string[]> {
+export async function listRepos(basePath: string, depth?: number): Promise<string[]> {
   if (!basePath) {
     warn('listRepos bailed, one or more GitDir not defined in settings')
     return [];
   }
   try {
-    return await listClonesRecursive(3, basePath)
+    return await listClonesRecursive(depth ?? 3, basePath)
   } catch (e) {
     error('listRepos encountered an exception: ' + asString(e))
     return []
@@ -60,7 +60,7 @@ async function listClonesRecursive(depth: number, path: string): Promise<string[
   const dir = await fs.readDir(path)
   if (depth === 0) {
     if (dir.some(f => f.name === '.git')) {
-      trace(`Here I am at path ${path}`)
+      debug(`Here I am at path ${path}`)
       return [path]
     } else {
       trace(`Here I am at path ${path} WITHOUT a .GIT`)

@@ -27,7 +27,7 @@ export interface GitHubSearchFieldProps {
 }
 
 type SearchType = 'CODE' | 'REPO'
-const allSearchTypes: SearchType[] = ['CODE', 'REPO']
+const allSearchTypes: SearchType[] = ['REPO', 'CODE']
 
 export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchFieldProps}) => {
   const {search: {setHits: setSearchHits}} = useContext(MegaContext);
@@ -40,7 +40,7 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
   }, [ghClient])
   const [searchTerm, setSearchTerm] = useState('user:mega-manipulator foo');
   const [max, setMax] = useState(100)
-  const [searchType, setSearchType] = useState<SearchType>('CODE')
+  const [searchType, setSearchType] = useState<SearchType>('REPO')
   const [progress, setProgress] = useState<number | null>(null)
   const search = useCallback(() => {
     if (ghClient !== undefined) {

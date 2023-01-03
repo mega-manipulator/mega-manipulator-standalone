@@ -1,11 +1,12 @@
 import React, {useCallback, useContext, useEffect, useState} from "react";
 import {SearchFieldProps} from "../types";
-import {Alert, Button, FormControl, FormHelperText} from "@mui/material";
-import {warn} from "tauri-plugin-log-api";
+import {Alert, Button, FormControl, FormHelperText, Tooltip} from "@mui/material";
+import {error, warn} from "tauri-plugin-log-api";
 import {useSourceGraphClient} from "./SourceGraphClient";
 import {MegaContext} from "../../../hooks/MegaContext";
 import {MemorableTextField} from "../../components/MemorableTextField";
 import {NumberField} from "../../components/NumberField";
+import {asString} from "../../../hooks/logWrapper";
 
 export type SourceGraphSearchFieldProps = {
   readonly searchFieldProps: SearchFieldProps;
@@ -16,21 +17,27 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
   const [searchTerm, setSearchTerm] = useState('repo:/mega-manipulator$ count:1');
   const [max, setMax] = useState(100)
   const clientWrapper = useSourceGraphClient(props)
+  const [err, setErr] = useState<string>();
   useEffect(() => {
     if (clientWrapper.client) {
       props.searchFieldProps.setState('ready')
     } else {
       props.searchFieldProps.setState('loading')
     }
-  }, [clientWrapper, props.searchFieldProps])
+  }, [clientWrapper])
 
   const search = useCallback(() => {
     if (clientWrapper.client) {
       setSearchHits([])
+      setErr(undefined)
       props.searchFieldProps.setState('searching')
       clientWrapper.client.searchCode(searchTerm, max)
         .then((hits) => {
           setSearchHits(hits)
+        })
+        .catch((e) => {
+          setErr(asString(e, 2))
+          error(`Failed searching SourceGraph: ${asString(e)}`)
         })
         .finally(() => {
           props.searchFieldProps.setState('ready')
@@ -45,6 +52,9 @@ export const SourceGraphSearchField: React.FC<SourceGraphSearchFieldProps> = (pr
     return <Alert severity={"warning"} variant={"filled"}>{clientWrapper.error}</Alert>
   }
   return <>
+    {err && <Tooltip title={<pre>{err}</pre>}>
+        <Alert color={"error"} variant={"outlined"}>Error occurred</Alert>
+    </Tooltip>}
     <FormControl>
       <FormHelperText>Max hits</FormHelperText>
       <NumberField

@@ -1,4 +1,4 @@
-export function asString(str: unknown): string {
+export function asString(str: unknown, indent?: number): string {
   if (str === null) {
     return 'null'
   }
@@ -22,7 +22,7 @@ export function asString(str: unknown): string {
         return str.toString();
       }
       try {
-        return JSON.stringify(str);
+        return JSON.stringify(str, undefined, indent);
       } catch (e) {
         return `[object: ${e}]`
       }

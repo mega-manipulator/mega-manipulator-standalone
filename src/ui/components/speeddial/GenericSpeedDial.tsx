@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
+import {Chip, SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import {GenericSpeedDialActionProps} from "./GenericSpeedDialAction";
 
@@ -28,7 +28,8 @@ export const GenericSpeedDial: React.FC<GenericSpeedDialProps> = (
       .map((item, idx) => <SpeedDialAction
         key={idx}
         icon={item.icon}
-        tooltipTitle={item.tooltipTitle}
+        tooltipTitle={<Chip label={item.tooltipTitle} variant={"outlined"}/>}
+        tooltipOpen={true}
         onClick={() => {
           if (!item.disabled) {
             item.setIsModalOpen(true)

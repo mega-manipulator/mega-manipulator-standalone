@@ -39,7 +39,7 @@ export class LocalSearchClient {
   async searchCode(
     program: string,
     searchString: string,
-    fileString: string,
+    fileString: string | undefined,
     max: number,
     codeHost: string,
     owner: string,
@@ -51,10 +51,10 @@ export class LocalSearchClient {
     if (firstAsterisk > 0) {
       pathParts = pathParts.slice(0, firstAsterisk)
     }
+    const depth = codeHost === '*' ? 3 : owner === '*' ? 2 : repo === '*' ? 1 : 0
     const allowedPrefix = await path.join(...pathParts)
     debug('Allowed prefix: ' + allowedPrefix)
-    const keeps: string[] = (await listRepos(this.megaSettings.keepLocalReposPath))
-      .filter((p) => p.startsWith(allowedPrefix))
+    const keeps: string[] = (await listRepos(allowedPrefix, depth))
 
     debug(`Search for '${searchString}' with the local client in ${keeps.length} dirs, using '${program}'`)
     const commands: (SearchHit | null)[] = await Promise.all(keeps.map((keep) => {
@@ -71,10 +71,10 @@ export class LocalSearchClient {
   }
 }
 
-function searchCommand(program: string, search: string, file: string, dir: string): Command {
+function searchCommand(program: string, search: string, file: string | undefined, dir: string): Command {
   switch (program) {
     case 'ag':
-      return new Command('ag', ['-m', '-L', search, file], {cwd: dir});
+      return new Command('ag', ['-m', '-L', search, file ?? '.'], {cwd: dir});
     default:
       throw new Error(`program ${program} is unknown`)
   }

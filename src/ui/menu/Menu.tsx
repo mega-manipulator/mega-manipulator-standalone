@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Avatar, Drawer, List, ListItem} from "@mui/material";
+import {Avatar, Drawer, List, ListItemButton} from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 import {useLocation, useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
@@ -22,20 +22,23 @@ const items: {
 
 export const AppMenu: React.FC = () => {
   const navigate = useNavigate()
-  const { pathname } = useLocation();
+  const {pathname} = useLocation();
   const [isOpen, setOpen] = useState(false)
   return <div>
     <Avatar
-      style={{position: "fixed", top: 10, right: 10}}
+      style={{zIndex:999,position: "fixed", top: 10, right: 10}}
       onClick={() => setOpen(!isOpen)}
     ><MenuIcon/></Avatar>
     <Drawer open={isOpen} onClose={() => setOpen(false)} anchor={"right"}>
       <List>
-        {items.map((item, index) => <ListItem key={index} selected={pathname === item.nav} onClick={() => {
-          info('Nav > ' + item.title)
-          setOpen(false)
-          navigate(item.nav)
-        }}>{item.title}</ListItem>)}
+        {items.map((item, index) => <ListItemButton
+          key={index}
+          selected={pathname === item.nav}
+          onClick={() => {
+            info('Nav > ' + item.title)
+            setOpen(false)
+            navigate(item.nav)
+          }}>{item.title}</ListItemButton>)}
       </List>
     </Drawer>
   </div>;

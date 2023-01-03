@@ -24,7 +24,7 @@ import {MaxHitsField} from "../components/MaxHitsField";
 export const GitHubPullRequestSearch: React.FC = () => {
   const {pullRequests: {setPulls}} = useContext(MegaContext)
   const {ghClient, clientInitError} = useGitHubCodeClient()
-  const [checks, setChecks] = useState(false);
+  const [checks, setChecks] = useState(true);
   const [searchTerms, setSearchTerms] = useState('');
   const [state, setState] = useState<'loading' | 'ready' | 'searching'>('loading');
   useEffect(() => {
@@ -56,7 +56,7 @@ export const GitHubPullRequestSearch: React.FC = () => {
   return <>
     {clientInitError && <Alert variant={"filled"} color={"warning"}>{clientInitError}</Alert>}
     <MaxHitsField value={max} setValue={setMax}/>
-    <Tooltip title={'Expensive api calls, in time and rate limits'}>
+    <Tooltip title={'Somewhat expensive api calls, in time and rate limits'}>
       <FormControl>
         <FormHelperText>Fetch Checks</FormHelperText>
         <Switch checked={checks} onClick={() => setChecks(!checks)}/>

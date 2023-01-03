@@ -88,50 +88,46 @@ export class SourceGraphClient {
 
   async searchCode(searchString: string, max?: number): Promise<SearchHit[]> {
     const searchHits = new Set<SearchHit>();
-    try {
-      debug('Requesting data from sourcegraph')
-      const response = await axios({
-        method: "POST",
-        timeout: 60000,
-        url: `${this.searchSettings.baseUrl}/.api/graphql`,
-        headers: {
-          Authorization: `token ${this.token}`,
-          Accept: 'application/json',
+    debug('Requesting data from sourcegraph')
+    const response = await axios({
+      method: "POST",
+      timeout: 60000,
+      url: `${this.searchSettings.baseUrl}/.api/graphql`,
+      headers: {
+        Authorization: `token ${this.token}`,
+        Accept: 'application/json',
+      },
+      responseType: 'json',
+      data: {
+        query: sourceGraphGraphQlString,
+        variables: {
+          query: searchString,
         },
-        responseType: 'json',
-        data: {
-          query: sourceGraphGraphQlString,
-          variables: {
-            query: searchString,
-          },
-        },
-      });
-      const alert: string | null | undefined = response?.data?.search?.results?.alert
-      if (alert) warn(`Alert: ${alert}`)
+      },
+    });
+    const alert: string | null | undefined = response?.data?.search?.results?.alert
+    if (alert) warn(`Alert: ${alert}`)
 
-      trace('response?.data?.data?.search?.results?.results' + asString(response?.data?.data?.search?.results?.results))
-      response?.data?.data?.search?.results?.results?.forEach((item: any) => {
-        if (searchHits.size === max)
-          return;
-        let hit: SearchHit | undefined = undefined;
-        trace('Evaluating result item: ' + asString(item))
-        switch (item?.__typename) {
-          case 'FileMatch':
-            hit = this.sgRepoStringToSearchHit(item?.repository?.name);
-            break;
-          case 'Repository':
-            hit = this.sgRepoStringToSearchHit(item?.name);
-            break;
-          case 'CommitSearchResult':
-            hit = this.sgRepoStringToSearchHit(item?.commit?.repository?.name);
-            break;
-        }
-        if (hit) searchHits.add(hit)
-      });
+    trace('response?.data?.data?.search?.results?.results' + asString(response?.data?.data?.search?.results?.results))
+    response?.data?.data?.search?.results?.results?.forEach((item: any) => {
+      if (searchHits.size === max)
+        return;
+      let hit: SearchHit | undefined = undefined;
+      trace('Evaluating result item: ' + asString(item))
+      switch (item?.__typename) {
+        case 'FileMatch':
+          hit = this.sgRepoStringToSearchHit(item?.repository?.name);
+          break;
+        case 'Repository':
+          hit = this.sgRepoStringToSearchHit(item?.name);
+          break;
+        case 'CommitSearchResult':
+          hit = this.sgRepoStringToSearchHit(item?.commit?.repository?.name);
+          break;
+      }
+      if (hit) searchHits.add(hit)
+    });
 
-    } catch (e: unknown) {
-      error(`Failed in some way: ${asString(e)}`);
-    }
     return Array.from(searchHits.values());
   }
 
@@ -169,7 +165,7 @@ export class SourceGraphClient {
 export function useSourceGraphClient(
   props: SourceGraphSearchFieldProps,
 ): SourceGraphClientWrapper {
-  const {settings, search:{searchHostKey}} = useContext(MegaContext);
+  const {settings, search: {searchHostKey}} = useContext(MegaContext);
   const [wrapper, setWrapper] = useState<SourceGraphClientWrapper>({error: 'Not yet initialized', client: undefined})
   useEffect(() => {
     (async () => {

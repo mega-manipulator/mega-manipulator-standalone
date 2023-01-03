@@ -28,7 +28,7 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
   const [searchError, setSearchError] = useState<string | null>(null)
   useEffect(() => {
     searchFieldProps?.setState(localSearchClientWrapper ? 'ready' : 'loading')
-  }, [localSearchClientWrapper, searchFieldProps])
+  }, [localSearchClientWrapper])
 
   const [codeHost, setCodeHost] = useState<string>('*')
   const [owner, setOwner] = useState<string>('*')
@@ -41,7 +41,8 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
     searchFieldProps?.setState("searching")
     setSearchHits([])
     setSearchError(null)
-    localSearchClientWrapper.client?.searchCode(program, searchTerm, file, searchFieldProps.max, codeHost, owner, repo)
+    const fileRef = file.length === 0 ? '.' : file
+    localSearchClientWrapper.client?.searchCode(program, searchTerm, fileRef, searchFieldProps.max, codeHost, owner, repo)
       .then((hits) => {
         setSearchHits(hits)
         searchFieldProps?.setState("ready")

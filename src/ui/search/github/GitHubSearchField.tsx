@@ -1,5 +1,5 @@
 import {useGitHubSearchClient} from "./useGitHubSearchClient";
-import React, {useCallback, useContext, useEffect, useState} from "react";
+import React, {useCallback, useContext, useEffect, useRef, useState} from "react";
 import {
   Alert,
   Box,
@@ -43,19 +43,21 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
   const [max, setMax] = useState(100)
   const [searchType, setSearchType] = useState<SearchType>('REPO')
   const [progress, setProgress] = useState<number>()
+  const currentSearchRef: React.MutableRefObject<number> = useRef<number>(0);
   const search = useCallback(() => {
     if (ghClient !== undefined) {
       searchFieldProps?.setState('searching')
       setErr(undefined)
       setProgress(0)
       setSearchHits([])
+      currentSearchRef.current = new Date().getTime()
       let promise;
       switch (searchType) {
         case "CODE":
-          promise = ghClient.searchCode(searchTerm, max, setProgress);
+          promise = ghClient.searchCode(searchTerm, max, setProgress, currentSearchRef);
           break;
         case "REPO":
-          promise = ghClient.searchRepo(searchTerm, max, setProgress);
+          promise = ghClient.searchRepo(searchTerm, max, setProgress, currentSearchRef);
           break;
         default:
           promise = Promise.reject(`Unknown search type: ${searchType}`)
@@ -129,6 +131,10 @@ export const GitHubSearchField: React.FC<GitHubSearchFieldProps> = ({searchField
         😱</Alert></Tooltip>}
 
     {progress !== undefined && <div><Box sx={{paddingTop: 1, width: '100%'}}>
+      {searchFieldProps?.state === 'searching' && currentSearchRef.current !== 0 &&
+          <Tooltip title={'Cancel search'}><IconButton onClick={() => {
+            currentSearchRef.current = 0
+          }}>x</IconButton></Tooltip>}
         <LinearProgress title={'progress'} color={"primary"} value={progress / max * 100}
                         variant={"determinate"}/> {progress}/{max}
     </Box></div>}

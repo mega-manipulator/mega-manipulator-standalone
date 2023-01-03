@@ -8,6 +8,7 @@ import {getCurrentBranchName, getMainBranchName} from "../service/file/cloneDir"
 import {SimpleActionReturn, simpleActionWithResult} from "../service/file/simpleActionWithResult";
 import {WorkMeta, WorkResult, WorkResultKind, WorkResultOutput, WorkResultStatus} from "../service/types";
 import {saveResultToStorage} from "../service/work/workLog";
+import React from "react";
 
 // @ts-ignore
 function githubRepoFetchGraphQl(repos: { owner: string, repo: string }[]): string {
@@ -334,7 +335,12 @@ export class GithubClient {
     }
   }
 
-  async searchCode(searchString: string, max: number, progress: (size: number) => void): Promise<SearchHit[]> {
+  async searchCode(
+    searchString: string,
+    max: number,
+    progress: (size: number) => void,
+    searchRef: React.MutableRefObject<number>,
+  ): Promise<SearchHit[]> {
     info(`Searching for REPO '${searchString}' with the github client`)
     const transformer = (codeItem: GithubSearchCodeItem) => {
       const owner = codeItem.repository.owner.login;
@@ -348,10 +354,15 @@ export class GithubClient {
         description: codeItem.repository.description,
       });
     }
-    return this.paginate('/search/code', max, {q: searchString}, progress, transformer, this.searchHitEquals)
+    return this.paginate('/search/code', max, {q: searchString}, progress, transformer, this.searchHitEquals, searchRef)
   }
 
-  async searchRepo(searchString: string, max: number, progress: (size: number) => void): Promise<SearchHit[]> {
+  async searchRepo(
+    searchString: string,
+    max: number,
+    progress: (size: number) => void,
+    searchRef: React.MutableRefObject<number>,
+  ): Promise<SearchHit[]> {
     info(`Searching for REPO: '${searchString}' with the github client`)
     const transformer = (repository: GithubSearchCodeRepository) => {
       const owner = repository.owner.login;
@@ -365,7 +376,7 @@ export class GithubClient {
         description: repository.description,
       });
     }
-    return this.paginate('/search/repositories', max, {q: searchString}, progress, transformer, this.searchHitEquals)
+    return this.paginate('/search/repositories', max, {q: searchString}, progress, transformer, this.searchHitEquals, searchRef)
   }
 
   async searchPulls(searchString: string, checks: boolean, max: number, progress: (size: number) => void): Promise<GitHubPull[]> {
@@ -694,13 +705,22 @@ export class GithubClient {
     return Array.from(aggregator);
   }
 
-  private async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, progress: (size: number) => void, transformer: (data: GITHUB_TYPE) => TYPE, equality: (v1: TYPE, v2: TYPE) => boolean): Promise<TYPE[]> {
+  private async paginate<GITHUB_TYPE, TYPE>(
+    url: string,
+    max: number,
+    params: any,
+    progress: (size: number) => void,
+    transformer: (data: GITHUB_TYPE) => TYPE,
+    equality: (v1: TYPE, v2: TYPE) => boolean,
+    searchRef: React.MutableRefObject<number>,
+  ): Promise<TYPE[]> {
+    const fixedSearchRef = searchRef.current;
     const aggregator: Set<TYPE> = new Set<TYPE>()
     let page = 1;
     const per_page = 25;
     let attempt = 0;
     progress(0);
-    pagination: while (aggregator.size < max) {
+    pagination: while (aggregator.size < max && fixedSearchRef == searchRef.current) {
       progress(aggregator.size)
       await sleep(1000);
       debug(`Fetching page ${page} with ${aggregator.size} found already`);

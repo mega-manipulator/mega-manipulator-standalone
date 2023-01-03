@@ -3,6 +3,8 @@ import {Alert, Box, CircularProgress, Tooltip} from "@mui/material";
 import React, {useCallback, useContext, useEffect, useState} from "react";
 import {MegaContext} from "../../hooks/MegaContext";
 import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, Report} from "../../service/file/cloneDir";
+import {simpleAction} from "../../service/file/simpleActionWithResult";
+import {asString} from "../../hooks/logWrapper";
 
 type ClonesTableProps = {
   repoStates: RepoBadStatesReport[]
@@ -11,7 +13,7 @@ type ClonesTableProps = {
 }
 
 export function useClonesTableProps(): ClonesTableProps {
-  const {settings, clones:{setPaths,setSelected}} = useContext(MegaContext)
+  const {settings, clones: {setPaths, setSelected}} = useContext(MegaContext)
 
   const [repoStates, setRepoStates] = useState<RepoBadStatesReport[]>([]);
   const reload = useCallback(() => {
@@ -24,7 +26,25 @@ export function useClonesTableProps(): ClonesTableProps {
           const trimmedRepoPath = path.substring((settings.clonePath?.length ?? -1) + 1)
           return new RepoBadStatesReport(path, trimmedRepoPath);
         }));
-        const analysis = await Promise.all(paths.map((path) => analyzeRepoForBadStates(settings, path)))
+        const analysis: RepoBadStatesReport[] = await simpleAction(
+          {settings, hits: paths},
+          async (_index, _hit, path) => analyzeRepoForBadStates(settings, path),
+          async (hit, err) => {
+            const r: Report = {
+              state: "failed to execute",
+              error: asString(err),
+            }
+            const report: RepoBadStatesReport = {
+              repoPathShort: `${hit.codeHost}/${hit.owner}/${hit.repo}`,
+              repoPathLong: `${settings.clonePath}/${hit.codeHost}/${hit.owner}/${hit.repo}`,
+              uncommittedChanges: r,
+              onDefaultBranch: r,
+              noDiffWithOriginHead: r,
+              noCodeHostConfig: r,
+            }
+            return report;
+          }
+        );
         setRepoStates(analysis)
       })()
     }

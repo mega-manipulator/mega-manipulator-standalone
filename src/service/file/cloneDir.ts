@@ -60,7 +60,7 @@ async function listClonesRecursive(depth: number, path: string): Promise<string[
   const dir = await fs.readDir(path)
   if (depth === 0) {
     if (dir.some(f => f.name === '.git')) {
-      debug(`Here I am at path ${path}`)
+      trace(`Here I am at path ${path}`)
       return [path]
     } else {
       trace(`Here I am at path ${path} WITHOUT a .GIT`)

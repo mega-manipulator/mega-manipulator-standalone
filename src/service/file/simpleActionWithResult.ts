@@ -4,7 +4,7 @@ import {homeDir} from "@tauri-apps/api/path";
 import {ProgressReporter, WorkMeta, WorkResult, WorkResultKind, WorkResultStatus} from "../types";
 import {path} from "@tauri-apps/api";
 import {saveResultToStorage} from "../work/workLog";
-import {error} from "tauri-plugin-log-api";
+import {error, trace} from "tauri-plugin-log-api";
 import {ChildProcess} from "@tauri-apps/api/shell";
 import {pathToSearchHit} from "./cloneDir";
 
@@ -23,21 +23,24 @@ export async function simpleAction<T>(
   errMapper: (hit: SearchHit, err: unknown) => Promise<T>,
 ): Promise<(T)[]> {
   const clonePath = await validClonePath(input.settings)
-  const promises: Promise<T>[] = input.hits.map(async (hit, i): Promise<T> => {
-    const _hit = await hitToSearchHit(hit);
-    const p = await path.join(clonePath, _hit.codeHost, _hit.owner, _hit.repo);
-    try {
-      return await action(i, _hit, p);
-    } catch (e) {
-      await error('Failed action:' + e);
-      return await errMapper(_hit, e);
-    }
-  });
   const chunkSize = 25;
   const aggregate: T[] = [];
-  for (let i = 0; i < promises.length; i += chunkSize) {
-    const chunk = promises.slice(i, i + chunkSize)
-    const awaited: T[] = await Promise.all(chunk);
+  for (let i = 0; i < input.hits.length; i += chunkSize) {
+    const hitChunk = input.hits.slice(i, i + chunkSize)
+    const promises: Promise<T>[] = hitChunk.map(async (hit, j): Promise<T> => {
+      const idx = i + j;
+      const _hit = await hitToSearchHit(hit);
+      const p = await path.join(clonePath, _hit.codeHost, _hit.owner, _hit.repo);
+      try {
+        trace(`Running ${idx}`)
+        return await action(idx, _hit, p);
+      } catch (e) {
+        await error('Failed action:' + e);
+        return await errMapper(_hit, e);
+      }
+    });
+    trace(`Chunking ${i}`)
+    const awaited: T[] = await Promise.all(promises);
     aggregate.push(...awaited)
   }
   return aggregate;
@@ -79,7 +82,6 @@ export async function simpleActionWithResult(input: SimpleActionWithResultProps,
     result: [],
   };
   for (let i = 0; i < input.hits.length; i++) {
-    input.progress(i, input.hits.length);
     const hit = await hitToSearchHit(input.hits[i]);
     workResult.result[i] = {
       input: hit,
@@ -88,8 +90,8 @@ export async function simpleActionWithResult(input: SimpleActionWithResultProps,
       }
     };
   }
-  input.progress(input.hits.length, input.hits.length);
   for (let i = 0; i < workResult.result.length; i++) {
+    input.progress(i, input.hits.length);
     const current = workResult.result[i].input;
     const p = await path.join(clonePath, current.codeHost, current.owner, current.repo);
     const meta: WorkMeta = {workLog: []};
@@ -102,6 +104,7 @@ export async function simpleActionWithResult(input: SimpleActionWithResultProps,
     workResult.status = "ok";
   }
   await saveResultToStorage(workResult);
+  input.progress(input.hits.length, input.hits.length);
   return {time};
 }
 

@@ -3,8 +3,9 @@ import {SearchHit} from "../types";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
 import {listRepos, pathToSearchHit} from "../../../service/file/cloneDir";
 import {debug, error} from "tauri-plugin-log-api";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {path} from "@tauri-apps/api";
+import {ProgressReporter} from "../../../service/types";
 
 export interface LocalSearchClientWrapper {
   client: LocalSearchClient | undefined;
@@ -44,7 +45,10 @@ export class LocalSearchClient {
     codeHost: string,
     owner: string,
     repo: string,
+    searchRef:React.MutableRefObject<number>,
+    progress:ProgressReporter,
   ): Promise<SearchHit[]> {
+    const fixedSearchRef = searchRef.current;
     if (this.megaSettings.keepLocalReposPath === undefined) return [];
     let pathParts: string[] = [this.megaSettings.keepLocalReposPath, codeHost, owner, repo]
     const firstAsterisk = pathParts.indexOf('*')
@@ -57,17 +61,30 @@ export class LocalSearchClient {
     const keeps: string[] = (await listRepos(allowedPrefix, depth))
 
     debug(`Search for '${searchString}' with the local client in ${keeps.length} dirs, using '${program}'`)
-    const commands: (SearchHit | null)[] = await Promise.all(keeps.map((keep) => {
-      return withTimeout(1000, searchCommand(program, searchString, fileString, keep))
-        .then(async (c) => {
-          if (c.code === 0) {
-            return await pathToSearchHit('local', keep);
-          } else {
-            return null
-          }
-        });
-    }))
-    return (commands.filter((b) => b !== null) as SearchHit[]).slice(0, max)
+    const aggregate:SearchHit[] = [];
+    const chunkSize = 10;
+    chunk: for (let i = 0; i < keeps.length; i += chunkSize) {
+      progress(i, keeps.length)
+      if(searchRef.current != fixedSearchRef) break chunk;
+      const thisChunk = keeps.slice(i, Math.min(i+chunkSize, keeps.length))
+      const commands: (SearchHit | null)[] = await Promise.all(thisChunk.map((keep) => {
+        return withTimeout(1000, searchCommand(program, searchString, fileString, keep))
+          .then(async (c) => {
+            if (c.code === 0) {
+              return await pathToSearchHit('local', keep);
+            } else {
+              return null
+            }
+          });
+      }))
+      for (let j = 0; j < commands.length; j++) {
+        if(commands[j] !== null){
+          aggregate.push(commands[j] as SearchHit)
+        }
+        if(aggregate.length == max) break chunk;
+      }
+    }
+    return aggregate;
   }
 }
 

@@ -12,8 +12,16 @@ jq '.platforms' tauri-update.json > "$tmp_platforms"
 function update(){
   type=$1
   suffix=$2
-  url="$(jq -r ".assets[] |select(.name |endswith(\"${suffix}\")) |.url" $tmp_file)"
-  sig="$(curl -Lfs -H "Authentication: token $GITHUB_TOKEN" "${url}.sig")"
+  url="$(jq -r ".assets[] |select(.name |endswith(\"${suffix}\")) |.url" $tmp_file || printf '')"
+  sig="$(curl -Lfs -H "Authentication: token $GITHUB_TOKEN" "${url}.sig" || printf '')"
+  if [ "$url" == '' ] ; then
+    echo "Missing url for $type" >&2
+    return
+  fi
+  if [ "$sig" == '' ] ; then
+    echo "Missing sig for $type" >&2
+    return
+  fi
   newContent="$(jq ".[\"$type\"] = {\"signature\":\"$sig\", \"url\":\"$url\"}" "$tmp_platforms")"
   echo "$newContent" > "$tmp_platforms"
 }

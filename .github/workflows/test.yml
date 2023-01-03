@@ -17,6 +17,7 @@ jobs:
       - uses: mega-manipulator/tauri-setup-action@main
       - uses: tauri-apps/tauri-action@v0
         env:
+          VITE_MUI_PRO_LICENCE: ${{ secrets.VITE_MUI_PRO_LICENCE }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

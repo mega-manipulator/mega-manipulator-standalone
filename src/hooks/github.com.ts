@@ -379,7 +379,13 @@ export class GithubClient {
     return this.paginate('/search/repositories', max, {q: searchString}, progress, transformer, this.searchHitEquals, searchRef)
   }
 
-  async searchPulls(searchString: string, checks: boolean, max: number, progress: (size: number) => void): Promise<GitHubPull[]> {
+  async searchPulls(
+    searchString: string,
+    checks: boolean,
+    max: number,
+    progress: (size: number) => void,
+    searchRef: React.MutableRefObject<number>
+  ): Promise<GitHubPull[]> {
     info(`Searching for PULLS: '${searchString}' with the github client`)
     const transformer: (item: any) => GitHubPull | undefined = (item: any) => {
       //debug(`PR: ${asString(item)}`)
@@ -426,6 +432,7 @@ export class GithubClient {
       progress,
       (data) => data.data.search.nodes,
       transformer,
+      searchRef,
     );
   }
 
@@ -657,13 +664,15 @@ export class GithubClient {
     variables: any,
     progress: (size: number) => void,
     listExtractor: (data: any) => GITHUB_TYPE[],
-    transformer: (data: GITHUB_TYPE) => TYPE | undefined
+    transformer: (data: GITHUB_TYPE) => TYPE | undefined,
+    searchRef: React.MutableRefObject<number>,
   ): Promise<TYPE[]> {
+    const fixedSearchRef = searchRef.current;
     let cursor: string | undefined = undefined;
     const aggregator: Set<TYPE> = new Set<TYPE>()
     let attempt = 0;
     progress(0)
-    pagination: while (aggregator.size < max) {
+    pagination: while (aggregator.size < max && searchRef.current == fixedSearchRef) {
       progress(aggregator.size)
       await sleep(1000)
       const left = max - aggregator.size

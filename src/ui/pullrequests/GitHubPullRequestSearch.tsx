@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from "react";
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from "react";
 import {useGitHubCodeClient} from "../search/github/useGitHubSearchClient";
 import {
   Alert,
@@ -27,6 +27,7 @@ export const GitHubPullRequestSearch: React.FC = () => {
   const [checks, setChecks] = useState(true);
   const [searchTerms, setSearchTerms] = useState('');
   const [state, setState] = useState<'loading' | 'ready' | 'searching'>('loading');
+  const searchRef: React.MutableRefObject<number> = useRef<number>(0);
   useEffect(() => {
     if (searchTerms === '' && ghClient?.username) {
       setSearchTerms(`is:pr author:${ghClient?.username} state:open`)
@@ -37,14 +38,15 @@ export const GitHubPullRequestSearch: React.FC = () => {
     return !clientInitError
   }, [clientInitError])
 
-  const [progress, setProgress] = useState<number | null>(null)
+  const [progress, setProgress] = useState<number>()
   const [max, setMax] = useState(25)
   const search = useCallback(() => {
     //debug(`Searching for '${searchFieldProps.value}'`)
     setPulls([])
     setState('searching')
-    setProgress(null)
-    ghClient?.searchPulls(searchTerms, checks, max, setProgress)
+    setProgress(0)
+    searchRef.current = new Date().getTime()
+    ghClient?.searchPulls(searchTerms, checks, max, setProgress,searchRef)
       ?.then((items: GitHubPull[]) => {
         setPulls(items)
       })
@@ -76,9 +78,15 @@ export const GitHubPullRequestSearch: React.FC = () => {
         open('https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-only-issues-or-pull-requests')
       }}><HelpCenterIcon/></IconButton>
     </Tooltip>
-    {progress && <Box style={{width: "20em"}} >
+
+    {progress !== undefined && <Box style={{width: "100%"}} >
+      {state === 'searching' && searchRef.current !== 0 &&
+          <Tooltip title={'Cancel search'}><IconButton onClick={() => {
+            searchRef.current = 0
+          }}>x</IconButton></Tooltip>}
         <LinearProgress value={progress / max * 100} variant={"determinate"}/> {progress} / {max}
     </Box>}
+
     <FormControl fullWidth>
       <FormHelperText>Search terms</FormHelperText>
       <MemorableTextField

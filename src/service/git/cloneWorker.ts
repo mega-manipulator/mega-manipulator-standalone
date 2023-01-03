@@ -110,7 +110,7 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: 
   try {
     await removeDir(clonePath, {recursive: true});
   } catch (e) {
-    console.info('Exception pre-cleaning dir ' + asString(e))
+    info('Exception pre-cleaning dir ' + asString(e))
   }
   await createDir(clonePath, {recursive: true});
   const keepFsList: FileEntry[] = await fs.readDir(keepPath)

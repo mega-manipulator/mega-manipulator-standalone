@@ -32,8 +32,9 @@ export const EnvValidationWarning: React.FC = () => {
           onClick={() => open('https://gist.github.com/rchurchley/cb8478caec1d1319abac')}
         >/homebrew not found on PATH</Typography>
       </Tooltip>
-      <Typography variant={"caption"}>This could be a sign that you need to set your launcher path from your
-        terminal</Typography>
+      <Typography variant={"caption"}>
+        This could be a sign that you need to set your launcher path from your terminal
+      </Typography>
       <Typography variant={"body2"}>
         <pre>sudo launchctl config user path $PATH</pre>
       </Typography>

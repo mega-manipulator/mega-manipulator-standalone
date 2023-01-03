@@ -1,6 +1,6 @@
 import {useLocalSearchClient} from "./LocalSearchClient";
 import React, {useCallback, useContext, useEffect, useState} from "react";
-import {Alert, Button, CircularProgress, FormControl, FormHelperText, MenuItem, Select} from "@mui/material";
+import {Alert, Button, CircularProgress, FormControl, FormHelperText, MenuItem, Select, Tooltip} from "@mui/material";
 import {SearchFieldProps} from "../types";
 import {error} from "tauri-plugin-log-api";
 import {asString} from "../../../hooks/logWrapper";
@@ -25,7 +25,7 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
   const [program, setProgram] = useState<string>('ag')
   const [searchTerm, setSearchTerm] = useState<string>('foo')
   const [file, setFile] = useState<string>('.')
-  const [searchError, setSearchError] = useState<string | null>(null)
+  const [searchError, setSearchError] = useState<string>()
   useEffect(() => {
     searchFieldProps?.setState(localSearchClientWrapper ? 'ready' : 'loading')
   }, [localSearchClientWrapper])
@@ -40,17 +40,15 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
   const search = useCallback(() => {
     searchFieldProps?.setState("searching")
     setSearchHits([])
-    setSearchError(null)
+    setSearchError(undefined)
     const fileRef = file.length === 0 ? '.' : file
     localSearchClientWrapper.client?.searchCode(program, searchTerm, fileRef, searchFieldProps.max, codeHost, owner, repo)
-      .then((hits) => {
-        setSearchHits(hits)
-        searchFieldProps?.setState("ready")
-      }, (err) => {
-        const msg = `Failed searching due to '${asString(err)}'`
-        error(msg)
-        setSearchError(msg)
+      .then((hits) => setSearchHits(hits))
+      .catch((err) => {
+        error(`Failed searching due to '${asString(err)}'`)
+        setSearchError(asString(err, 2))
       })
+      .finally(() => searchFieldProps?.setState("ready"))
   }, [searchFieldProps, setSearchHits, localSearchClientWrapper.client, program, searchTerm, file, codeHost, owner, repo])
 
   if (!settings) {
@@ -103,10 +101,10 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
       <FormHelperText>Search Term</FormHelperText>
       <MemorableTextField
         memProps={{
-          value:searchTerm,
+          value: searchTerm,
           valueChange: setSearchTerm,
-          maxMemory:25,
-          saveOnEnter:true,
+          maxMemory: 25,
+          saveOnEnter: true,
           enterAction: search,
           megaFieldIdentifier: 'localSearchTermField',
         }}
@@ -116,17 +114,19 @@ export const LocalSearchField: React.FC<LocalSearchFieldProps> = ({searchFieldPr
       <FormHelperText>File Pattern</FormHelperText>
       <MemorableTextField
         memProps={{
-          value:file,
+          value: file,
           valueChange: setFile,
-          maxMemory:25,
-          saveOnEnter:true,
+          maxMemory: 25,
+          saveOnEnter: true,
           enterAction: search,
           megaFieldIdentifier: 'localSearchFileField',
         }}
       />
     </FormControl>
     <MaxHitsField value={searchFieldProps.max} setValue={searchFieldProps.setMax}/>
-    {searchError && <Alert color={"error"}>{searchError}</Alert>}
+    {searchError && <Tooltip title={<pre>{searchError}</pre>}>
+        <Alert variant={"outlined"} color={"error"}>Something went weong here 😱</Alert>
+    </Tooltip>}
     <Button
       variant={"contained"}
       color={"primary"}

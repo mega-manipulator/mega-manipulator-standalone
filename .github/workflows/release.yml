@@ -25,7 +25,7 @@ jobs:
         with:
           script: |
             const linkBase = `https://github.com/mega-manipulator/mega-manipulator-standalone/releases/download/${process.env.GITHUB_REF_NAME}/mega-manipulator_${process.env.GITHUB_REF_NAME.substring(1)}`;
-            const { data: { body: releaseBody } } = await octokit.request('POST /repos/{owner}/{repo}/releases/generate-notes', {
+            const { data: { body: releaseBody } } = await github.request('POST /repos/{owner}/{repo}/releases/generate-notes', {
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: `${process.env.GITHUB_REF_NAME}`

@@ -1,6 +1,6 @@
 {
   "version": "0.1.8",
-  "notes": "Desktop App v0.1.8",
+  "notes": "Desktop App v0.1.8\n\nSortable tables (and all the other mui-pro features) now available in the release artifacts",
   "pub_date": "2023-01-03T16:04:10Z",
   "platforms": {
     "darwin-x86_64": {

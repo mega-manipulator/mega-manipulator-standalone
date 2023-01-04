@@ -4,7 +4,7 @@ set -e
 #set -x
 
 tmp_file="$(mktemp)"
-gh release view --json assets,tagName,createdAt,name > "$tmp_file"
+gh release view --json assets,tagName,createdAt,name,body > "$tmp_file"
 
 tmp_platforms="$(mktemp)"
 jq '.platforms' tauri-update.json > "$tmp_platforms"
@@ -26,7 +26,7 @@ function update(){
   echo "$newContent" > "$tmp_platforms"
 }
 releaseName="$(jq -r '.name' "$tmp_file")"
-releaseBody="$(jq -r '.body' "$tmp_file")"
+releaseBody="$(jq -r '.body' "$tmp_file" | sed '/Take a look at the assets to download and install this app./Q' | sed 's|\r$||g')"
 releaseNotes="$(sed 's|\\n\\nnull$||' <<< "$releaseName\n\n$releaseBody")"
 tagName="$(jq -r '.tagName' "$tmp_file")"
 version="$(sed 's|^v||' <<< "$tagName")"

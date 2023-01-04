@@ -1,19 +1,23 @@
 {
-  "version": "0.1.7",
-  "notes": "Desktop App v0.1.7",
-  "pub_date": "2023-01-03T13:16:23Z",
+  "version": "0.1.8",
+  "notes": "Desktop App v0.1.8",
+  "pub_date": "2023-01-03T16:04:10Z",
   "platforms": {
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSaW91L0k4a1NQQmZFbTFPdjE1ejVtbmt4bTJuNENKTS8yT1BOdUorQ214N0IwOFZ2M01DWDBITDNBeVhQMVNSaHM1b093TmczQXlpRTdZcDZ1NmVjcXlXc2EvblZrNFE4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjcyNzU0NDcxCWZpbGU6bWVnYS1tYW5pcHVsYXRvci5hcHAudGFyLmd6CmJ0WERRSW45dFV1L3hxWTlTQ2pFNHlwcmJRSGFCMU9BTllONzZTa212alBVN21RUzZ3SGJJNWVwZ2o0WnZlRGJTbC8zWit4TFJEUTVKL0hPK0IzdUNBPT0K",
-      "url": "https://github.com/mega-manipulator/mega-manipulator-standalone/releases/download/v0.1.7/mega-manipulator.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSaW91L0k4a1NQQlc4MXEwSmVuOFk2NGM2WDU1ZWtNWUpaT083cVVuYTRSdkNxQS9ETlZDV2pETnR4bTZTbnp1QWZkSjJKR2FkM0RPSGtISUtLQjRJandBUS9jSmpkdVFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjcyNzczNTYwCWZpbGU6bWVnYS1tYW5pcHVsYXRvci5hcHAudGFyLmd6CkxscE94L2t6cUsvYjE1eGpBTXRkcWNjMFRhOGR1Zjdxamp0QTFMTkRWMDVuZmlTcmZnWERNaVNCNjN2Y1NxbkNMRzVsUDN3aVhxZzNvcFFQMnlPWEJ3PT0K",
+      "url": "https://github.com/mega-manipulator/mega-manipulator-standalone/releases/download/v0.1.8/mega-manipulator.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSaW91L0k4a1NQQmZFbTFPdjE1ejVtbmt4bTJuNENKTS8yT1BOdUorQ214N0IwOFZ2M01DWDBITDNBeVhQMVNSaHM1b093TmczQXlpRTdZcDZ1NmVjcXlXc2EvblZrNFE4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjcyNzU0NDcxCWZpbGU6bWVnYS1tYW5pcHVsYXRvci5hcHAudGFyLmd6CmJ0WERRSW45dFV1L3hxWTlTQ2pFNHlwcmJRSGFCMU9BTllONzZTa212alBVN21RUzZ3SGJJNWVwZ2o0WnZlRGJTbC8zWit4TFJEUTVKL0hPK0IzdUNBPT0K",
-      "url": "https://github.com/mega-manipulator/mega-manipulator-standalone/releases/download/v0.1.7/mega-manipulator.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSaW91L0k4a1NQQlc4MXEwSmVuOFk2NGM2WDU1ZWtNWUpaT083cVVuYTRSdkNxQS9ETlZDV2pETnR4bTZTbnp1QWZkSjJKR2FkM0RPSGtISUtLQjRJandBUS9jSmpkdVFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjcyNzczNTYwCWZpbGU6bWVnYS1tYW5pcHVsYXRvci5hcHAudGFyLmd6CkxscE94L2t6cUsvYjE1eGpBTXRkcWNjMFRhOGR1Zjdxamp0QTFMTkRWMDVuZmlTcmZnWERNaVNCNjN2Y1NxbkNMRzVsUDN3aVhxZzNvcFFQMnlPWEJ3PT0K",
+      "url": "https://github.com/mega-manipulator/mega-manipulator-standalone/releases/download/v0.1.8/mega-manipulator.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSaW91L0k4a1NQQlFzTCtLNTBhNUtOWWRnYTloWnRnTGY2L2x1TzlFWnBUNSthZFo2ZEtRNG5mNTNhTnlDSDJxeEo2dDE2NEZhaEd4YWNXWWplMVBTV0tNMWdpcXRnQ3dNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjcyNzU0NTMzCWZpbGU6bWVnYS1tYW5pcHVsYXRvcl8wLjEuN194NjRfZW4tVVMubXNpLnppcAoxZjBHNnhGMUhCRUJxSDZqYjBidDJKNlhSc2RITWJ0MjlaU2ZaK1JuRStOME40QW1aR2xKTzBkcm9OMXgxOUdQaC9Nc0cvZituRmdyVGo4ZHV3Q2ZDdz09Cg==",
-      "url": "https://github.com/mega-manipulator/mega-manipulator-standalone/releases/download/v0.1.7/mega-manipulator_0.1.7_x64_en-US.msi.zip"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSaW91L0k4a1NQQlZoOXVnYXhaRjV1UWpsYkRmMmFIaUQ0S1JoNU9ZSHVkRUsrSDF5RzdzQUEzYnhWSU9rWWdKR0R0dmd4LzRkeElDWUc2TE1jeitqVWhlaUR2Z1dQRXdvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjcyNzczODExCWZpbGU6bWVnYS1tYW5pcHVsYXRvcl8wLjEuOF94NjRfZW4tVVMubXNpLnppcAp0ckE4SHVPbUhzWDBzVzkyN25qOVIvSU1iT0lhZ0JPYmErVjJ1MEdHQ2kzem9xWkZaYUdIQi9lMVdIb3dPSXJvZk5kMi9iRXAvOFM3Mk5LYTlaWHFEdz09Cg==",
+      "url": "https://github.com/mega-manipulator/mega-manipulator-standalone/releases/download/v0.1.8/mega-manipulator_0.1.8_x64_en-US.msi.zip"
+    },
+    "linux-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSaW91L0k4a1NQQmZ6TkQ5T0VuWXRWcjRoRnJKTDRHSXJHeFBPWnVnUElGc1F6MXNzK2szZ1ZvWDVQTzJuNHJhRzdHSXRGdDZDS2NraFpnQVZuUWp1Yjl5c0FrUzhGdUE4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjcyNzczMDU5CWZpbGU6bWVnYS1tYW5pcHVsYXRvcl8wLjEuOF9hbWQ2NC5BcHBJbWFnZS50YXIuZ3oKS0cvdUtPYXE2RTV5Z1JMblArL2ViSHl3amZWb3EzUGE4YkFTYndNT2hTR2pGSFZ5Y1NMUHo2b3FFbXRWSzY2SFpFYzBoNzJ0ZDVxTDlyOTYyQUZoQ3c9PQo=",
+      "url": "https://github.com/mega-manipulator/mega-manipulator-standalone/releases/download/v0.1.8/mega-manipulator_0.1.8_amd64.AppImage.tar.gz"
     }
   }
 }

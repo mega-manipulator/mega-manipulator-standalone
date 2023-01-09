@@ -1,7 +1,7 @@
 import {Store} from "tauri-plugin-store-api";
 import {WorkHistoryItem, WorkMeta, WorkResult} from "../types";
 import {ChildProcess, Command} from "@tauri-apps/api/shell";
-import {debug, info} from "tauri-plugin-log-api";
+import {info, trace} from "tauri-plugin-log-api";
 
 const store = new Store('.worklog.dat');
 
@@ -14,7 +14,7 @@ export async function runCommand(program: string, args: string[], dir: string, m
       status: result.code === 0 ? 'ok' : 'failed'
     }
     meta.workLog.push(logEntry)
-    await debug(`=> Ran '${logEntry.what}' in ${dir} with result ${JSON.stringify(result)}`)
+    await trace(`=> Ran '${logEntry.what}' in ${dir} with result ${JSON.stringify(result)}`)
   }
   return result;
 }

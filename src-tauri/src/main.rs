@@ -1,14 +1,9 @@
 #![cfg_attr(
-    all(not(debug_assertions), target_os = "windows"),
-    windows_subsystem = "windows"
+all(not(debug_assertions), target_os = "windows"),
+windows_subsystem = "windows"
 )]
 #![forbid(unsafe_code)]
 #![deny(warnings)]
-
-use std::fs;
-
-use log::LevelFilter;
-use tauri_plugin_log::{LogTarget, LoggerBuilder, RotationStrategy};
 
 #[tauri::command]
 fn store_password(username: String, password: String) -> Result<(), String> {
@@ -34,7 +29,7 @@ fn get_password(username: String) -> Result<String, String> {
 #[tauri::command]
 fn copy_dir(source: String, dest: String) -> Result<(), String> {
     println!("Copying from {:?} to {:?}", source, dest);
-    let _ = fs::create_dir(&dest);
+    let _ = std::fs::create_dir(&dest);
     let mut options = fs_extra::dir::CopyOptions::new();
     options.overwrite = true;
     let mut from_paths = Vec::new();
@@ -49,12 +44,16 @@ fn main() {
     let context = tauri::generate_context!();
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_store::PluginBuilder::default().build())
+        .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(
-            LoggerBuilder::default()
-                .level(LevelFilter::Debug)
-                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
-                .rotation_strategy(RotationStrategy::KeepAll)
+            tauri_plugin_log::Builder::default()
+                .level(log::LevelFilter::Debug)
+                .targets([
+                    tauri_plugin_log::LogTarget::LogDir,
+                    tauri_plugin_log::LogTarget::Stdout,
+                    tauri_plugin_log::LogTarget::Webview,
+                ])
+                .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
                 .build(),
         )
         .menu(if cfg!(target_os = "macos") {

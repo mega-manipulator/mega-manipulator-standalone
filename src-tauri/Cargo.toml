@@ -7,7 +7,7 @@ license = "GPLv3"
 repository = "https://github.com/mega-manipulator/mega-manipulator-standalone"
 default-run = "mega-manipulator"
 edition = "2021"
-rust-version = "1.57"
+rust-version = "1.66"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,14 +21,8 @@ fs_extra = "1.2.0"
 tauri = { version = "1.2.3", features = ["dialog-all", "fs-all", "http-all", "os-all", "path-all", "process-relaunch", "shell-all", "updater"] }
 keyring = "1.2.0"
 log = "0.4.17"
-
-[dependencies.tauri-plugin-log]
-git = "https://github.com/tauri-apps/tauri-plugin-log"
-branch = "dev"
-[dependencies.tauri-plugin-store]
-git = "https://github.com/tauri-apps/tauri-plugin-store"
-#tag = "v0.1.0"
-branch = "dev"
+tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "dev" }
+tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "dev" }
 
 [features]
 # by default Tauri runs in production mode

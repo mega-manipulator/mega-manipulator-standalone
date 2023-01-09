@@ -127,6 +127,7 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: 
 
 async function setupSparse(clonePath: string, meta: WorkMeta, sparseCheckout: string | null) {
   if (sparseCheckout === null) {
+    await runCommand("git", ["sparse-checkout", "disable"], clonePath, meta)
     return;
   }
   const sparseConfFile = await path.join(clonePath, '.git', 'info', 'sparse-checkout');

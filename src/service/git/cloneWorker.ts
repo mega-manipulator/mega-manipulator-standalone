@@ -116,7 +116,7 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: 
   const keepFsList: FileEntry[] = await fs.readDir(keepPath)
   if (keepFsList.some(e => e.name === '.git')) {
     await copyDir(await join(keepPath, '.git'), clonePath)
-    await setupSparse(keepPath, meta, sparseCheckout)
+    await setupSparse(clonePath, meta, sparseCheckout)
     const mainBranch = await getMainBranchName(keepPath, meta)
     await debug(`Main branch of ${keepPath} is ${mainBranch}`)
     await gitFetch(clonePath, mainBranch, branch, meta)
@@ -125,16 +125,16 @@ async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: 
   return false
 }
 
-async function setupSparse(keepPath: string, meta: WorkMeta, sparseCheckout: string | null) {
+async function setupSparse(clonePath: string, meta: WorkMeta, sparseCheckout: string | null) {
   if (sparseCheckout === null) {
     return;
   }
-  const sparseConfFile = await path.join(keepPath, '.git', 'info', 'sparse-checkout');
+  const sparseConfFile = await path.join(clonePath, '.git', 'info', 'sparse-checkout');
   await debug(`Setting up sparse checkout in ${sparseConfFile}`)
   await fs.removeFile(sparseConfFile)
     .then(() => meta.workLog.push({what: `Remove ${sparseConfFile}`, status: "ok", result: true}))
     .catch((e) => meta.workLog.push({what: `Remove ${sparseConfFile}`, status: "failed", result: e}));
-  requireZeroStatus(await runCommand("git", ["config", "core.sparseCheckout", "true"], keepPath, meta), 'Enable sparse checkout');
+  requireZeroStatus(await runCommand("git", ["config", "core.sparseCheckout", "true"], clonePath, meta), 'Enable sparse checkout');
   await fs.createDir(await path.dirname(sparseConfFile), {recursive: true}).catch();
   await fs.writeTextFile(sparseConfFile, sparseCheckout);
 }

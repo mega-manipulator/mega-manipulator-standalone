@@ -5,6 +5,7 @@ import {MegaContext} from "../../hooks/MegaContext";
 import {analyzeRepoForBadStates, listRepos, RepoBadStatesReport, Report} from "../../service/file/cloneDir";
 import {simpleAction} from "../../service/file/simpleActionWithResult";
 import {asString} from "../../hooks/logWrapper";
+import {path} from "@tauri-apps/api";
 
 type ClonesTableProps = {
   repoStates: RepoBadStatesReport[]
@@ -34,9 +35,10 @@ export function useClonesTableProps(): ClonesTableProps {
               state: "failed to execute",
               error: asString(err),
             }
+            const repoPathLong:string = await path.join(settings.clonePath,hit.codeHost,hit.owner,hit.repo)
             const report: RepoBadStatesReport = {
               repoPathShort: `${hit.codeHost}/${hit.owner}/${hit.repo}`,
-              repoPathLong: `${settings.clonePath}/${hit.codeHost}/${hit.owner}/${hit.repo}`,
+              repoPathLong,
               uncommittedChanges: r,
               onDefaultBranch: r,
               noDiffWithOriginHead: r,

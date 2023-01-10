@@ -1,12 +1,13 @@
 import {Command, open} from '@tauri-apps/api/shell';
 import {MegaSettingsType} from "../../hooks/settings";
-import {fs, os, path} from "@tauri-apps/api";
+import {fs, path} from "@tauri-apps/api";
 import {error, info, warn} from "tauri-plugin-log-api";
 import {asString} from "../../hooks/logWrapper";
 import {FileEntry} from "@tauri-apps/api/fs";
 import {WorkResult, WorkResultStatus} from "../types";
 import {saveResultToStorage} from "../work/workLog";
 import {SimpleActionReturn} from "./simpleActionWithResult";
+import {OsType} from "@tauri-apps/api/os";
 
 export const scriptFile = 'mega-manipulator.bash'
 const scriptFileContent = `#!/bin/bash
@@ -34,26 +35,18 @@ echo 'Hello world'
 echo 'Wanna execute your own script? Delegate that from here!' | grep -q 'foooooo' # Intentional failure
 `
 
-export async function openDirs(settings: MegaSettingsType, filePaths: string[]) {
-  switch (await os.type()) {
-    case "Linux":
-      info(`"open" not implemented on Linux yet, you'll need to open these manually, switch to mac, or make a PR on this project ;-)`)
-      filePaths.forEach((p) => open(p))
-      break;
-    case "Darwin":
-      for (const filePath of filePaths) {
-        const command = new Command('open-osx', ['-a', settings.editorApplication, filePath]);
-        command.on("close", () => {
-          info(`Open "${filePath}" with "${settings.editorApplication}" command terminated `)
-        })
-        command.on("error", (...args: unknown[]) => warn('Open command errored: ' + asString(args)))
-        await command.spawn()
-      }
-      break;
-    case "Windows_NT":
-      info(`"open" not implemented on Windows yet, you'll need to open these manually, switch to mac, or make a PR on this project ;-)`)
-      filePaths.forEach((p) => open(p))
-      break;
+export async function openDirs(osType: OsType, settings: MegaSettingsType, filePaths: string[]) {
+  if (osType === 'Darwin' && settings.useSpecificEditorApplication) {
+    for (const filePath of filePaths) {
+      const command = new Command('open-osx', ['-a', settings.editorApplication, filePath]);
+      command.on("close", () => {
+        info(`Open "${filePath}" with "${settings.editorApplication}" command terminated `)
+      })
+      command.on("error", (...args: unknown[]) => warn('Open command errored: ' + asString(args)))
+      await command.spawn()
+    }
+  } else {
+    filePaths.forEach((p) => open(p))
   }
 }
 

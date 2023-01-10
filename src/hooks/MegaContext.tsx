@@ -3,12 +3,14 @@ import {baseSettings, loadFromDiskOrDefault, MegaSettingsType, saveToDisk} from 
 import {SearchHit} from "../ui/search/types";
 import {homeDir} from '@tauri-apps/api/path';
 import {GitHubPull} from "./github.com";
+import {OsType, type} from "@tauri-apps/api/os";
 
 export interface MegaContext {
   settings: MegaSettingsType,
   updateSettings: (fn: (draft: MegaSettingsType) => void) => void,
 
   homeDir: string,
+  os: OsType,
 
   fieldMemory: {
     [key: string]: string[]
@@ -52,6 +54,7 @@ export const MegaContext = createContext<MegaContext>({
     return;
   }),
   homeDir: '~',
+  os: 'Linux',
   fieldMemory: {
     "foo": ["asd"]
   },
@@ -121,8 +124,10 @@ export function useMegaContext(): MegaContext {
   }, [prHitsSelectedModel, prHits])
 
   const [homedir, setHomeDir] = useState<string>('~');
+  const [os, setOs] = useState<OsType>('Linux');
   useEffect(() => {
-    homeDir().then((d) => setHomeDir(d))
+    homeDir().then(setHomeDir)
+    type().then(setOs)
     loadFromDiskOrDefault().then((d) => setSettings(d))
   }, []);
 
@@ -148,6 +153,7 @@ export function useMegaContext(): MegaContext {
     settings,
     updateSettings,
     homeDir: homedir,
+    os,
     fieldMemory,
     setFieldMemory,
     search: {

@@ -118,7 +118,7 @@ const CodeHostRow: React.FC<CodeHostRowProps> = ({settings, codeHostKey}) => {
 }
 
 export const SettingsPage = () => {
-  const {settings: megaSettings, updateSettings: updateMegaSettings} = useContext(MegaContext)
+  const {os, settings: megaSettings, updateSettings: updateMegaSettings} = useContext(MegaContext)
   const nav = useNavigate()
 
   const [keepLocalRepos, setKeepLocalRepos] = useState<string>()
@@ -180,23 +180,26 @@ export const SettingsPage = () => {
           />
         </FormControl>
       </Grid>
-      <Grid item xs={12} md={6}>
-        <FormControl fullWidth>
-          <FormHelperText>Editor Application path</FormHelperText>
-          <MemorableTextField
-            memProps={{
-              megaFieldIdentifier: 'editorApplicationPath',
-              value: editorApplicationPath,
-              valueChange: setEditorApplicationPath,
-            }}
-            textProps={{
-              id: 'editorApplication-text-field',
-              fullWidth: true,
-              variant: "outlined",
-            }}
-          />
-        </FormControl>
-      </Grid>
+      {os === 'Darwin' && <>
+      {/* Toggle useSpecific Editor */}
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth>
+            <FormHelperText>Editor Application path</FormHelperText>
+            <MemorableTextField
+                memProps={{
+                  megaFieldIdentifier: 'editorApplicationPath',
+                  value: editorApplicationPath,
+                  valueChange: setEditorApplicationPath,
+                }}
+                textProps={{
+                  id: 'editorApplication-text-field',
+                  fullWidth: true,
+                  variant: "outlined",
+                }}
+            />
+          </FormControl>
+        </Grid>
+      </>}
       <Grid item xs={12}>
         <Button
           variant={"contained"}

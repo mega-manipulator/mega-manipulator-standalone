@@ -7,7 +7,7 @@ license = "GPLv3"
 repository = "https://github.com/mega-manipulator/mega-manipulator-standalone"
 default-run = "mega-manipulator"
 edition = "2021"
-rust-version = "1.66"
+rust-version = "1.57"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

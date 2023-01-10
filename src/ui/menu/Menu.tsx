@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Avatar, Drawer, List, ListItemButton} from "@mui/material";
+import {Avatar, Drawer, List, ListItemButton, SxProps, Theme} from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 import {useLocation, useNavigate} from "react-router-dom";
 import {locations} from "../route/locations";
@@ -24,9 +24,28 @@ export const AppMenu: React.FC = () => {
   const navigate = useNavigate()
   const {pathname} = useLocation();
   const [isOpen, setOpen] = useState(false)
+  const [isHover, setIsHover] = useState(false);
+  const avatarStyle: React.CSSProperties = {
+    zIndex: 999,
+    position: "fixed",
+    top: 10,
+    right: 10,
+    color: '#000',
+  }
+  const avatarSx: SxProps<Theme> = {
+    bgcolor: isHover ? '#fff' : '#aaa',
+    borderColor: '#fff',
+    borderWidth: 2,
+    borderStyle: "solid",
+    width: 56,
+    height: 56,
+  }
   return <div>
     <Avatar
-      style={{zIndex:999,position: "fixed", top: 10, right: 10}}
+      sx={avatarSx}
+      style={avatarStyle}
+      onMouseEnter={() => setIsHover(true)}
+      onMouseLeave={() => setIsHover(false)}
       onClick={() => setOpen(!isOpen)}
     ><MenuIcon/></Avatar>
     <Drawer open={isOpen} onClose={() => setOpen(false)} anchor={"right"}>

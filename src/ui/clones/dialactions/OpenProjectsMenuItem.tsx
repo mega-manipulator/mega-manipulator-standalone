@@ -10,6 +10,7 @@ import { Alert } from '@mui/material';
 
 export function useOpenProjectsMenuItem(): GenericSpeedDialActionProps {
   const {
+    os,
     clones: { selected },
     settings,
   } = useContext(MegaContext);
@@ -24,12 +25,13 @@ export function useOpenProjectsMenuItem(): GenericSpeedDialActionProps {
     ) : (
       <>{`Really open all (${selected.length}) selected projects, at once in ${settings.editorApplication}? Each in a new separate window.`}</>
     ),
-    async () => openDirs(settings, selected).then(() => ({ time: 0 }))
+    async () => openDirs(os, settings, selected).then(() => ({ time: 0 }))
   );
 }
 
 export function useOpenWorkdirMenuItem(): GenericSpeedDialActionProps {
   const {
+    os,
     clones: { paths },
     settings,
   } = useContext(MegaContext);
@@ -39,6 +41,6 @@ export function useOpenWorkdirMenuItem(): GenericSpeedDialActionProps {
     <OpenInNewIcon fontSize={'large'} />,
     <>{`Really open entire workdir, with ${paths.length} projects, at once in ${settings.editorApplication}? In a single window.`}</>,
     async () =>
-      openDirs(settings, [settings.clonePath]).then(() => ({ time: 0 }))
+      openDirs(os, settings, [settings.clonePath]).then(() => ({ time: 0 }))
   );
 }

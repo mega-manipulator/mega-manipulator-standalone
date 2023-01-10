@@ -18,7 +18,10 @@ type InputProps = {
   enterAction?: () => void,
 
   value: string,
-  valueChange: (v: string) => void,
+  valueChange: (
+    // eslint-disable-next-line no-unused-vars
+    v: string,
+  ) => void,
 }
 
 type CombinedProps = {
@@ -34,11 +37,12 @@ export const MemorableTextField: React.FC<CombinedProps> = ({memProps, textProps
     (async () => {
       const store = new Store('.MemorableTextField.dat');
       const retrieved: string[] | null = await store.get(memProps.megaFieldIdentifier)
-      if (retrieved) {
+      if (retrieved !== null && retrieved != undefined) {
         memProps.valueChange(retrieved[0])
+        setVs(retrieved)
       }
     })()
-  }, []);
+  }, [memProps]);
   const internalEnterAction = useCallback(() => {
     let tmp = vs;
     debug(`Adding value: '${memProps.value}'`)
@@ -53,7 +57,7 @@ export const MemorableTextField: React.FC<CombinedProps> = ({memProps, textProps
       .catch((e) => `Failed updating file store for MemorableTextField '${memProps.megaFieldIdentifier}': ${asString(e)}`)
 
     memProps.enterAction && memProps.enterAction()
-  }, [memProps.value]);
+  }, [memProps, vs]);
 
   return <Autocomplete
     freeSolo

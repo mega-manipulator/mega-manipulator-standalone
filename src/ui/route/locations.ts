@@ -3,34 +3,34 @@ export const locations = {
     link: '/settings',
     search: {
       github: {
-        link: '/settings/search/github'
+        link: '/settings/search/github',
       },
       sourcegraph: {
-        link: '/settings/search/sourcegraph'
-      }
+        link: '/settings/search/sourcegraph',
+      },
     },
     code: {
       github: {
-        link: '/settings/code/github'
-      }
+        link: '/settings/code/github',
+      },
     },
   },
   search: {
-    link: '/search'
+    link: '/search',
   },
   result: {
-    link: '/result'
+    link: '/result',
   },
   clones: {
-    link: '/clones'
+    link: '/clones',
   },
   logs: {
-    link: '/logs'
+    link: '/logs',
   },
   pullRequests: {
-    link: '/pull-requests'
+    link: '/pull-requests',
   },
   thanks: {
-    link: '/thanks'
-  }
-}
+    link: '/thanks',
+  },
+};

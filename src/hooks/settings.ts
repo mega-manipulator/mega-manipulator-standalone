@@ -1,9 +1,9 @@
-import {Store} from "tauri-plugin-store-api";
-import {homeDir} from "@tauri-apps/api/path";
-import {path} from "@tauri-apps/api";
+import { Store } from 'tauri-plugin-store-api';
+import { homeDir } from '@tauri-apps/api/path';
+import { path } from '@tauri-apps/api';
 
 const store = new Store('.settings.dat');
-const nodeName = 'settings'
+const nodeName = 'settings';
 
 export const baseSettings: () => MegaSettingsType = () => {
   return {
@@ -16,47 +16,55 @@ export const baseSettings: () => MegaSettingsType = () => {
     editorApplication: '/Applications/Visual Studio Code.app',
 
     searchHosts: {
-      "github.com": {
-        type: "GITHUB",
+      'github.com': {
+        type: 'GITHUB',
         github: {
-          hostType: "SEARCH",
+          hostType: 'SEARCH',
           username: 'jensim',
           baseUrl: 'https://api.github.com',
           codeHostKey: 'github.com',
-        }
+        },
       },
-      "sourcegraph.com": {
+      'sourcegraph.com': {
         type: 'SOURCEGRAPH',
         sourceGraph: {
           username: 'OnlyNeededForMultipleUsernames',
-          hostType: "SEARCH",
-          baseUrl: "https://sourcegraph.com",
+          hostType: 'SEARCH',
+          baseUrl: 'https://sourcegraph.com',
           codeHosts: {
-            "github.com": "github.com",
+            'github.com': 'github.com',
           },
         },
       },
     },
     codeHosts: {
-      "github.com": {
+      'github.com': {
         type: 'GITHUB',
         github: {
           cloneHost: 'github.com',
-          hostType: "CODE",
+          hostType: 'CODE',
           username: 'jensim',
           baseUrl: 'https://api.github.com',
-        }
-      }
-    }
-  }
-}
+        },
+      },
+    },
+  };
+};
 
 export async function defaultSettings(): Promise<MegaSettingsType> {
   const settings = baseSettings();
   if (typeof window.__TAURI_IPC__ === 'function') {
-    const home = await homeDir()
-    settings.keepLocalReposPath = await path.join(home, 'vcs', 'mega-manipulator-keep');
-    settings.clonePath = await path.join(home, 'vcs', 'mega-manipulator-workdir');
+    const home = await homeDir();
+    settings.keepLocalReposPath = await path.join(
+      home,
+      'vcs',
+      'mega-manipulator-keep'
+    );
+    settings.clonePath = await path.join(
+      home,
+      'vcs',
+      'mega-manipulator-workdir'
+    );
   }
   return settings;
 }
@@ -66,15 +74,15 @@ export async function defaultSettings(): Promise<MegaSettingsType> {
  */
 export async function createDefault(): Promise<MegaSettingsType> {
   const defaultVal = await defaultSettings();
-  saveToDisk(defaultVal)
-  return defaultVal
+  saveToDisk(defaultVal);
+  return defaultVal;
 }
 
 export function saveToDisk(settings: MegaSettingsType) {
   if (typeof window.__TAURI_IPC__ === 'function') {
     (async () => {
-      await store.set(nodeName, settings)
-    })()
+      await store.set(nodeName, settings);
+    })();
   }
 }
 
@@ -82,9 +90,9 @@ export async function loadFromDiskOrDefault(): Promise<MegaSettingsType> {
   const megaSettings = await defaultSettings();
 
   if (typeof window.__TAURI_IPC__ === 'function') {
-    const loadedSettings: unknown = await store.get(nodeName)
+    const loadedSettings: unknown = await store.get(nodeName);
     if (loadedSettings) {
-      Object.assign(megaSettings, loadedSettings)
+      Object.assign(megaSettings, loadedSettings);
     }
   }
   return megaSettings;
@@ -102,18 +110,18 @@ export interface MegaSettingsType {
   version: '1';
   keepLocalReposPath: string;
   clonePath: string;
-  useSpecificEditorApplication: boolean,
-  editorApplication: string,
-  searchHosts: { [key: string]: SearchHostSettings, };
-  codeHosts: { [key: string]: CodeHostSettings, };
+  useSpecificEditorApplication: boolean;
+  editorApplication: string;
+  searchHosts: { [key: string]: SearchHostSettings };
+  codeHosts: { [key: string]: CodeHostSettings };
 }
 
-export type SearchHostType = 'GITHUB' | 'SOURCEGRAPH' | 'LOCAL'
+export type SearchHostType = 'GITHUB' | 'SOURCEGRAPH' | 'LOCAL';
 export type SearchHostSettings = {
-  type: SearchHostType,
-  github?: GitHubSearchHostSettings,
-  sourceGraph?: SourceGraphSearchHostSettings,
-}
+  type: SearchHostType;
+  github?: GitHubSearchHostSettings;
+  sourceGraph?: SourceGraphSearchHostSettings;
+};
 
 export interface GitHubSearchHostSettings extends UserLoginType {
   codeHostKey: string;
@@ -123,21 +131,29 @@ export interface SourceGraphSearchHostSettings extends UserLoginType {
   baseUrl: string;
   codeHosts: {
     [sourceGraphKey: string]: string;
-  }
+  };
 }
 
-export type CodeHostType = 'GITHUB'
+export type CodeHostType = 'GITHUB';
 export type CodeHostSettings = {
-  type: CodeHostType,
-  github?: GitHubCodeHostSettings,
-}
+  type: CodeHostType;
+  github?: GitHubCodeHostSettings;
+};
 
-export function cloneUrl(settings: CodeHostSettings | undefined, owner: string, repo: string): string | undefined {
+export function cloneUrl(
+  settings: CodeHostSettings | undefined,
+  owner: string,
+  repo: string
+): string | undefined {
   switch (settings?.type) {
-    case "GITHUB":
-      return ghCloneUrl(settings.github?.cloneHost ?? 'github.com', owner, repo)
+    case 'GITHUB':
+      return ghCloneUrl(
+        settings.github?.cloneHost ?? 'github.com',
+        owner,
+        repo
+      );
   }
-  return undefined
+  return undefined;
 }
 
 export interface GitHubCodeHostSettings extends UserLoginType {
@@ -147,7 +163,11 @@ export interface GitHubCodeHostSettings extends UserLoginType {
   username: string;
 }
 
-function ghCloneUrl(host: string, owner: string, repo: string): string | undefined {
+function ghCloneUrl(
+  host: string,
+  owner: string,
+  repo: string
+): string | undefined {
   // TODO work with settings for location other than github.com
-  return `git@${host}:${owner}/${repo}.git`
+  return `git@${host}:${owner}/${repo}.git`;
 }

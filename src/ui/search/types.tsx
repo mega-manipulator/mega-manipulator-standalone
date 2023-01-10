@@ -1,4 +1,4 @@
-import {useState} from "react";
+import { useState } from 'react';
 
 export interface SearchHit {
   readonly searchHost: string | null;
@@ -13,17 +13,17 @@ export interface SearchHit {
   readonly branch?: string;
 }
 
-export type SearchPageState = 'loading' | 'ready' | 'searching'
+export type SearchPageState = 'loading' | 'ready' | 'searching';
 
 export function useSearchFieldProps(): SearchFieldProps {
-  const [state, setState] = useState<SearchPageState>('loading')
-  const [max, setMax] = useState<number>(100)
+  const [state, setState] = useState<SearchPageState>('loading');
+  const [max, setMax] = useState<number>(100);
   return {
     state,
     setState,
     max,
     setMax,
-  }
+  };
 }
 
 export class SearchFieldProps {
@@ -36,7 +36,7 @@ export class SearchFieldProps {
     state: SearchPageState,
     setState: (state: SearchPageState) => void,
     max: number,
-    setMax: (max: number) => void,
+    setMax: (max: number) => void
   ) {
     this.state = state;
     this.setState = setState;

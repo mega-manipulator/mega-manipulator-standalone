@@ -2,7 +2,7 @@ export interface WorkProgress {
   total: number;
   done: number;
   breakdown: {
-    [group: string]: number,
+    [group: string]: number;
   };
 }
 
@@ -24,7 +24,7 @@ export class WorkProgressTracker {
   private readonly _total: number;
   private _done: number;
   private readonly _breakdown: {
-    [group: string]: number,
+    [group: string]: number;
   };
 
   constructor(total: number) {
@@ -35,25 +35,25 @@ export class WorkProgressTracker {
 
   progress(group: string): WorkProgress {
     this._done += 1;
-    const groupCount: number = this._breakdown[group] ?? 0
+    const groupCount: number = this._breakdown[group] ?? 0;
     this._breakdown[group] = groupCount + 1;
     return {
       done: this.done,
       total: this.total,
       breakdown: this.breakdown,
-    }
+    };
   }
 }
 
-export type WorkResultStatus = 'ok' | 'failed' | 'in-progress' | 'unknown'
+export type WorkResultStatus = 'ok' | 'failed' | 'in-progress' | 'unknown';
 export type WorkHistoryItem = {
-  what: string,
-  result: any,
-  status: WorkResultStatus,
-}
+  what: string;
+  result: any;
+  status: WorkResultStatus;
+};
 export type WorkMeta = {
-  workLog: WorkHistoryItem[]
-}
+  workLog: WorkHistoryItem[];
+};
 
 export interface WorkResultOutput<OUTPUT> {
   status: WorkResultStatus;
@@ -61,7 +61,7 @@ export interface WorkResultOutput<OUTPUT> {
 }
 
 export type WorkResultKind =
-  'unknown'
+  | 'unknown'
   | 'clone'
   | 'commit'
   | 'scriptedChange'
@@ -73,16 +73,16 @@ export type WorkResultKind =
   | 'reviewPr'
   | 'mergePr'
   | 'prDraftMark'
-  | 'prDraftReady'
+  | 'prDraftReady';
 
 export interface WorkResult<INPUT_ARG, INPUT, OUTPUT> {
   time: number;
   kind: WorkResultKind;
   name: string;
   status: WorkResultStatus;
-  input: INPUT_ARG,
+  input: INPUT_ARG;
   result: {
-    input: INPUT,
-    output: WorkResultOutput<OUTPUT>,
-  }[]
+    input: INPUT;
+    output: WorkResultOutput<OUTPUT>;
+  }[];
 }

@@ -1,23 +1,24 @@
-import React from "react";
-import {Chip, Link, Typography} from "@mui/material";
-import {open} from '@tauri-apps/api/shell';
+import React from 'react';
+import { Chip, Link, Typography } from '@mui/material';
+import { open } from '@tauri-apps/api/shell';
 
 interface LicenceType {
-  name: string,
-  link: string,
+  name: string;
+  link: string;
 }
 
 interface ThanksType {
-  name: string,
-  link: string,
-  description: string,
-  licence: LicenceType[],
+  name: string;
+  link: string;
+  description: string;
+  licence: LicenceType[];
 }
 
 const ossPackages: ThanksType[] = [
   {
     name: 'Tauri',
-    description: 'Build an optimized, secure, and frontend-independent application for multi-platform deployment.',
+    description:
+      'Build an optimized, secure, and frontend-independent application for multi-platform deployment.',
     link: 'https://tauri.app',
     licence: [
       {
@@ -26,7 +27,7 @@ const ossPackages: ThanksType[] = [
       },
       {
         name: 'MIT',
-        link: 'https://github.com/tauri-apps/tauri/blob/dev/LICENSE_MIT'
+        link: 'https://github.com/tauri-apps/tauri/blob/dev/LICENSE_MIT',
       },
     ],
   },
@@ -38,12 +39,13 @@ const ossPackages: ThanksType[] = [
       {
         name: 'MIT',
         link: 'https://github.com/vitejs/vite/blob/main/LICENSE',
-      }
+      },
     ],
   },
   {
     name: 'MUI',
-    description: 'MUI offers a comprehensive suite of UI tools to help you ship new features faster. Start with Material UI, our fully-loaded component library, or bring your own design system to our production-ready components.',
+    description:
+      'MUI offers a comprehensive suite of UI tools to help you ship new features faster. Start with Material UI, our fully-loaded component library, or bring your own design system to our production-ready components.',
     link: 'https://mui.com',
     licence: [
       {
@@ -53,12 +55,13 @@ const ossPackages: ThanksType[] = [
       {
         name: 'Commercial',
         link: 'https://mui.com/legal/mui-x-eula/',
-      }
+      },
     ],
   },
   {
     name: 'JetBrains',
-    description: 'JetBrains develops smart IDEs, like IDEA and CLion, to superpower developers.',
+    description:
+      'JetBrains develops smart IDEs, like IDEA and CLion, to superpower developers.',
     link: 'https://jetbrains.com/',
     licence: [
       {
@@ -68,7 +71,7 @@ const ossPackages: ThanksType[] = [
       {
         name: 'Commercial',
         link: 'https://www.jetbrains.com/idea/buy/#personal',
-      }
+      },
     ],
   },
   {
@@ -78,27 +81,31 @@ const ossPackages: ThanksType[] = [
     licence: [
       {
         name: 'MIT',
-        link: 'https://github.com/remix-run/react-router/blob/main/LICENSE.md'
-      }
+        link: 'https://github.com/remix-run/react-router/blob/main/LICENSE.md',
+      },
     ],
   },
   {
     name: 'Axios',
     description: 'Promise based HTTP client for the browser and node.js',
     link: 'https://axios-http.com/',
-    licence: [{
-      name: 'MIT',
-      link: 'https://github.com/axios/axios/blob/v1.x/LICENSE'
-    }],
+    licence: [
+      {
+        name: 'MIT',
+        link: 'https://github.com/axios/axios/blob/v1.x/LICENSE',
+      },
+    ],
   },
   {
-    name:'@emotion/{react,styled}',
+    name: '@emotion/{react,styled}',
     description: 'Simple styling in React.',
     link: 'https://emotion.sh',
-    licence: [{
-      name: 'MIT',
-      link: 'https://github.com/emotion-js/emotion/blob/main/LICENSE',
-    }], // TODO
+    licence: [
+      {
+        name: 'MIT',
+        link: 'https://github.com/emotion-js/emotion/blob/main/LICENSE',
+      },
+    ], // TODO
   },
   /*
   {
@@ -108,23 +115,32 @@ const ossPackages: ThanksType[] = [
     licence: [], // TODO
   },
    */
-]
+];
 
 export const ThanksPage: React.FC = () => {
-  return <>
-    <Typography variant={'h4'}>Thanks goes to..</Typography>
-    {ossPackages.map((pkg, index) => <p key={index}>
-      <Link onClick={() => open(pkg.link)}><Typography
-        variant={'h6'}
-        style={{cursor: "pointer"}}
-      >{pkg.name}</Typography></Link>
-      <Typography>{pkg.description}</Typography>
-      {pkg.licence && pkg.licence.map((l, i) => <Link key={i} onClick={() => open(l.link)}>
-        <Chip
-          style={{cursor: "pointer"}}
-          variant={"filled"}
-          label={l.name}/>
-      </Link>)}
-    </p>)}
-  </>
+  return (
+    <>
+      <Typography variant={'h4'}>Thanks goes to..</Typography>
+      {ossPackages.map((pkg, index) => (
+        <p key={index}>
+          <Link onClick={() => open(pkg.link)}>
+            <Typography variant={'h6'} style={{ cursor: 'pointer' }}>
+              {pkg.name}
+            </Typography>
+          </Link>
+          <Typography>{pkg.description}</Typography>
+          {pkg.licence &&
+            pkg.licence.map((l, i) => (
+              <Link key={i} onClick={() => open(l.link)}>
+                <Chip
+                  style={{ cursor: 'pointer' }}
+                  variant={'filled'}
+                  label={l.name}
+                />
+              </Link>
+            ))}
+        </p>
+      ))}
+    </>
+  );
 };

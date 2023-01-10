@@ -6,7 +6,7 @@ export const modalStyle = {
   minWidth: '70vw',
   maxWidth: '90vw',
   maxHeight: '90vh',
-  overflow:'scroll',
+  overflow: 'scroll',
   bgcolor: 'background.paper',
   border: '2px solid #fff',
   boxShadow: 24,

@@ -1,44 +1,53 @@
-import {useCallback, useContext, useEffect, useState} from "react";
+import { useCallback, useContext, useEffect, useState } from 'react';
 import EditIcon from '@mui/icons-material/Edit';
-import {MegaContext} from "../../../hooks/MegaContext";
-import {Alert, FormControl, FormHelperText, Typography} from "@mui/material";
-import {useGenericSpeedDialActionProps} from "../../components/speeddial/GenericSpeedDialAction";
-import {useGitHubCodeClient} from "../../search/github/useGitHubSearchClient";
-import {MemorableTextField} from "../../components/MemorableTextField";
+import { MegaContext } from '../../../hooks/MegaContext';
+import { Alert, FormControl, FormHelperText, Typography } from '@mui/material';
+import { useGenericSpeedDialActionProps } from '../../components/speeddial/GenericSpeedDialAction';
+import { useGitHubCodeClient } from '../../search/github/useGitHubSearchClient';
+import { MemorableTextField } from '../../components/MemorableTextField';
 
 export function useGitHubEditPrSpeedDialProps() {
-  const {pullRequests: {selected}} = useContext(MegaContext)
-  const {ghClient, clientInitError} = useGitHubCodeClient()
+  const {
+    pullRequests: { selected },
+  } = useContext(MegaContext);
+  const { ghClient, clientInitError } = useGitHubCodeClient();
   const [title, setTitle] = useState<string>('');
   const [body, setBody] = useState<string>('');
-  const action = useCallback(async (
-    progressCallback: (current: number, total: number) => void
-  ) => {
-    progressCallback(0, selected.length)
-    const result = await ghClient?.rewordPullRequests({
-      prs: selected,
-      body: {title, body},
-    }, (idx: number) => progressCallback(idx + 1, selected.length))
-    progressCallback(selected.length, selected.length)
-    return {
-      time: result?.time ?? 0,
-    }
-  }, [selected, ghClient, title, body])
+  const action = useCallback(
+    async (progressCallback: (current: number, total: number) => void) => {
+      progressCallback(0, selected.length);
+      const result = await ghClient?.rewordPullRequests(
+        {
+          prs: selected,
+          body: { title, body },
+        },
+        (idx: number) => progressCallback(idx + 1, selected.length)
+      );
+      progressCallback(selected.length, selected.length);
+      return {
+        time: result?.time ?? 0,
+      };
+    },
+    [selected, ghClient, title, body]
+  );
   useEffect(() => {
-    setTitle(selected[0]?.title ?? '')
-    setBody(selected[0]?.body ?? '')
+    setTitle(selected[0]?.title ?? '');
+    setBody(selected[0]?.body ?? '');
   }, [selected]);
 
   return useGenericSpeedDialActionProps(
     'Edit selected Pull Requests',
     selected.length === 0,
-    <EditIcon/>,
+    <EditIcon />,
     <>
-      {clientInitError && <Alert
-          variant={"outlined"}
-          color={"warning"}
-      >{clientInitError}</Alert>}
-      <Typography variant={'h4'}>Edit selected PRs ({selected.length})</Typography>
+      {clientInitError && (
+        <Alert variant={'outlined'} color={'warning'}>
+          {clientInitError}
+        </Alert>
+      )}
+      <Typography variant={'h4'}>
+        Edit selected PRs ({selected.length})
+      </Typography>
       <FormControl fullWidth>
         <FormHelperText>Title</FormHelperText>
         <MemorableTextField
@@ -68,6 +77,6 @@ export function useGitHubEditPrSpeedDialProps() {
         />
       </FormControl>
     </>,
-    action,
-  )
+    action
+  );
 }

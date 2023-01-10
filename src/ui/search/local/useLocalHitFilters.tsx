@@ -1,61 +1,71 @@
-import {useEffect, useState} from "react";
-import {MegaSettingsType} from "../../../hooks/settings";
-import {fs, path} from "@tauri-apps/api";
-import {debug, trace} from "tauri-plugin-log-api";
-import {asString} from "../../../hooks/logWrapper";
+import { useEffect, useState } from 'react';
+import { MegaSettingsType } from '../../../hooks/settings';
+import { fs, path } from '@tauri-apps/api';
+import { debug, trace } from 'tauri-plugin-log-api';
+import { asString } from '../../../hooks/logWrapper';
 
 export function useCodeHostFilter(settings: MegaSettingsType): string[] {
-  const [codeHosts, setCodeHosts] = useState<string[]>([])
+  const [codeHosts, setCodeHosts] = useState<string[]>([]);
   useEffect(() => {
     (async () => {
       if (settings?.keepLocalReposPath) {
         const dirs: string[] = await getDirNames(settings?.keepLocalReposPath);
-        debug(`Went looking in '${settings?.keepLocalReposPath}'.. Found ${asString(dirs)}`)
-        setCodeHosts(dirs)
+        debug(
+          `Went looking in '${settings?.keepLocalReposPath}'.. Found ${asString(
+            dirs
+          )}`
+        );
+        setCodeHosts(dirs);
       } else {
-        setCodeHosts([])
+        setCodeHosts([]);
       }
-    })()
-  }, [settings, settings?.keepLocalReposPath])
+    })();
+  }, [settings, settings?.keepLocalReposPath]);
   return codeHosts;
 }
 
 export function useOwnerFilter(
   settings: MegaSettingsType,
-  codeHost: string,
+  codeHost: string
 ): string[] {
-  const [owners, setOwners] = useState<string[]>([])
+  const [owners, setOwners] = useState<string[]>([]);
   useEffect(() => {
     (async () => {
       if (settings?.keepLocalReposPath && codeHost !== '*') {
-        const p = await path.join(settings.keepLocalReposPath, codeHost)
+        const p = await path.join(settings.keepLocalReposPath, codeHost);
         const dirs: string[] = await getDirNames(p);
-        setOwners(dirs)
+        setOwners(dirs);
       } else {
-        setOwners([])
+        setOwners([]);
       }
-    })()
-  }, [settings, settings?.keepLocalReposPath, codeHost])
+    })();
+  }, [settings, settings?.keepLocalReposPath, codeHost]);
   return owners;
 }
 
 export function useRepoFilter(
   settings: MegaSettingsType,
   codeHost: string,
-  owner: string,
+  owner: string
 ): string[] {
-  const [repos, setRepos] = useState<string[]>([])
+  const [repos, setRepos] = useState<string[]>([]);
   useEffect(() => {
     (async () => {
-      if (settings?.keepLocalReposPath && codeHost && codeHost !== '*' && owner && owner !== '*') {
-        const p = await path.join(settings.keepLocalReposPath, codeHost, owner)
+      if (
+        settings?.keepLocalReposPath &&
+        codeHost &&
+        codeHost !== '*' &&
+        owner &&
+        owner !== '*'
+      ) {
+        const p = await path.join(settings.keepLocalReposPath, codeHost, owner);
         const dirs: string[] = await getDirNames(p);
-        setRepos(dirs)
+        setRepos(dirs);
       } else {
-        setRepos([])
+        setRepos([]);
       }
-    })()
-  }, [settings, settings?.keepLocalReposPath, codeHost, owner])
+    })();
+  }, [settings, settings?.keepLocalReposPath, codeHost, owner]);
   return repos;
 }
 
@@ -65,6 +75,10 @@ async function getDirNames(p: string): Promise<string[]> {
     .filter((f) => f.children !== undefined && f.name !== undefined)
     .map((f) => f.name)
     .map((f) => f as string);
-  await trace(`Read dir ${p}. It had this content: ${asString(fileEntries)}, these are the dirs: ${asString(dirs)}`)
+  await trace(
+    `Read dir ${p}. It had this content: ${asString(
+      fileEntries
+    )}, these are the dirs: ${asString(dirs)}`
+  );
   return dirs;
 }

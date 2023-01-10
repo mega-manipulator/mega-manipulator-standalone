@@ -1,20 +1,20 @@
 export function asString(str: unknown, indent?: number): string {
   if (str === null) {
-    return 'null'
+    return 'null';
   }
   switch (typeof str) {
-    case "undefined":
-      return 'undefined'
-    case "boolean":
-    case "number":
-    case "bigint":
-    case "string":
+    case 'undefined':
+      return 'undefined';
+    case 'boolean':
+    case 'number':
+    case 'bigint':
+    case 'string':
       return str as string;
-    case "function":
+    case 'function':
       return `FUNCTION:${str.name}`;
-    case "symbol":
+    case 'symbol':
       return `SYMBOL:${str.description}`;
-    case "object":
+    case 'object':
       if (Array.isArray(str) && str.length === 0) {
         return '[]';
       }
@@ -24,7 +24,7 @@ export function asString(str: unknown, indent?: number): string {
       try {
         return JSON.stringify(str, undefined, indent);
       } catch (e) {
-        return `[object: ${e}]`
+        return `[object: ${e}]`;
       }
     default:
       return '???';

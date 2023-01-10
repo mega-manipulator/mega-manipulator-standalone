@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "lint": "eslint src/**/*.{ts,tsx}",
-    "format": "npm run lint --fix & npm prettier --write 'src/**/*.{js,jsx,ts,tsx}'",
+    "format": "prettier --write 'src/**/*.{js,jsx,ts,tsx}'",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri:dev": "tauri dev",

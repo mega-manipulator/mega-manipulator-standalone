@@ -1,48 +1,75 @@
-import React, {useContext, useEffect, useState} from "react";
-import {Alert, FormControl, FormHelperText, MenuItem, Select, Typography} from "@mui/material";
-import {MegaContext} from "../../hooks/MegaContext";
-import {CodeHostType} from "../../hooks/settings";
-import {GithubPullRequestView} from "./GithubPullRequestView";
-import {PullRequestsTable} from "./PullRequestsTable";
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  Alert,
+  FormControl,
+  FormHelperText,
+  MenuItem,
+  Select,
+  Typography,
+} from '@mui/material';
+import { MegaContext } from '../../hooks/MegaContext';
+import { CodeHostType } from '../../hooks/settings';
+import { GithubPullRequestView } from './GithubPullRequestView';
+import { PullRequestsTable } from './PullRequestsTable';
 
-const DynamicPullRequestView: React.FC<{ codeHostType: CodeHostType | undefined }> = ({codeHostType}) => {
+const DynamicPullRequestView: React.FC<{
+  codeHostType: CodeHostType | undefined;
+}> = ({ codeHostType }) => {
   switch (codeHostType) {
-    case "GITHUB":
-      return <GithubPullRequestView/>
+    case 'GITHUB':
+      return <GithubPullRequestView />;
     case undefined:
-      return <Alert variant={"filled"} color={"error"}>Not able to determine code host type, your settings might be
-        borked?</Alert>
+      return (
+        <Alert variant={'filled'} color={'error'}>
+          Not able to determine code host type, your settings might be borked?
+        </Alert>
+      );
   }
-}
+};
 
 export const PullRequestsPage: React.FC = () => {
-  const {settings} = useContext(MegaContext);
+  const { settings } = useContext(MegaContext);
   const [codeHostKey, setCodeHostKey] = useState<string>('github.com');
 
-  const [codeHostType, setCodeHostType] = useState<CodeHostType | undefined>('GITHUB');
+  const [codeHostType, setCodeHostType] = useState<CodeHostType | undefined>(
+    'GITHUB'
+  );
   useEffect(() => {
-    if (codeHostKey && settings && settings.codeHosts && settings.codeHosts[codeHostKey]) {
-      setCodeHostType(settings.codeHosts[codeHostKey].type)
+    if (
+      codeHostKey &&
+      settings &&
+      settings.codeHosts &&
+      settings.codeHosts[codeHostKey]
+    ) {
+      setCodeHostType(settings.codeHosts[codeHostKey].type);
     } else {
-      setCodeHostType(undefined)
+      setCodeHostType(undefined);
     }
   }, [codeHostKey, settings, settings.codeHosts]);
 
-  return <>
-    <Typography variant={'h4'}>Pull Requests</Typography>
-    <FormControl>
-      <FormHelperText>Code host</FormHelperText>
-      <Select value={codeHostKey}>
-        {Object.keys(settings.codeHosts).map((key, index) => <MenuItem
-          key={index}
-          value={key}
-          onSelect={() => setCodeHostKey(key)}
-        >{key}</MenuItem>)}
-      </Select>
-    </FormControl>
+  return (
+    <>
+      <Typography variant={'h4'}>Pull Requests</Typography>
+      <FormControl>
+        <FormHelperText>Code host</FormHelperText>
+        <Select value={codeHostKey}>
+          {Object.keys(settings.codeHosts).map((key, index) => (
+            <MenuItem
+              key={index}
+              value={key}
+              onSelect={() => setCodeHostKey(key)}
+            >
+              {key}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
-    <DynamicPullRequestView codeHostType={codeHostType}/>
-    <PullRequestsTable/>
-    <p><br/></p>
-  </>
+      <DynamicPullRequestView codeHostType={codeHostType} />
+      <PullRequestsTable />
+      <p>
+        <br />
+      </p>
+    </>
+  );
 };

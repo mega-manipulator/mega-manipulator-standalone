@@ -1,18 +1,23 @@
-import {SearchHit} from "../../ui/search/types";
+import { SearchHit } from '../../ui/search/types';
 import {
   simpleAction,
   SimpleActionProps,
   SimpleActionReturn,
   simpleActionWithResult,
-  SimpleActionWithResultProps
-} from "./simpleActionWithResult";
-import {runCommand} from "../work/workLog";
-import {ProgressReporter, WorkMeta, WorkResultKind, WorkResultStatus} from "../types";
-import {Command} from "@tauri-apps/api/shell";
-import {getCurrentBranchName, getMainBranchName} from "./cloneDir";
-import {asString} from "../../hooks/logWrapper";
-import {MegaSettingsType} from "../../hooks/settings";
-import {error} from "tauri-plugin-log-api";
+  SimpleActionWithResultProps,
+} from './simpleActionWithResult';
+import { runCommand } from '../work/workLog';
+import {
+  ProgressReporter,
+  WorkMeta,
+  WorkResultKind,
+  WorkResultStatus,
+} from '../types';
+import { Command } from '@tauri-apps/api/shell';
+import { getCurrentBranchName, getMainBranchName } from './cloneDir';
+import { asString } from '../../hooks/logWrapper';
+import { MegaSettingsType } from '../../hooks/settings';
+import { error } from 'tauri-plugin-log-api';
 
 export class GitStageInput implements SimpleActionWithResultProps {
   readonly files?: string[];
@@ -28,10 +33,10 @@ export class GitStageInput implements SimpleActionWithResultProps {
     settings: MegaSettingsType,
     hits: SearchHit[] | string[],
     progress: ProgressReporter,
-    files?: string[],
+    files?: string[]
   ) {
     this.files = files;
-    this.workResultKind = "gitStage";
+    this.workResultKind = 'gitStage';
     this.sourceString = 'Stage files';
     this.hits = hits;
     this.settings = settings;
@@ -48,34 +53,83 @@ export async function gitStage(input: GitStageInput): Promise<number> {
 }
 
 export async function gitUnStage(input: GitStageInput): Promise<number> {
-  return await gitStageOp(input, ['reset', '--'])
+  return await gitStageOp(input, ['reset', '--']);
 }
 
-async function gitStageOp(input: GitStageInput, args: string[]): Promise<number> {
-  const res = await simpleActionWithResult(input, async (_index, _hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
-    const res = await runCommand('git', [...args, ...(input.files ?? [])], path, meta)
-    res.code === 0 ? statusReport('ok') : statusReport('failed')
-  })
-  return res.time
+async function gitStageOp(
+  input: GitStageInput,
+  args: string[]
+): Promise<number> {
+  const res = await simpleActionWithResult(
+    input,
+    async (
+      _index,
+      _hit: SearchHit,
+      path: string,
+      meta: WorkMeta,
+      statusReport: (sts: WorkResultStatus) => void
+    ) => {
+      const res = await runCommand(
+        'git',
+        [...args, ...(input.files ?? [])],
+        path,
+        meta
+      );
+      res.code === 0 ? statusReport('ok') : statusReport('failed');
+    }
+  );
+  return res.time;
 }
 
 export interface GitCommitInput extends SimpleActionWithResultProps {
   readonly commitMessage: string;
 }
 
-export async function gitCommit(input: GitCommitInput): Promise<SimpleActionReturn> {
-  return await simpleActionWithResult(input, async (_index, _hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
-    const res = await runCommand('git', ['commit', '-m', input.commitMessage], path, meta)
-    res.code === 0 ? statusReport('ok') : statusReport('failed')
-  })
+export async function gitCommit(
+  input: GitCommitInput
+): Promise<SimpleActionReturn> {
+  return await simpleActionWithResult(
+    input,
+    async (
+      _index,
+      _hit: SearchHit,
+      path: string,
+      meta: WorkMeta,
+      statusReport: (sts: WorkResultStatus) => void
+    ) => {
+      const res = await runCommand(
+        'git',
+        ['commit', '-m', input.commitMessage],
+        path,
+        meta
+      );
+      res.code === 0 ? statusReport('ok') : statusReport('failed');
+    }
+  );
 }
 
-export async function gitPush(input: SimpleActionWithResultProps): Promise<SimpleActionReturn> {
-  return await simpleActionWithResult(input, async (_index, _hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
-    const branchName = await getCurrentBranchName(path)
-    const res = await runCommand('git', ['push', 'origin', branchName], path, meta)
-    res.code === 0 ? statusReport('ok') : statusReport('failed')
-  })
+export async function gitPush(
+  input: SimpleActionWithResultProps
+): Promise<SimpleActionReturn> {
+  return await simpleActionWithResult(
+    input,
+    async (
+      _index,
+      _hit: SearchHit,
+      path: string,
+      meta: WorkMeta,
+      statusReport: (sts: WorkResultStatus) => void
+    ) => {
+      const branchName = await getCurrentBranchName(path);
+      const res = await runCommand(
+        'git',
+        ['push', 'origin', branchName],
+        path,
+        meta
+      );
+      res.code === 0 ? statusReport('ok') : statusReport('failed');
+    }
+  );
 }
 
 export interface GitDiff {
@@ -84,11 +138,15 @@ export interface GitDiff {
   diffFiles: string[];
 }
 
-export async function gitGetStagedFiles(input: SimpleActionProps): Promise<GitDiff[]> {
-  return await gitDiffyFiles(input, ['diff', '--staged', '--name-only'])
+export async function gitGetStagedFiles(
+  input: SimpleActionProps
+): Promise<GitDiff[]> {
+  return await gitDiffyFiles(input, ['diff', '--staged', '--name-only']);
 }
 
-export function gitGetUnStagedFiles(input: SimpleActionProps): Promise<GitDiff[]> {
+export function gitGetUnStagedFiles(
+  input: SimpleActionProps
+): Promise<GitDiff[]> {
   return gitDiffyFiles(input, ['diff', '--name-only']);
 }
 
@@ -96,35 +154,55 @@ export function gitGetUnStagedFiles(input: SimpleActionProps): Promise<GitDiff[]
  * See the un-committed difference, pre commit
  */
 export function gitChangedFiles(input: SimpleActionProps): Promise<GitDiff[]> {
-  return gitDiffyFiles(input, ['diff', 'HEAD', '--name-only'])
+  return gitDiffyFiles(input, ['diff', 'HEAD', '--name-only']);
 }
 
-async function gitDiffyFiles(input: SimpleActionProps, gitArgs: string[]): Promise<GitDiff[]> {
+async function gitDiffyFiles(
+  input: SimpleActionProps,
+  gitArgs: string[]
+): Promise<GitDiff[]> {
   return await simpleAction(
     input,
     async (_index, hit: SearchHit, path: string) => {
       try {
-        const process = await new Command('git', gitArgs, {cwd: path}).execute()
-        const diffFiles = process.stdout.split('\n').filter((f) => f !== '')
-        return {path, hit, diffFiles}
+        const process = await new Command('git', gitArgs, {
+          cwd: path,
+        }).execute();
+        const diffFiles = process.stdout.split('\n').filter((f) => f !== '');
+        return { path, hit, diffFiles };
       } catch (e) {
-        error('FAILED°!!') // TODO
+        error('FAILED°!!'); // TODO
         throw e;
       }
-    }, async (hit, err) => ({path: '??', hit, diffFiles: ['Error: ' + asString(err)]})
+    },
+    async (hit, err) => ({
+      path: '??',
+      hit,
+      diffFiles: ['Error: ' + asString(err)],
+    })
   );
 }
 
 /**
  * See the committed difference, pre push
  */
-export async function gitPrePushDiff(input: SimpleActionProps): Promise<GitDiff[]> {
-  return await simpleAction(input, async (_index, hit: SearchHit, path: string) => {
-    const mainBranchName = await getMainBranchName(path)
-    const process = await new Command('git', ['diff', mainBranchName, `origin/${mainBranchName}`, '--name-only'], {cwd: path}).execute()
-    const diffFiles = process.stdout.split('\n')
-    return {path, hit, diffFiles}
-  }, async (hit, err) => {
-    return {path: '??', hit, diffFiles: ['Error: ' + asString(err)]};
-  });
+export async function gitPrePushDiff(
+  input: SimpleActionProps
+): Promise<GitDiff[]> {
+  return await simpleAction(
+    input,
+    async (_index, hit: SearchHit, path: string) => {
+      const mainBranchName = await getMainBranchName(path);
+      const process = await new Command(
+        'git',
+        ['diff', mainBranchName, `origin/${mainBranchName}`, '--name-only'],
+        { cwd: path }
+      ).execute();
+      const diffFiles = process.stdout.split('\n');
+      return { path, hit, diffFiles };
+    },
+    async (hit, err) => {
+      return { path: '??', hit, diffFiles: ['Error: ' + asString(err)] };
+    }
+  );
 }

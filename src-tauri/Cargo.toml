@@ -19,7 +19,7 @@ serde_json = "1.0.91"
 serde = { version = "1.0.152", features = ["derive"] }
 fs_extra = "1.2.0"
 tauri = { version = "1.2.4", features = ["dialog-all", "fs-all", "http-all", "os-all", "path-all", "process-relaunch", "shell-all", "updater"] }
-keyring = "1.2.0"
+keyring = "1.2.1"
 log = "0.4.17"
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "dev" }
 tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "dev" }

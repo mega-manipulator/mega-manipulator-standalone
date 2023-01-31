@@ -67,6 +67,7 @@ jobs:
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_MUI_PRO_LICENCE: ${{ secrets.VITE_MUI_PRO_LICENCE }}
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
 

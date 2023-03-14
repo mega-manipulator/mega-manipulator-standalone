@@ -8,21 +8,33 @@
 #[tauri::command]
 fn store_password(username: String, password: String) -> Result<(), String> {
     let service: &str = "mega-manipipulator";
-    let entry: keyring::Entry = keyring::Entry::new(service, &username);
+    let entry: keyring::Result<keyring::Entry> = keyring::Entry::new(service, &username);
 
-    match entry.set_password(&password) {
-        Ok(p) => Ok(p),
-        Err(e) => Err(format!("Failed setting password. {:?}", e)),
+    match entry {
+        Ok(ent) => match ent.set_password(&password) {
+            Ok(p) => Ok(p),
+            Err(e) => Err(format!("Failed setting password. {:?}", e)),
+        },
+        Err(e) => Err(format!(
+            "Failed fetching the password entry to write to. {:?}",
+            e
+        )),
     }
 }
 
 #[tauri::command]
 fn get_password(username: String) -> Result<String, String> {
     let service: &str = "mega-manipipulator";
-    let entry: keyring::Entry = keyring::Entry::new(service, &username);
-    match entry.get_password() {
-        Ok(p) => Ok(p),
-        Err(e) => Err(format!("Failed getting password. {:?}", e)),
+    let result: keyring::Result<keyring::Entry> = keyring::Entry::new(service, &username);
+    match result {
+        Ok(entry) => match entry.get_password() {
+            Ok(p) => Ok(p),
+            Err(e) => Err(format!("Failed getting password. {:?}", e)),
+        },
+        Err(e) => Err(format!(
+            "Failed getting password entry to read from. {:?}",
+            e
+        )),
     }
 }
 

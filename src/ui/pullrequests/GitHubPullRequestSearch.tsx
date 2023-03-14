@@ -1,24 +1,6 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useGitHubCodeClient } from '../search/github/useGitHubSearchClient';
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  FormControl,
-  FormHelperText,
-  IconButton,
-  LinearProgress,
-  Switch,
-  Tooltip,
-} from '@mui/material';
+import { Alert, Box, Button, CircularProgress, FormControl, FormHelperText, IconButton, LinearProgress, Switch, Tooltip } from '@mui/material';
 import HelpCenterIcon from '@mui/icons-material/HelpCenter';
 import { debug, error } from 'tauri-plugin-log-api';
 import { open } from '@tauri-apps/api/shell';
@@ -35,9 +17,7 @@ export const GitHubPullRequestSearch: React.FC = () => {
   const { ghClient, clientInitError } = useGitHubCodeClient();
   const [checks, setChecks] = useState(true);
   const [searchTerms, setSearchTerms] = useState('');
-  const [state, setState] = useState<'loading' | 'ready' | 'searching'>(
-    'loading'
-  );
+  const [state, setState] = useState<'loading' | 'ready' | 'searching'>('loading');
   const searchRef: React.MutableRefObject<number> = useRef<number>(0);
   useEffect(() => {
     if (searchTerms === '' && ghClient?.username) {
@@ -51,22 +31,21 @@ export const GitHubPullRequestSearch: React.FC = () => {
 
   const [progress, setProgress] = useState<number>();
   const [max, setMax] = useState(25);
-  const search = useCallback(() => {
-    //debug(`Searching for '${searchFieldProps.value}'`)
-    setPulls([]);
-    setState('searching');
-    setProgress(0);
-    searchRef.current = new Date().getTime();
-    ghClient
-      ?.searchPulls(searchTerms, checks, max, setProgress, searchRef)
-      ?.then((items: GitHubPull[]) => {
-        setPulls(items);
-      })
-      ?.catch((e) =>
-        error('Error searching github pull requests : ' + asString(e))
-      )
-      ?.finally(() => setState('ready'));
-  }, [searchTerms, max, ghClient, checks]);
+  const search = useCallback(
+    (searchTerms: string) => {
+      //debug(`Searching for '${searchFieldProps.value}'`)
+      setPulls([]);
+      setState('searching');
+      setProgress(0);
+      searchRef.current = new Date().getTime();
+      ghClient
+        ?.searchPulls(searchTerms, checks, max, setProgress, searchRef)
+        ?.then((items: GitHubPull[]) => setPulls(items))
+        ?.catch((e) => error('Error searching github pull requests : ' + asString(e)))
+        ?.finally(() => setState('ready'));
+    },
+    [setPulls, ghClient, checks, max]
+  );
 
   // Render
   return (
@@ -83,24 +62,15 @@ export const GitHubPullRequestSearch: React.FC = () => {
           <Switch checked={checks} onClick={() => setChecks(!checks)} />
         </FormControl>
       </Tooltip>
-      <Button
-        disabled={state !== 'ready' || !isOk}
-        variant={'contained'}
-        color={'primary'}
-        onClick={search}
-      >
+      <Button disabled={state !== 'ready' || !isOk} variant={'contained'} color={'primary'} onClick={() => search(searchTerms)}>
         {state === 'searching' && <CircularProgress size={'1em'} />}
         Search
       </Button>
-      <Tooltip
-        title={'Click to open pull request search documentation in browser'}
-      >
+      <Tooltip title={'Click to open pull request search documentation in browser'}>
         <IconButton
           onClick={() => {
             debug('Opening docs');
-            open(
-              'https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-only-issues-or-pull-requests'
-            );
+            open('https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-only-issues-or-pull-requests');
           }}
         >
           <HelpCenterIcon />
@@ -120,11 +90,7 @@ export const GitHubPullRequestSearch: React.FC = () => {
               </IconButton>
             </Tooltip>
           )}
-          <LinearProgress
-            value={(progress / max) * 100}
-            variant={'determinate'}
-          />{' '}
-          {progress} / {max}
+          <LinearProgress value={(progress / max) * 100} variant={'determinate'} /> {progress} / {max}
         </Box>
       )}
 

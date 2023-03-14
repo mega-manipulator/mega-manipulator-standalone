@@ -1,6 +1,6 @@
 #![cfg_attr(
-all(not(debug_assertions), target_os = "windows"),
-windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
 )]
 #![forbid(unsafe_code)]
 #![deny(warnings)]
@@ -15,7 +15,10 @@ fn store_password(username: String, password: String) -> Result<(), String> {
             Ok(p) => Ok(p),
             Err(e) => Err(format!("Failed setting password. {:?}", e)),
         },
-        Err(e) => Err(format!("Failed fetching the password entry to write to. {:?}", e))
+        Err(e) => Err(format!(
+            "Failed fetching the password entry to write to. {:?}",
+            e
+        )),
     }
 }
 
@@ -28,7 +31,10 @@ fn get_password(username: String) -> Result<String, String> {
             Ok(p) => Ok(p),
             Err(e) => Err(format!("Failed getting password. {:?}", e)),
         },
-        Err(e) => Err(format!("Failed getting password entry to read from. {:?}", e)),
+        Err(e) => Err(format!(
+            "Failed getting password entry to read from. {:?}",
+            e
+        )),
     }
 }
 

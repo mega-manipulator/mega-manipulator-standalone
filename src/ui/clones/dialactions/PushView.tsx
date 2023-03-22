@@ -3,10 +3,7 @@ import { Alert, Typography } from '@mui/material';
 import { MegaContext } from '../../../hooks/MegaContext';
 import { gitPush } from '../../../service/file/gitCommit';
 import { ProgressReporter } from '../../../service/types';
-import {
-  GenericSpeedDialActionProps,
-  useGenericSpeedDialActionProps,
-} from '../../components/speeddial/GenericSpeedDialAction';
+import { GenericSpeedDialActionProps, useGenericSpeedDialActionProps } from '../../components/speeddial/GenericSpeedDialAction';
 import BackupIcon from '@mui/icons-material/Backup';
 
 export function usePushView(): GenericSpeedDialActionProps {

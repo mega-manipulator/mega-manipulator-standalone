@@ -1,28 +1,12 @@
-import {
-  Alert,
-  Box,
-  Button,
-  LinearProgress,
-  Step,
-  StepButton,
-  Stepper,
-} from '@mui/material';
+import { Alert, Box, Button, LinearProgress, Step, StepButton, Stepper } from '@mui/material';
 import React, { useCallback, useState } from 'react';
 import { ProgressReporter, WorkResultStatus } from '../../service/types';
 import { asString } from '../../hooks/logWrapper';
 import { ButtonRow } from '../components/ButtonRow';
-import {
-  GenericSpeedDialActionProps,
-  useGenericSpeedDialActionProps,
-} from '../components/speeddial/GenericSpeedDialAction';
+import { GenericSpeedDialActionProps, useGenericSpeedDialActionProps } from '../components/speeddial/GenericSpeedDialAction';
 import { getResultFromStorage } from '../../service/work/workLog';
 
-export function useWizardComponent(
-  tooltipTitle: string,
-  disabled: boolean,
-  icon: React.ReactNode,
-  steps: GenericSpeedDialActionProps[]
-): GenericSpeedDialActionProps {
+export function useWizardComponent(tooltipTitle: string, disabled: boolean, icon: React.ReactNode, steps: GenericSpeedDialActionProps[]): GenericSpeedDialActionProps {
   const [status, setStatus] = useState<WorkResultStatus | 'ready'>('ready');
   const [workRef, setWorkRef] = useState<number>();
   const setResult = useCallback((newWorkRef: number) => {
@@ -30,9 +14,7 @@ export function useWizardComponent(
     if (newWorkRef === 0 || undefined) {
       setStatus('unknown');
     } else {
-      getResultFromStorage(`${newWorkRef}`).then((result) =>
-        setStatus(result?.status ?? 'unknown')
-      );
+      getResultFromStorage(`${newWorkRef}`).then((result) => setStatus(result?.status ?? 'unknown'));
     }
   }, []);
 
@@ -52,6 +34,8 @@ export function useWizardComponent(
           setProgressTotal(null);
           setProgressCurrent(null);
           setStep(newstep);
+          setWorkRef(0);
+          setStatus('ready');
         }
       }
     },
@@ -77,9 +61,7 @@ export function useWizardComponent(
         <Stepper nonLinear activeStep={step}>
           {steps.map((s, i) => (
             <Step key={i}>
-              <StepButton onClick={() => setStepProxy(i)}>
-                {s.tooltipTitle}
-              </StepButton>
+              <StepButton onClick={() => setStepProxy(i)}>{s.tooltipTitle}</StepButton>
             </Step>
           ))}
         </Stepper>
@@ -91,28 +73,17 @@ export function useWizardComponent(
       {progressCurrent && progressTotal && (
         <div>
           <Box width={'100%'}>
-            <LinearProgress
-              value={(progressCurrent / progressTotal) * 100.0}
-              variant={'determinate'}
-            />{' '}
-            {progressCurrent} / {progressTotal}
+            <LinearProgress value={(progressCurrent / progressTotal) * 100.0} variant={'determinate'} /> {progressCurrent} / {progressTotal}
           </Box>
         </div>
       )}
 
-      {workRef && status && (
-        <Alert
-          variant={status === 'failed' ? 'filled' : 'outlined'}
-          color={
-            status === 'failed'
-              ? 'warning'
-              : status === 'ok'
-              ? 'success'
-              : 'info'
-          }
-        >
+      {workRef !== 0 && status ? (
+        <Alert variant={status === 'failed' ? 'filled' : 'outlined'} color={status === 'failed' ? 'warning' : status === 'ok' ? 'success' : 'info'}>
           Result: {status === 'unknown' ? 'probably ok' : status}
         </Alert>
+      ) : (
+        <></>
       )}
 
       {/* STEP CONTENT */}
@@ -124,12 +95,7 @@ export function useWizardComponent(
     steps[step].overrideButtons ??
       ((closeCallback) => (
         <ButtonRow>
-          <Button
-            disabled={status === 'in-progress'}
-            variant={'outlined'}
-            color={'secondary'}
-            onClick={closeCallback}
-          >
+          <Button disabled={status === 'in-progress'} variant={'outlined'} color={'secondary'} onClick={closeCallback}>
             Close
           </Button>
           {steps[step].action && (

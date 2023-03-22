@@ -33,10 +33,7 @@ export function useGitHubClosePrSpeedDial() {
     },
     [selected, closeComment, ghClient, dropBranch]
   );
-  const closedPrs = useMemo(
-    () => selected.filter((s) => s !== undefined && s.state === 'CLOSED'),
-    [selected]
-  );
+  const closedPrs = useMemo(() => selected.filter((s) => s !== undefined && s.state === 'CLOSED'), [selected]);
   return useGenericSpeedDialActionProps(
     'Close selected Pull requests',
     selected.length === 0,
@@ -53,13 +50,8 @@ export function useGitHubClosePrSpeedDial() {
         </Alert>
       )}
       <FormControl>
-        <FormHelperText>
-          Drop Branch after closing PR, CANNOT BE UNDONE
-        </FormHelperText>
-        <Checkbox
-          value={dropBranch}
-          onClick={() => setDropBranch(!dropBranch)}
-        />
+        <FormHelperText>Drop Branch after closing PR, CANNOT BE UNDONE</FormHelperText>
+        <Checkbox checked={dropBranch} onClick={() => setDropBranch(!dropBranch)} />
       </FormControl>
 
       <FormControl fullWidth>

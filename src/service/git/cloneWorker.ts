@@ -1,10 +1,5 @@
 import { SearchHit } from '../../ui/search/types';
-import {
-  WorkMeta,
-  WorkProgress,
-  WorkProgressTracker,
-  WorkResult,
-} from '../types';
+import { WorkMeta, WorkProgress, WorkProgressTracker, WorkResult } from '../types';
 import { sleep } from '../delay';
 import { MegaSettingsType } from '../../hooks/settings';
 import { homeDir, join } from '@tauri-apps/api/path';
@@ -37,18 +32,9 @@ export type CloneWorkInput = {
 /**
  * Returns the timestamp that marks the resulting worklog item, which can be used to navigate to it
  */
-export async function clone(
-  input: CloneWorkInput,
-  listener: (progress: WorkProgress) => void
-): Promise<number> {
+export async function clone(input: CloneWorkInput, listener: (progress: WorkProgress) => void): Promise<number> {
   const branch = input.branch;
-  if (
-    !branch ||
-    branch.length === 0 ||
-    !BranchRegexp.test(branch) ||
-    !BranchStartRegexp.test(branch) ||
-    !BranchEndRegexp.test(branch)
-  ) {
+  if (!branch || branch.length === 0 || !BranchRegexp.test(branch) || !BranchStartRegexp.test(branch) || !BranchEndRegexp.test(branch)) {
     throw new Error('Branch name is not correct');
   }
   const time = new Date().getTime();
@@ -80,23 +66,10 @@ export async function clone(
         result.result[i].output.status = 'failed';
         continue;
       }
-      info(
-        `Clone ${hit.sshClone}, keepPath:${keepPath}, clonePath:${clonePath}`
-      );
-      const cloneResult = await cloneIfNeeded(
-        keepPath,
-        hit.sshClone,
-        input.fetchIfLocal,
-        meta
-      );
+      info(`Clone ${hit.sshClone}, keepPath:${keepPath}, clonePath:${clonePath}`);
+      const cloneResult = await cloneIfNeeded(keepPath, hit.sshClone, input.fetchIfLocal, meta);
       if (!input.onlyKeep) {
-        await restoreRepoFromKeep(
-          keepPath,
-          clonePath,
-          hit.branch ?? branch,
-          meta,
-          input.sparseCheckout
-        );
+        await restoreRepoFromKeep(keepPath, clonePath, hit.branch ?? branch, meta, input.sparseCheckout);
       }
 
       result.result[i].output.status = 'ok';
@@ -110,39 +83,24 @@ export async function clone(
       result.status = 'failed';
     }
   }
-  result.status =
-    result.status !== 'failed' &&
-    !result.result.some((r) => r.output.status === 'failed')
-      ? 'ok'
-      : 'failed';
+  result.status = result.status !== 'failed' && !result.result.some((r) => r.output.status === 'failed') ? 'ok' : 'failed';
   await saveResultToStorage(result);
   return time;
 }
 
-async function cloneIfNeeded(
-  clonePath: string,
-  url: string,
-  fetchIfLocal: boolean,
-  meta: WorkMeta
-): Promise<CloneState> {
+async function cloneIfNeeded(clonePath: string, url: string, fetchIfLocal: boolean, meta: WorkMeta): Promise<CloneState> {
   await createDir(clonePath, { recursive: true });
   const cloneFsList: FileEntry[] = await fs.readDir(clonePath);
   //TODO: Add retry here?? GitHub sometimes throttle cloning.
   if (!cloneFsList.some((e) => e.name === '.git')) {
     await sleep(1000);
     await info(`Clone ${url}, clonePath:${clonePath}`);
-    requireZeroStatus(
-      await runCommand('git', ['clone', url, '.'], clonePath, meta),
-      `Failed to clone ${url}`
-    );
+    requireZeroStatus(await runCommand('git', ['clone', url, '.'], clonePath, meta), `Failed to clone ${url}`);
     return 'cloned from remote';
   } else if (fetchIfLocal) {
     await sleep(1000);
     await info(`Fetch ${url}, clonePath:${clonePath}`);
-    requireZeroStatus(
-      await runCommand('git', ['fetch', 'origin', 'HEAD'], clonePath, meta),
-      `Failed to fetch ${url}`
-    );
+    requireZeroStatus(await runCommand('git', ['fetch', 'origin', 'HEAD'], clonePath, meta), `Failed to fetch ${url}`);
     return 'cloned from local';
   } else {
     await info(`Skip fetch ${url}, clonePath:${clonePath}`);
@@ -150,13 +108,7 @@ async function cloneIfNeeded(
   }
 }
 
-async function restoreRepoFromKeep(
-  keepPath: string,
-  clonePath: string,
-  branch: string,
-  meta: WorkMeta,
-  sparseCheckout: string | null
-): Promise<boolean> {
+async function restoreRepoFromKeep(keepPath: string, clonePath: string, branch: string, meta: WorkMeta, sparseCheckout: string | null): Promise<boolean> {
   try {
     await removeDir(clonePath, { recursive: true });
   } catch (e) {
@@ -175,115 +127,40 @@ async function restoreRepoFromKeep(
   return false;
 }
 
-async function setupSparse(
-  clonePath: string,
-  meta: WorkMeta,
-  sparseCheckout: string | null
-) {
+async function setupSparse(clonePath: string, meta: WorkMeta, sparseCheckout: string | null) {
+  await runCommand('git', ['sparse-checkout', 'disable'], clonePath, meta);
   if (sparseCheckout === null) {
-    await runCommand('git', ['sparse-checkout', 'disable'], clonePath, meta);
     return;
   }
-  const sparseConfFile = await path.join(
-    clonePath,
-    '.git',
-    'info',
-    'sparse-checkout'
-  );
-  await debug(`Setting up sparse checkout in ${sparseConfFile}`);
+  const sparseConfFile = await path.join(clonePath, '.git', 'info', 'sparse-checkout');
+  await debug(`Setting up sparse checkout in ${sparseConfFile} with ${sparseCheckout}`);
   await fs
     .removeFile(sparseConfFile)
-    .then(() =>
-      meta.workLog.push({
-        what: `Remove ${sparseConfFile}`,
-        status: 'ok',
-        result: true,
-      })
-    )
-    .catch((e) =>
-      meta.workLog.push({
-        what: `Remove ${sparseConfFile}`,
-        status: 'failed',
-        result: e,
-      })
-    );
-  requireZeroStatus(
-    await runCommand(
-      'git',
-      ['config', 'core.sparseCheckout', 'true'],
-      clonePath,
-      meta
-    ),
-    'Enable sparse checkout'
-  );
-  await fs
-    .createDir(await path.dirname(sparseConfFile), { recursive: true })
-    .catch();
+    .then(() => meta.workLog.push({ what: `Remove ${sparseConfFile}`, status: 'ok', result: true }))
+    .catch((e) => meta.workLog.push({ what: `Remove ${sparseConfFile}`, status: 'failed', result: e }));
+  await fs.createDir(await path.dirname(sparseConfFile), { recursive: true }).catch();
   await fs.writeTextFile(sparseConfFile, sparseCheckout);
+  requireZeroStatus(await runCommand('git', ['config', 'core.sparseCheckout', 'true'], clonePath, meta), 'Enable sparse checkout');
 }
 
-async function gitFetch(
-  repoDir: string,
-  mainBranch: string,
-  branch: string,
-  meta: WorkMeta
-) {
-  requireZeroStatus(
-    await runCommand('git', ['checkout', '-f', mainBranch], repoDir, meta),
-    'Checkout main branch'
-  );
-  requireZeroStatus(
-    await runCommand(
-      'git',
-      ['reset', '--hard', `origin/${mainBranch}`],
-      repoDir,
-      meta
-    ),
-    `Reset state of ${mainBranch} to origin`
-  );
-  requireZeroStatus(
-    await runCommand('git', ['clean', '-fd'], repoDir, meta),
-    `Cleanup files`
-  );
+async function gitFetch(repoDir: string, mainBranch: string, branch: string, meta: WorkMeta) {
+  requireZeroStatus(await runCommand('git', ['checkout', '-f', mainBranch], repoDir, meta), 'Checkout main branch');
+  requireZeroStatus(await runCommand('git', ['reset', '--hard', `origin/${mainBranch}`], repoDir, meta), `Reset state of ${mainBranch} to origin`);
+  requireZeroStatus(await runCommand('git', ['clean', '-fd'], repoDir, meta), `Cleanup files`);
   if (mainBranch != branch) {
     await runCommand('git', ['branch', '--delete', branch], repoDir, meta);
     const chkOut = await runCommand('git', ['switch', branch], repoDir, meta);
     if (chkOut.code === 0) {
-      requireZeroStatus(
-        await runCommand(
-          'git',
-          ['reset', '--hard', `origin/${branch}`],
-          repoDir,
-          meta
-        ),
-        'Reset state of ' + branch + ' to origin'
-      );
+      requireZeroStatus(await runCommand('git', ['reset', '--hard', `origin/${branch}`], repoDir, meta), 'Reset state of ' + branch + ' to origin');
     } else {
-      requireZeroStatus(
-        await runCommand('git', ['switch', '-c', branch], repoDir, meta),
-        'Create branch'
-      );
+      requireZeroStatus(await runCommand('git', ['switch', '-c', branch], repoDir, meta), 'Create branch');
     }
   }
 }
 
-export async function getGitDir(
-  basePath: string | undefined,
-  searchHit: SearchHit
-) {
-  if (!basePath)
-    throw new Error(
-      `Git directory not defined. WorkDir and KeepDir are necessary.`
-    );
+export async function getGitDir(basePath: string | undefined, searchHit: SearchHit) {
+  if (!basePath) throw new Error(`Git directory not defined. WorkDir and KeepDir are necessary.`);
   const homeDirPath = await homeDir();
-  if (!basePath.startsWith(homeDirPath))
-    throw new Error(
-      `'${basePath}' does not start with your home directory '${homeDirPath}'`
-    );
-  return await path.join(
-    basePath,
-    searchHit.codeHost,
-    searchHit.owner,
-    searchHit.repo
-  );
+  if (!basePath.startsWith(homeDirPath)) throw new Error(`'${basePath}' does not start with your home directory '${homeDirPath}'`);
+  return await path.join(basePath, searchHit.codeHost, searchHit.owner, searchHit.repo);
 }

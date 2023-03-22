@@ -35,29 +35,18 @@ echo 'Hello world'
 echo 'Wanna execute your own script? Delegate that from here!' | grep -q 'foooooo' # Intentional failure
 `;
 
-export async function openDirs(
-  osType: OsType,
-  settings: MegaSettingsType,
-  filePaths: string[]
-) {
+export async function openDirs(osType: OsType, settings: MegaSettingsType, filePaths: string[]) {
   if (osType === 'Darwin' && settings.useSpecificEditorApplication) {
     for (const filePath of filePaths) {
-      const command = new Command('open-osx', [
-        '-a',
-        settings.editorApplication,
-        filePath,
-      ]);
+      const command = new Command('open-osx', ['-a', settings.editorApplication, filePath]);
       command.on('close', () => {
-        info(
-          `Open "${filePath}" with "${settings.editorApplication}" command terminated `
-        );
+        info(`Open "${filePath}" with "${settings.editorApplication}" command terminated `);
       });
-      command.on('error', (...args: unknown[]) =>
-        warn('Open command errored: ' + asString(args))
-      );
+      command.on('error', (...args: unknown[]) => warn('Open command errored: ' + asString(args)));
       await command.spawn();
     }
   } else {
+    info(`OS does not support fancy open ${osType}, or you've not enabled it 🤦${settings.useSpecificEditorApplication}`);
     filePaths.forEach((p) => open(p));
   }
 }
@@ -67,39 +56,23 @@ type RunScriptInput = {
   filePaths: string[];
 };
 
-export async function runScriptSequentially(
-  input: RunScriptInput,
-  progressCallback: (idx: number, total: number) => void
-): Promise<SimpleActionReturn> {
+export async function runScriptSequentially(input: RunScriptInput, progressCallback: (idx: number, total: number) => void): Promise<SimpleActionReturn> {
   const scriptPath: string = await createScriptFileIfNotExists(input.settings);
   const workResult = newWorkResult(input);
   for (let index = 0; index < input.filePaths.length; index++) {
-    await doWork(input, workResult, scriptPath, index, () =>
-      progressCallback(index, input.filePaths.length)
-    );
+    await doWork(input, workResult, scriptPath, index, () => progressCallback(index, input.filePaths.length));
   }
   await saveResultToStorage(workResult);
   return workResult;
 }
 
-async function doWork(
-  input: RunScriptInput,
-  workResult: WorkResult<RunScriptInput, string, unknown>,
-  scriptPath: string,
-  index: number,
-  progressCallback: () => void
-) {
+async function doWork(input: RunScriptInput, workResult: WorkResult<RunScriptInput, string, unknown>, scriptPath: string, index: number, progressCallback: () => void) {
   const filePath = input.filePaths[index];
   try {
     const commandResult = await new Command('bash-run-script', [scriptPath], {
       cwd: filePath,
     }).execute();
-    if (commandResult.code !== 0)
-      await warn(
-        `Failed running scripted change in '${filePath}', result was: ${asString(
-          commandResult
-        )}`
-      );
+    if (commandResult.code !== 0) await warn(`Failed running scripted change in '${filePath}', result was: ${asString(commandResult)}`);
     const status: WorkResultStatus = commandResult.code === 0 ? 'ok' : 'failed';
     progressCallback();
     workResult.result[index].output.status = status;
@@ -107,17 +80,13 @@ async function doWork(
   } catch (e) {
     progressCallback();
     workResult.result[index].output.status = 'failed';
-    const message1 = `Failed running scripted change in '${filePath}', error was: ${asString(
-      e
-    )}`;
+    const message1 = `Failed running scripted change in '${filePath}', error was: ${asString(e)}`;
     await error(message1);
     workResult.result[index].output.meta = message1;
   }
 }
 
-function newWorkResult(
-  input: RunScriptInput
-): WorkResult<RunScriptInput, string, unknown> {
+function newWorkResult(input: RunScriptInput): WorkResult<RunScriptInput, string, unknown> {
   const time = new Date().getTime();
   return {
     name: `Run scripted change of ${input.filePaths.length}`,
@@ -134,26 +103,15 @@ function newWorkResult(
   };
 }
 
-export async function runScriptInParallel(
-  input: RunScriptInput,
-  progressCallback: (idx: number, total: number) => void
-): Promise<SimpleActionReturn> {
+export async function runScriptInParallel(input: RunScriptInput, progressCallback: (idx: number, total: number) => void): Promise<SimpleActionReturn> {
   const scriptPath = await createScriptFileIfNotExists(input.settings);
   const workResult = newWorkResult(input);
-  await Promise.all(
-    workResult.result.map((_, index) =>
-      doWork(input, workResult, scriptPath, index, () =>
-        progressCallback(index, input.filePaths.length)
-      )
-    )
-  );
+  await Promise.all(workResult.result.map((_, index) => doWork(input, workResult, scriptPath, index, () => progressCallback(index, input.filePaths.length))));
   await saveResultToStorage(workResult);
   return workResult;
 }
 
-export async function getScriptInfo(
-  settings: MegaSettingsType
-): Promise<{ scriptPath: string; scriptContent: string }> {
+export async function getScriptInfo(settings: MegaSettingsType): Promise<{ scriptPath: string; scriptContent: string }> {
   const scriptPath = await createScriptFileIfNotExists(settings);
   const scriptContent = await fs.readTextFile(scriptPath);
   return {
@@ -165,21 +123,14 @@ export async function getScriptInfo(
 /**
  * Returns the script file path
  */
-async function createScriptFileIfNotExists(
-  settings: MegaSettingsType
-): Promise<string> {
+async function createScriptFileIfNotExists(settings: MegaSettingsType): Promise<string> {
   const scriptPath = await path.join(settings.clonePath, scriptFile);
   const cloneDirFiles: FileEntry[] = await fs.readDir(settings.clonePath);
   if (!cloneDirFiles.some((f) => !f.children && f.name === scriptFile)) {
     await fs.writeTextFile(scriptPath, scriptFileContent);
-    const chmodResult = await new Command('chmod-script-file', [
-      '+x',
-      scriptPath,
-    ]).execute();
+    const chmodResult = await new Command('chmod-script-file', ['+x', scriptPath]).execute();
     if (chmodResult.code !== 0) {
-      throw new Error(
-        `Failed chmodding script file due to: ${asString(chmodResult)}`
-      );
+      throw new Error(`Failed chmodding script file due to: ${asString(chmodResult)}`);
     }
   }
   return scriptPath;

@@ -1,14 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { confirm } from '@tauri-apps/api/dialog';
-import {
-  Alert,
-  Button,
-  FormControl,
-  FormHelperText,
-  Grid,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Alert, Button, FormControl, FormHelperText, Grid, TextField, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { locations } from '../route/locations';
 import { info, warn } from 'tauri-plugin-log-api';
@@ -17,19 +9,16 @@ import { GitHubCodeHostSettings } from '../../hooks/settings';
 
 export const GitHubCodeHostSettingsPage: React.FC = () => {
   const { codeHostKey } = useParams();
-  const { updateSettings: updateMegaSettings, settings: megaSettings } =
-    useContext(MegaContext);
+  const { updateSettings: updateMegaSettings, settings: megaSettings } = useContext(MegaContext);
   const { codeHosts } = megaSettings;
-  const codeHost = useMemo(
-    () => (codeHostKey ? codeHosts[codeHostKey] : undefined),
-    [codeHosts, codeHostKey]
-  );
+  const codeHost = useMemo(() => (codeHostKey ? codeHosts[codeHostKey] : undefined), [codeHosts, codeHostKey]);
   const [codeHostKeyVal, setCodeHostKeyVal] = useState<string>('');
   const [codeHostVal, setCodeHostVal] = useState<GitHubCodeHostSettings>();
   useEffect(() => {
     setCodeHostVal(
       codeHost?.github ?? {
         baseUrl: 'https://api.github.com',
+        baseHttpUrl: 'https://github.com',
         cloneHost: 'github.com',
         hostType: 'CODE',
         username: 'jensim',
@@ -41,54 +30,32 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
   }, [codeHostKey]);
   const [codeHostKeySame, setCodeHostKeySame] = useState(0);
   useEffect(() => {
-    setCodeHostKeySame(
-      Object.keys(megaSettings.codeHosts).filter((it) => it === codeHostKeyVal)
-        .length
-    );
+    setCodeHostKeySame(Object.keys(megaSettings.codeHosts).filter((it) => it === codeHostKeyVal).length);
   }, [codeHostKeyVal, megaSettings]);
   const [validationError, setValidationError] = useState<string>();
   useEffect(() => {
     const errors: string[] = [];
-    if (codeHostKeyVal.length === 0)
-      errors.push('Code host key cannot be empty');
-    if (codeHostKey === undefined && codeHostKeySame > 0)
-      errors.push('Code host key already defined');
-    if (codeHostKey !== undefined && codeHostKeySame > 1)
-      errors.push('Code host key already defined');
-    if (codeHostKey !== undefined && codeHostKey !== codeHostKeyVal)
-      errors.push('Code host key cannot be changed');
-    if (codeHostVal?.username === undefined || codeHostVal.username.length < 1)
-      errors.push('Username is undefined');
-    if (codeHostVal?.baseUrl === undefined || codeHostVal.baseUrl.length < 1)
-      errors.push('BaseURL is undefined');
-    if (
-      codeHostVal?.baseUrl !== undefined &&
-      !codeHostVal.baseUrl.match(/^https*:\/\/.*[^/]$/)
-    )
-      errors.push('BaseURL is malformed');
-    if (
-      codeHostVal?.baseUrl !== undefined &&
-      (codeHostVal.baseUrl.startsWith('https://github.com') ||
-        codeHostVal.baseUrl.startsWith('http://github.com'))
-    )
-      errors.push('GitHub base url is https://api.github.com');
-    if (
-      codeHostVal?.baseUrl !== undefined &&
-      (codeHostVal.baseUrl.startsWith('https://api.github.com') ||
-        codeHostVal.baseUrl.startsWith('http://api.github.com')) &&
-      codeHostVal.baseUrl !== 'https://api.github.com'
-    )
-      errors.push('GitHub base url is https://api.github.com');
+    if (codeHostKeyVal.length === 0) errors.push('Code host key cannot be empty');
+    if (codeHostKey === undefined && codeHostKeySame > 0) errors.push('Code host key already defined');
+    if (codeHostKey !== undefined && codeHostKeySame > 1) errors.push('Code host key already defined');
+    if (codeHostKey !== undefined && codeHostKey !== codeHostKeyVal) errors.push('Code host key cannot be changed');
+
+    if (codeHostVal?.username === undefined || codeHostVal.username.length < 1) errors.push('Username is undefined');
+
+    if (codeHostVal?.baseUrl === undefined || codeHostVal.baseUrl.length < 1) errors.push('BaseURL is undefined');
+    if (codeHostVal?.baseUrl !== undefined && !codeHostVal.baseUrl.match(/^https*:\/\/.*[^/]$/)) errors.push('BaseURL is malformed');
+    if (codeHostVal?.baseUrl !== undefined && (codeHostVal.baseUrl.startsWith('https://github.com') || codeHostVal.baseUrl.startsWith('http://github.com'))) errors.push('GitHub base URL is https://api.github.com');
+    if (codeHostVal?.baseUrl !== undefined && (codeHostVal.baseUrl.startsWith('https://api.github.com') || codeHostVal.baseUrl.startsWith('http://api.github.com')) && codeHostVal.baseUrl !== 'https://api.github.com') errors.push('GitHub base URL is https://api.github.com');
+
+    if (codeHostVal?.baseHttpUrl === undefined || codeHostVal.baseHttpUrl.length < 1) errors.push('Http URL is undefined');
+    if (codeHostVal?.baseHttpUrl !== undefined && !codeHostVal.baseHttpUrl.match(/^https*:\/\/.*[^/]$/)) errors.push('Http URL is malformed');
+    if (codeHostVal?.baseHttpUrl !== undefined && (codeHostVal.baseHttpUrl.startsWith('https://api.github.com') || codeHostVal.baseHttpUrl.startsWith('http://api.github.com'))) errors.push('GitHub Http URL is https://github.com');
+    if (codeHostVal?.baseHttpUrl !== undefined && (codeHostVal.baseHttpUrl.startsWith('https://github.com') || codeHostVal.baseHttpUrl.startsWith('http://github.com')) && codeHostVal.baseHttpUrl !== 'https://github.com') errors.push('GitHub Http URL is https://github.com');
+
     if (errors.length === 0) setValidationError(undefined);
     else setValidationError(errors.join(', '));
   }, [codeHostVal, codeHostKeyVal, codeHostKey, codeHostKeySame]);
-  const header = useMemo(
-    () =>
-      `${
-        codeHostKey === undefined ? 'Create' : `Edit ${codeHostKey}`
-      } (GitHub Code Host)`,
-    [codeHostKey]
-  );
+  const header = useMemo(() => `${codeHostKey === undefined ? 'Create' : `Edit ${codeHostKey}`} (GitHub Code Host)`, [codeHostKey]);
   const nav = useNavigate();
 
   return (
@@ -122,13 +89,7 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
             <Grid item sm={12} lg={6}>
               <FormControl>
                 <FormHelperText>Code Host Key</FormHelperText>
-                <TextField
-                  variant={'outlined'}
-                  disabled={codeHostKey !== undefined}
-                  placeholder="Code Host Key"
-                  value={codeHostKeyVal}
-                  onChange={(event) => setCodeHostKeyVal(event.target.value)}
-                />
+                <TextField variant={'outlined'} disabled={codeHostKey !== undefined} placeholder="Code Host Key" value={codeHostKeyVal} onChange={(event) => setCodeHostKeyVal(event.target.value)} />
               </FormControl>
             </Grid>
             <Grid item sm={12} lg={6}>
@@ -163,7 +124,24 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
                 />
               </FormControl>
             </Grid>
+            <Grid item sm={12} lg={6}>
+              <FormControl>
+                <FormHelperText>Base Http URL</FormHelperText>
+                <TextField
+                  variant={'outlined'}
+                  placeholder="Base Http URL"
+                  value={codeHostVal?.baseHttpUrl}
+                  onChange={(event) =>
+                    setCodeHostVal({
+                      ...codeHostVal,
+                      baseHttpUrl: event.target.value,
+                    })
+                  }
+                />
+              </FormControl>
+            </Grid>
           </Grid>
+
           <Button
             variant={'contained'}
             color={'primary'}
@@ -207,11 +185,7 @@ export const GitHubCodeHostSettingsPage: React.FC = () => {
         </>
       )}
       <div>
-        <Button
-          variant={'outlined'}
-          color={'secondary'}
-          onClick={() => nav(locations.settings.link)}
-        >
+        <Button variant={'outlined'} color={'secondary'} onClick={() => nav(locations.settings.link)}>
           Back to Settings
         </Button>
       </div>

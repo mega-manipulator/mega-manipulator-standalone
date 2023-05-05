@@ -587,7 +587,7 @@ export class GithubClient {
         progress: (idx: number) => progressCallback(idx),
         settings: this.settings,
         sourceString: 'Create pullRequests',
-        workResultKind: 'gitStage',
+        workResultKind: 'createPr',
       },
       async (index: number, hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
         try {

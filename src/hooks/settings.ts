@@ -22,6 +22,7 @@ export const baseSettings: () => MegaSettingsType = () => {
           hostType: 'SEARCH',
           username: 'jensim',
           baseUrl: 'https://api.github.com',
+          baseHttpUrl: 'https://github.com',
           codeHostKey: 'github.com',
         },
       },
@@ -45,6 +46,7 @@ export const baseSettings: () => MegaSettingsType = () => {
           hostType: 'CODE',
           username: 'jensim',
           baseUrl: 'https://api.github.com',
+          baseHttpUrl: 'https://github.com',
         },
       },
     },
@@ -55,16 +57,8 @@ export async function defaultSettings(): Promise<MegaSettingsType> {
   const settings = baseSettings();
   if (typeof window.__TAURI_IPC__ === 'function') {
     const home = await homeDir();
-    settings.keepLocalReposPath = await path.join(
-      home,
-      'vcs',
-      'mega-manipulator-keep'
-    );
-    settings.clonePath = await path.join(
-      home,
-      'vcs',
-      'mega-manipulator-workdir'
-    );
+    settings.keepLocalReposPath = await path.join(home, 'vcs', 'mega-manipulator-keep');
+    settings.clonePath = await path.join(home, 'vcs', 'mega-manipulator-workdir');
   }
   return settings;
 }
@@ -140,34 +134,23 @@ export type CodeHostSettings = {
   github?: GitHubCodeHostSettings;
 };
 
-export function cloneUrl(
-  settings: CodeHostSettings | undefined,
-  owner: string,
-  repo: string
-): string | undefined {
+export function cloneUrl(settings: CodeHostSettings | undefined, owner: string, repo: string): string | undefined {
   switch (settings?.type) {
     case 'GITHUB':
-      return ghCloneUrl(
-        settings.github?.cloneHost ?? 'github.com',
-        owner,
-        repo
-      );
+      return ghCloneUrl(settings.github?.cloneHost ?? 'github.com', owner, repo);
   }
   return undefined;
 }
 
 export interface GitHubCodeHostSettings extends UserLoginType {
   baseUrl: string;
+  baseHttpUrl: string;
   cloneHost: string;
   hostType: HostType;
   username: string;
 }
 
-function ghCloneUrl(
-  host: string,
-  owner: string,
-  repo: string
-): string | undefined {
+function ghCloneUrl(host: string, owner: string, repo: string): string | undefined {
   // TODO work with settings for location other than github.com
   return `git@${host}:${owner}/${repo}.git`;
 }

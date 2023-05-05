@@ -144,14 +144,8 @@ export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPa
 }
 
 async function hasOpenPullRequest(repoPath: string, settings: MegaSettingsType): Promise<Report> {
-  const searchHostPath = await path.resolve(repoPath, '..', '..', '..');
-  const searchHostDirName = await path.basename(searchHostPath);
-  const codeHostPath = await path.resolve(repoPath, '..', '..');
-  const codeHostDirName = await path.basename(codeHostPath);
-  const ownerPath = await path.resolve(repoPath, '..');
-  const ownerDirName = await path.basename(ownerPath);
-  const repoDirName = await path.basename(repoPath);
-  const codeHostSettings = settings.codeHosts[codeHostDirName]?.github;
+  const hit = await pathToSearchHit('local', repoPath);
+  const codeHostSettings = settings.codeHosts[hit.codeHost]?.github;
   if (codeHostSettings === undefined) {
     return { state: 'bad', error: 'No code host settings' };
   }
@@ -159,9 +153,9 @@ async function hasOpenPullRequest(repoPath: string, settings: MegaSettingsType):
   if (!token) {
     return { state: 'bad', error: 'Password/Token not set' };
   }
-  const client = new GithubClient(codeHostSettings.baseUrl, codeHostSettings.username, token, searchHostDirName, codeHostDirName, settings);
+  const client = new GithubClient(codeHostSettings.baseUrl, codeHostSettings.username, token, 'local', hit.codeHost, settings);
   const current = await getCurrentBranchName(repoPath);
-  const found = await client.searchPulls(`is:pr state:open author:${codeHostSettings.username} repo:${ownerDirName}/${repoDirName} is:unmerged head:${current}`, false, 1, () => null, undefined);
+  const found = await client.searchPulls(`is:pr state:open author:${codeHostSettings.username} repo:${hit.owner}/${hit.repo} is:unmerged head:${current}`, false, 1, () => null, undefined);
   if (found.length > 0) {
     return { state: 'good' };
   } else {

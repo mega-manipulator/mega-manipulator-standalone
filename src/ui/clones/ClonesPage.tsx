@@ -21,6 +21,7 @@ import { useExecuteScriptedChangeMenuItem } from './dialactions/ExecuteScriptedC
 import { usePushView } from './dialactions/PushView';
 import { useStageView } from './dialactions/StageView';
 import { GenericSpeedDial } from '../components/speeddial/GenericSpeedDial';
+import {useOpenRepoMenuItem} from "./dialactions/OpenRepoMenuItem";
 
 export const ClonesPage: React.FC = () => {
   const { os, settings } = useContext(MegaContext);
@@ -34,6 +35,7 @@ export const ClonesPage: React.FC = () => {
     useExecuteScriptedChangeMenuItem(),
     useOpenProjectsMenuItem(),
     useOpenWorkdirMenuItem(),
+    useOpenRepoMenuItem(),
     usePushView(),
     useStageView(),
   ];

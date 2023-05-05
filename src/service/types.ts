@@ -69,6 +69,7 @@ export type WorkResultKind =
   | 'gitUnStage'
   | 'gitCommit'
   | 'gitPush'
+  | 'createPr'
   | 'editPr'
   | 'reviewPr'
   | 'mergePr'

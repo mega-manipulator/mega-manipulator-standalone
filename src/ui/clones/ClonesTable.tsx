@@ -82,14 +82,13 @@ export const ClonesTable: React.FC<ClonesTableProps> = ({ repoStates }) => {
             ...d,
           };
         })}
-        selectionModel={selectedModel}
-        onSelectionModelChange={(model: GridRowId[]) => {
+        rowSelectionModel={selectedModel}
+        onRowSelectionModelChange={(model: GridRowId[]) => {
           setSelected(model.map((r) => +r));
         }}
         columns={columns}
         autoPageSize
-        pageSize={15}
-        rowsPerPageOptions={[5, 15, 100]}
+        pageSizeOptions={[5, 15, 100]}
         checkboxSelection
       />
     </Box>
@@ -101,12 +100,18 @@ const renderBoolCell = (params: GridRenderCellParams) => {
   switch (report.state) {
     case 'loading':
       return <CircularProgress />;
-    case 'good':
-      return (
+    case 'good': {
+      const inner = (
         <Alert variant={'outlined'} severity={'success'} icon={<span>👍</span>}>
           Good
         </Alert>
       );
+      if (report.error !== null && report.error !== undefined) {
+        return <Tooltip title={report.error}>{inner}</Tooltip>;
+      } else {
+        return inner;
+      }
+    }
     case 'bad':
       return (
         <Tooltip title={report.error}>

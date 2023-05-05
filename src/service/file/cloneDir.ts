@@ -179,9 +179,9 @@ async function hasOnDefaultBranch(repoPath: string): Promise<Report> {
     return current === main
       ? {
           state: 'bad',
-          error: `current branch '${current}' is same as the default branch`,
+          error: `current branch '${current}' is same as the default branch ('${main}')`,
         }
-      : { state: 'good' };
+      : { state: 'good', error: `current branch '${current}' is different from the default branch ('${main}')` };
   } catch (e) {
     error('Failed to get #hasOnDefaultBranch: ' + asString(e));
     return { state: 'failed to execute', error: asString(e) };

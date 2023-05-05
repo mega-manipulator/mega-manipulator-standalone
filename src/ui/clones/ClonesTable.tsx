@@ -1,18 +1,8 @@
-import {
-  DataGridPro,
-  GridColDef,
-  GridRenderCellParams,
-  GridRowId,
-} from '@mui/x-data-grid-pro';
+import { DataGridPro, GridColDef, GridRenderCellParams, GridRowId } from '@mui/x-data-grid-pro';
 import { Alert, Box, CircularProgress, Tooltip } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { MegaContext } from '../../hooks/MegaContext';
-import {
-  analyzeRepoForBadStates,
-  listRepos,
-  RepoBadStatesReport,
-  Report,
-} from '../../service/file/cloneDir';
+import { analyzeRepoForBadStates, listRepos, RepoBadStatesReport, Report } from '../../service/file/cloneDir';
 import { simpleAction } from '../../service/file/simpleActionWithResult';
 import { asString } from '../../hooks/logWrapper';
 import { path } from '@tauri-apps/api';
@@ -38,9 +28,7 @@ export function useClonesTableProps(): ClonesTableProps {
         setPaths(paths);
         setRepoStates(
           paths.map((path) => {
-            const trimmedRepoPath = path.substring(
-              (settings.clonePath?.length ?? -1) + 1
-            );
+            const trimmedRepoPath = path.substring((settings.clonePath?.length ?? -1) + 1);
             return new RepoBadStatesReport(path, trimmedRepoPath);
           })
         );
@@ -52,12 +40,7 @@ export function useClonesTableProps(): ClonesTableProps {
               state: 'failed to execute',
               error: asString(err),
             };
-            const repoPathLong: string = await path.join(
-              settings.clonePath,
-              hit.codeHost,
-              hit.owner,
-              hit.repo
-            );
+            const repoPathLong: string = await path.join(settings.clonePath, hit.codeHost, hit.owner, hit.repo);
             const report: RepoBadStatesReport = {
               repoPathShort: `${hit.codeHost}/${hit.owner}/${hit.repo}`,
               repoPathLong,
@@ -65,6 +48,7 @@ export function useClonesTableProps(): ClonesTableProps {
               onDefaultBranch: r,
               noDiffWithOriginHead: r,
               noCodeHostConfig: r,
+              hasPullRequest: r,
             };
             return report;
           }
@@ -126,11 +110,7 @@ const renderBoolCell = (params: GridRenderCellParams) => {
     case 'bad':
       return (
         <Tooltip title={report.error}>
-          <Alert
-            variant={'outlined'}
-            severity={'warning'}
-            icon={<span>💩</span>}
-          >
+          <Alert variant={'outlined'} severity={'warning'} icon={<span>💩</span>}>
             Bad
           </Alert>
         </Tooltip>
@@ -182,12 +162,17 @@ const columns: GridColDef[] = [
   },
   {
     field: 'uncommittedChanges',
-    headerName: 'Uncommitted Changes',
+    headerName: 'No uncommitted Changes',
     ...boolCellProps,
   },
   {
     field: 'onDefaultBranch',
     headerName: 'Not On Default Branch',
+    ...boolCellProps,
+  },
+  {
+    field: 'hasPullRequest',
+    headerName: 'Has open PR',
     ...boolCellProps,
   },
   {

@@ -4,28 +4,14 @@ import { SearchHit } from '../ui/search/types';
 import { sleep, sleepUntilEpocSecond } from '../service/delay';
 import { debug, info, trace, warn } from 'tauri-plugin-log-api';
 import { MegaSettingsType } from './settings';
-import {
-  getCurrentBranchName,
-  getMainBranchName,
-} from '../service/file/cloneDir';
-import {
-  SimpleActionReturn,
-  simpleActionWithResult,
-} from '../service/file/simpleActionWithResult';
-import {
-  WorkMeta,
-  WorkResult,
-  WorkResultKind,
-  WorkResultOutput,
-  WorkResultStatus,
-} from '../service/types';
+import { getCurrentBranchName, getMainBranchName } from '../service/file/cloneDir';
+import { SimpleActionReturn, simpleActionWithResult } from '../service/file/simpleActionWithResult';
+import { WorkMeta, WorkResult, WorkResultKind, WorkResultOutput, WorkResultStatus } from '../service/types';
 import { saveResultToStorage } from '../service/work/workLog';
 import React from 'react';
 
 // @ts-ignore
-function githubRepoFetchGraphQl(
-  repos: { owner: string; repo: string }[]
-): string {
+function githubRepoFetchGraphQl(repos: { owner: string; repo: string }[]): string {
   return `fragment repoProperties on Repository {
   sshUrl
   name
@@ -44,10 +30,7 @@ function githubRepoFetchGraphQl(
 {
   ${repos
     .map(
-      (
-        { owner, repo },
-        index
-      ) => `  repo${index}: repository(owner: "${owner}", name: "${repo}") {
+      ({ owner, repo }, index) => `  repo${index}: repository(owner: "${owner}", name: "${repo}") {
     ...repoProperties
   }`
     )
@@ -57,29 +40,17 @@ function githubRepoFetchGraphQl(
 
 function githubPullMarkReadyGraphql(pull: GitHubPull[]): string {
   return `mutation {
-${pull
-  .map(
-    ({ prId }, index) =>
-      `  pull${index}: markPullRequestReadyForReview(input:{pullRequestId:"${prId}"}) { clientMutationId }`
-  )
-  .join('\n')}
+${pull.map(({ prId }, index) => `  pull${index}: markPullRequestReadyForReview(input:{pullRequestId:"${prId}"}) { clientMutationId }`).join('\n')}
 }`;
 }
 
 function githubPullMarkDraftGraphql(pull: GitHubPull[]): string {
   return `mutation {
-${pull
-  .map(
-    ({ prId }, index) =>
-      `  pull${index}: convertPullRequestToDraft(input:{pullRequestId:"${prId}"}) { clientMutationId }`
-  )
-  .join('\n')}
+${pull.map(({ prId }, index) => `  pull${index}: convertPullRequestToDraft(input:{pullRequestId:"${prId}"}) { clientMutationId }`).join('\n')}
 }`;
 }
 
-const githubPullRequestGraphQLSearch = (
-  getChecks: boolean
-) => `query SearchPullRequests($max: Int!, $query: String!, $cursor: String) {
+const githubPullRequestGraphQLSearch = (getChecks: boolean) => `query SearchPullRequests($max: Int!, $query: String!, $cursor: String) {
   search(first: $max, type: ISSUE, query: $query, after: $cursor) {
     pageInfo {
       hasNextPage
@@ -216,10 +187,7 @@ export interface GitHubPull {
   checks?: GithubPrCheck[];
 }
 
-function resoleMergeMethod(
-  preferedMergeMethod: GithubMergeMethodResponse | undefined,
-  pr: GitHubPull
-): GithubMergeMethodRequest {
+function resoleMergeMethod(preferedMergeMethod: GithubMergeMethodResponse | undefined, pr: GitHubPull): GithubMergeMethodRequest {
   let defaultRequest: GithubMergeMethodRequest;
   switch (pr.merge.defaultMergeMethod) {
     case 'SQUASH':
@@ -251,9 +219,7 @@ interface GithubPullRequestWorkInput {
   pulls: GitHubPull[];
 }
 
-function newPullRequestWorkResult<T extends GithubPullRequestWorkInput>(
-  input: T
-): WorkResult<T, GitHubPull, WorkMeta> {
+function newPullRequestWorkResult<T extends GithubPullRequestWorkInput>(input: T): WorkResult<T, GitHubPull, WorkMeta> {
   const time = new Date().getTime();
   const meta: WorkMeta = {
     workLog: [],
@@ -274,16 +240,8 @@ function newPullRequestWorkResult<T extends GithubPullRequestWorkInput>(
   };
 }
 
-async function processPullRequests<T extends GithubPullRequestWorkInput, U>(
-  input: T,
-  action: (
-    pr: GitHubPull,
-    idx: number,
-    meta: WorkMeta
-  ) => Promise<AxiosResponse<U>>
-): Promise<WorkResult<T, GitHubPull, WorkMeta>> {
-  const workResult: WorkResult<T, GitHubPull, WorkMeta> =
-    newPullRequestWorkResult(input);
+async function processPullRequests<T extends GithubPullRequestWorkInput, U>(input: T, action: (pr: GitHubPull, idx: number, meta: WorkMeta) => Promise<AxiosResponse<U>>): Promise<WorkResult<T, GitHubPull, WorkMeta>> {
+  const workResult: WorkResult<T, GitHubPull, WorkMeta> = newPullRequestWorkResult(input);
   for (let i = 0; i < workResult.result.length; i++) {
     const pr: GitHubPull = workResult.result[i].input;
     let meta: WorkMeta | undefined = workResult.result[i].output.meta;
@@ -301,9 +259,7 @@ async function processPullRequests<T extends GithubPullRequestWorkInput, U>(
       workResult.result[i].output.status = 'failed';
     }
   }
-  const anyNotOk: boolean = workResult.result.some(
-    (r) => r.output.status !== 'ok'
-  );
+  const anyNotOk: boolean = workResult.result.some((r) => r.output.status !== 'ok');
   workResult.status = anyNotOk ? 'failed' : 'ok';
   await saveResultToStorage(workResult);
   return workResult;
@@ -317,11 +273,7 @@ interface GitHubPullRequestInput {
 
 type ResponseStatus = 'ok' | 'retryable' | 'failed';
 
-function axiosInstance(
-  _username: string,
-  token: string,
-  baseURL: string
-): AxiosInstance {
+function axiosInstance(_username: string, token: string, baseURL: string): AxiosInstance {
   const instance = axios.create({
     timeout: 60000,
     headers: {
@@ -352,14 +304,7 @@ export class GithubClient {
   private readonly api: AxiosInstance;
   private readonly settings: MegaSettingsType;
 
-  constructor(
-    baseUrl: string,
-    username: string,
-    token: string,
-    searchHostKey: string,
-    codeHostKey: string,
-    settings: MegaSettingsType
-  ) {
+  constructor(baseUrl: string, username: string, token: string, searchHostKey: string, codeHostKey: string, settings: MegaSettingsType) {
     this.username = username;
     this.searchHostKey = searchHostKey;
     this.codeHostKey = codeHostKey;
@@ -387,12 +332,7 @@ export class GithubClient {
     }
   }
 
-  async searchCode(
-    searchString: string,
-    max: number,
-    progress: (size: number) => void,
-    searchRef: React.MutableRefObject<number>
-  ): Promise<SearchHit[]> {
+  async searchCode(searchString: string, max: number, progress: (size: number) => void, searchRef: React.MutableRefObject<number>): Promise<SearchHit[]> {
     info(`Searching for REPO '${searchString}' with the github client`);
     const transformer = (codeItem: GithubSearchCodeItem) => {
       const owner = codeItem.repository.owner.login;
@@ -406,23 +346,10 @@ export class GithubClient {
         description: codeItem.repository.description,
       };
     };
-    return this.paginate(
-      '/search/code',
-      max,
-      { q: searchString },
-      progress,
-      transformer,
-      this.searchHitEquals,
-      searchRef
-    );
+    return this.paginate('/search/code', max, { q: searchString }, progress, transformer, this.searchHitEquals, searchRef);
   }
 
-  async searchRepo(
-    searchString: string,
-    max: number,
-    progress: (size: number) => void,
-    searchRef: React.MutableRefObject<number>
-  ): Promise<SearchHit[]> {
+  async searchRepo(searchString: string, max: number, progress: (size: number) => void, searchRef: React.MutableRefObject<number>): Promise<SearchHit[]> {
     info(`Searching for REPO: '${searchString}' with the github client`);
     const transformer = (repository: GithubSearchCodeRepository) => {
       const owner = repository.owner.login;
@@ -436,24 +363,10 @@ export class GithubClient {
         description: repository.description,
       };
     };
-    return this.paginate(
-      '/search/repositories',
-      max,
-      { q: searchString },
-      progress,
-      transformer,
-      this.searchHitEquals,
-      searchRef
-    );
+    return this.paginate('/search/repositories', max, { q: searchString }, progress, transformer, this.searchHitEquals, searchRef);
   }
 
-  async searchPulls(
-    searchString: string,
-    checks: boolean,
-    max: number,
-    progress: (size: number) => void,
-    searchRef: React.MutableRefObject<number>
-  ): Promise<GitHubPull[]> {
+  async searchPulls(searchString: string, checks: boolean, max: number, progress: (size: number) => void, searchRef?: React.MutableRefObject<number>): Promise<GitHubPull[]> {
     info(`Searching for PULLS: '${searchString}' with the github client`);
     const transformer: (item: any) => GitHubPull | undefined = (item: any) => {
       //debug(`PR: ${asString(item)}`)
@@ -484,49 +397,26 @@ export class GithubClient {
           repoDefaultBranch: item.repository.defaultBranchRef.name,
           raw: item,
           reviewDecision: item.reviewDecision,
-          statusCheckRollup:
-            item.commits?.nodes[0]?.commit?.statusCheckRollup?.state,
-          checks:
-            item.commits?.nodes[0]?.commit?.statusCheckRollup?.contexts?.nodes?.filter(
-              (c: any) => c && c.name && c.status
-            ),
+          statusCheckRollup: item.commits?.nodes[0]?.commit?.statusCheckRollup?.state,
+          checks: item.commits?.nodes[0]?.commit?.statusCheckRollup?.contexts?.nodes?.filter((c: any) => c && c.name && c.status),
         };
       } catch (e) {
-        warn(
-          `Was unable to map returned PR item correctly. Error was ${asString(
-            e
-          )} and the item was ${asString(item)}`
-        );
+        warn(`Was unable to map returned PR item correctly. Error was ${asString(e)} and the item was ${asString(item)}`);
         return undefined;
       }
     };
-    return this.paginateGraphQl(
-      '/graphql',
-      max,
-      githubPullRequestGraphQLSearch(checks),
-      { query: searchString },
-      progress,
-      (data) => data.data.search.nodes,
-      transformer,
-      searchRef
-    );
+    return this.paginateGraphQl('/graphql', max, githubPullRequestGraphQLSearch(checks), { query: searchString }, progress, (data) => data.data.search.nodes, transformer, searchRef);
   }
 
-  async prDraftOrReadyForReview(
-    input: { prs: GitHubPull[]; draft: boolean },
-    progressCallback: (idx: number) => void
-  ): Promise<WorkResult<unknown, GitHubPull, WorkMeta>> {
+  async prDraftOrReadyForReview(input: { prs: GitHubPull[]; draft: boolean }, progressCallback: (idx: number) => void): Promise<WorkResult<unknown, GitHubPull, WorkMeta>> {
     progressCallback(0);
-    const body = input.draft
-      ? githubPullMarkDraftGraphql(input.prs)
-      : githubPullMarkReadyGraphql(input.prs);
+    const body = input.draft ? githubPullMarkDraftGraphql(input.prs) : githubPullMarkReadyGraphql(input.prs);
     const name = 'Mark pull requests ' + input.draft ? 'draft' : 'ready';
-    const workResult: WorkResult<unknown, GitHubPull, WorkMeta> =
-      newPullRequestWorkResult({
-        name: name,
-        kind: input.draft ? 'prDraftMark' : 'prDraftReady',
-        pulls: input.prs,
-      });
+    const workResult: WorkResult<unknown, GitHubPull, WorkMeta> = newPullRequestWorkResult({
+      name: name,
+      kind: input.draft ? 'prDraftMark' : 'prDraftReady',
+      pulls: input.prs,
+    });
     const meta: WorkMeta = {
       workLog: [],
     };
@@ -580,11 +470,7 @@ export class GithubClient {
         progressCallback(idx);
         return this.evalRequest('Review PullRequest', meta, async () => {
           await sleep(1000);
-          return await this.api.post(
-            `/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}/reviews`,
-            input.body,
-            {}
-          );
+          return await this.api.post(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}/reviews`, input.body, {});
         });
       }
     );
@@ -608,27 +494,20 @@ export class GithubClient {
       },
       async (pr: GitHubPull, idx, meta) => {
         progressCallback(idx);
-        const method: GithubMergeMethodRequest = resoleMergeMethod(
-          input.mergeStrategy,
-          pr
-        );
+        const method: GithubMergeMethodRequest = resoleMergeMethod(input.mergeStrategy, pr);
 
-        const mergeResult = await this.evalRequest(
-          'Merge PullRequest',
-          meta,
-          async () => {
-            await sleep(1000);
-            return await this.api.put(
-              `/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}/merge`,
-              {
-                merge_method: method,
-                commit_title: input.title,
-                commit_message: input.message,
-              },
-              {}
-            );
-          }
-        );
+        const mergeResult = await this.evalRequest('Merge PullRequest', meta, async () => {
+          await sleep(1000);
+          return await this.api.put(
+            `/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}/merge`,
+            {
+              merge_method: method,
+              commit_title: input.title,
+              commit_message: input.message,
+            },
+            {}
+          );
+        });
         if (mergeResult.status < 300 && input.dropBranch) {
           return this.evalRequest('Drop branch', meta, async () => {
             await sleep(1000);
@@ -641,30 +520,15 @@ export class GithubClient {
     );
   }
 
-  async closePullRequests(
-    input: { prs: GitHubPull[]; comment?: string; dropBranch: boolean },
-    progressCallback: (idx: number) => void
-  ): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
-    return await this.patchPullRequests(
-      { ...input, body: { state: 'closed' } },
-      progressCallback
-    );
+  async closePullRequests(input: { prs: GitHubPull[]; comment?: string; dropBranch: boolean }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+    return await this.patchPullRequests({ ...input, body: { state: 'closed' } }, progressCallback);
   }
 
-  async reOpenPullRequests(
-    input: { prs: GitHubPull[]; comment?: string },
-    progressCallback: (idx: number) => void
-  ): Promise<WorkResult<unknown, GitHubPull, WorkMeta>> {
-    return await this.patchPullRequests(
-      { ...input, body: { state: 'open' } },
-      progressCallback
-    );
+  async reOpenPullRequests(input: { prs: GitHubPull[]; comment?: string }, progressCallback: (idx: number) => void): Promise<WorkResult<unknown, GitHubPull, WorkMeta>> {
+    return await this.patchPullRequests({ ...input, body: { state: 'open' } }, progressCallback);
   }
 
-  async rewordPullRequests(
-    input: { prs: GitHubPull[]; body: { title: string; body: string } },
-    progressCallback: (idx: number) => void
-  ): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
+  async rewordPullRequests(input: { prs: GitHubPull[]; body: { title: string; body: string } }, progressCallback: (idx: number) => void): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
     return await this.patchPullRequests(input, progressCallback);
   }
 
@@ -677,76 +541,45 @@ export class GithubClient {
     },
     progressCallback: (idx: number) => void
   ): Promise<WorkResult<any, GitHubPull, WorkMeta>> {
-    return await processPullRequests(
-      { pulls: input.prs, name: 'Edit PRS', kind: 'editPr' },
-      async (pr, idx, meta) => {
-        progressCallback(idx);
-        const result = await this.evalRequest(
-          'PATCH PullRequest',
-          meta,
-          async () => {
-            await sleep(1000);
-            return await this.api.patch(
-              `/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}`,
-              input.body,
-              {}
-            );
-          }
-        );
-        if (result.status === 200) {
-          await this.commentPr(pr, input.comment, meta);
-        }
-        if (result.status === 200 && input.dropBranch === true) {
-          await this.dropPrBranch(pr, meta);
-        }
-        return result;
+    return await processPullRequests({ pulls: input.prs, name: 'Edit PRS', kind: 'editPr' }, async (pr, idx, meta) => {
+      progressCallback(idx);
+      const result = await this.evalRequest('PATCH PullRequest', meta, async () => {
+        await sleep(1000);
+        return await this.api.patch(`/repos/${pr.owner?.login}/${pr.repo}/pulls/${pr.prNumber}`, input.body, {});
+      });
+      if (result.status === 200) {
+        await this.commentPr(pr, input.comment, meta);
       }
-    );
+      if (result.status === 200 && input.dropBranch === true) {
+        await this.dropPrBranch(pr, meta);
+      }
+      return result;
+    });
   }
 
-  private async dropPrBranch(
-    pr: GitHubPull,
-    meta: WorkMeta
-  ): Promise<AxiosResponse<unknown, undefined>> {
+  private async dropPrBranch(pr: GitHubPull, meta: WorkMeta): Promise<AxiosResponse<unknown, undefined>> {
     return await this.evalRequest('Drop PullRequest branch', meta, async () => {
       if (pr.head === pr.repoDefaultBranch) {
         throw new Error('Wont even try to delete the repo default branch 🤦');
       }
       await sleep(1000);
-      return await this.evalRequest(
-        'Delete PullRequest branch',
-        meta,
-        async () => {
-          await sleep(1000);
-          return await this.api.delete(
-            `/repos/${pr.owner?.login}/${pr.repo}/git/refs/heads/${pr.head}`
-          );
-        }
-      );
+      return await this.evalRequest('Delete PullRequest branch', meta, async () => {
+        await sleep(1000);
+        return await this.api.delete(`/repos/${pr.owner?.login}/${pr.repo}/git/refs/heads/${pr.head}`);
+      });
     });
   }
 
-  private async commentPr(
-    pr: GitHubPull,
-    comment: string | undefined,
-    meta: WorkMeta
-  ) {
+  private async commentPr(pr: GitHubPull, comment: string | undefined, meta: WorkMeta) {
     if (comment && comment.length !== 0) {
       await this.evalRequest('Comment PullRequest', meta, async () => {
         await sleep(1000);
-        return await this.api.post(
-          `/repos/${pr.owner?.login}/${pr.repo}/issues/${pr.prNumber}/comments`,
-          { body: comment },
-          {}
-        );
+        return await this.api.post(`/repos/${pr.owner?.login}/${pr.repo}/issues/${pr.prNumber}/comments`, { body: comment }, {});
       });
     }
   }
 
-  createPullRequests(
-    input: GitHubPullRequestInput,
-    progressCallback: (done: number) => void
-  ): Promise<SimpleActionReturn> {
+  createPullRequests(input: GitHubPullRequestInput, progressCallback: (done: number) => void): Promise<SimpleActionReturn> {
     progressCallback(0);
     return simpleActionWithResult(
       {
@@ -756,24 +589,11 @@ export class GithubClient {
         sourceString: 'Create pullRequests',
         workResultKind: 'gitStage',
       },
-      async (
-        index: number,
-        hit: SearchHit,
-        path: string,
-        meta: WorkMeta,
-        statusReport: (sts: WorkResultStatus) => void
-      ) => {
+      async (index: number, hit: SearchHit, path: string, meta: WorkMeta, statusReport: (sts: WorkResultStatus) => void) => {
         try {
           const main = await getMainBranchName(path, meta);
           const head = await getCurrentBranchName(path);
-          await this.createPullRequest(
-            hit,
-            input.title,
-            input.body,
-            head,
-            main,
-            meta
-          );
+          await this.createPullRequest(hit, input.title, input.body, head, main, meta);
           statusReport('ok');
         } catch (e) {
           statusReport('failed');
@@ -784,14 +604,7 @@ export class GithubClient {
     );
   }
 
-  private async createPullRequest(
-    hit: SearchHit,
-    title: string,
-    body: string,
-    head: string,
-    base: string,
-    meta: WorkMeta
-  ) {
+  private async createPullRequest(hit: SearchHit, title: string, body: string, head: string, base: string, meta: WorkMeta) {
     await this.evalRequest('POST Create PullRequest', meta, async () => {
       await sleep(1000);
       return await this.api.post(
@@ -807,11 +620,7 @@ export class GithubClient {
     });
   }
 
-  private async evalRequest<T>(
-    what: string,
-    meta: WorkMeta | undefined,
-    req: () => Promise<AxiosResponse<T>>
-  ): Promise<AxiosResponse<T>> {
+  private async evalRequest<T>(what: string, meta: WorkMeta | undefined, req: () => Promise<AxiosResponse<T>>): Promise<AxiosResponse<T>> {
     let attempt = 0;
     const maxTries = 10;
     while (attempt < maxTries) {
@@ -840,9 +649,7 @@ export class GithubClient {
       }
       attempt++;
     }
-    throw new Error(
-      `Giving up on creating '${what}' after ${maxTries} attempts`
-    );
+    throw new Error(`Giving up on creating '${what}' after ${maxTries} attempts`);
   }
 
   private async paginateGraphQl<GITHUB_TYPE, TYPE>(
@@ -853,17 +660,14 @@ export class GithubClient {
     progress: (size: number) => void,
     listExtractor: (data: any) => GITHUB_TYPE[],
     transformer: (data: GITHUB_TYPE) => TYPE | undefined,
-    searchRef: React.MutableRefObject<number>
+    searchRef?: React.MutableRefObject<number>
   ): Promise<TYPE[]> {
-    const fixedSearchRef = searchRef.current;
+    const fixedSearchRef = searchRef?.current ?? 0;
     let cursor: string | undefined = undefined;
     const aggregator: Set<TYPE> = new Set<TYPE>();
     let attempt = 0;
     progress(0);
-    pagination: while (
-      aggregator.size < max &&
-      searchRef.current == fixedSearchRef
-    ) {
+    pagination: while (aggregator.size < max && (searchRef?.current ?? 0) == fixedSearchRef) {
       progress(aggregator.size);
       await sleep(1000);
       const left = max - aggregator.size;
@@ -875,21 +679,14 @@ export class GithubClient {
         },
         query,
       });
-      const status: ResponseStatus = await this.retryOnThrottle(
-        attempt,
-        response
-      );
+      const status: ResponseStatus = await this.retryOnThrottle(attempt, response);
       switch (status) {
         case 'retryable':
           attempt++;
           info('Resume after throttle');
           continue;
         case 'failed':
-          warn(
-            `Failed paginating request in a way that was not recoverable with throttling: ${
-              response.status
-            }::${JSON.stringify(response.data)}`
-          );
+          warn(`Failed paginating request in a way that was not recoverable with throttling: ${response.status}::${JSON.stringify(response.data)}`);
           break pagination;
         case 'ok': {
           const data: GITHUB_TYPE[] = listExtractor(response.data);
@@ -903,10 +700,7 @@ export class GithubClient {
             if (aggregator.size === max) break pagination;
           }
           attempt = 0;
-          if (
-            response.data.data.search.pageInfo.hasNextPage &&
-            response.data.data.search.pageInfo.endCursor
-          ) {
+          if (response.data.data.search.pageInfo.hasNextPage && response.data.data.search.pageInfo.endCursor) {
             cursor = response.data.data.search.pageInfo.endCursor;
           } else {
             break pagination;
@@ -918,25 +712,14 @@ export class GithubClient {
     return Array.from(aggregator);
   }
 
-  private async paginate<GITHUB_TYPE, TYPE>(
-    url: string,
-    max: number,
-    params: any,
-    progress: (size: number) => void,
-    transformer: (data: GITHUB_TYPE) => TYPE,
-    equality: (v1: TYPE, v2: TYPE) => boolean,
-    searchRef: React.MutableRefObject<number>
-  ): Promise<TYPE[]> {
+  private async paginate<GITHUB_TYPE, TYPE>(url: string, max: number, params: any, progress: (size: number) => void, transformer: (data: GITHUB_TYPE) => TYPE, equality: (v1: TYPE, v2: TYPE) => boolean, searchRef: React.MutableRefObject<number>): Promise<TYPE[]> {
     const fixedSearchRef = searchRef.current;
     const aggregator: Set<TYPE> = new Set<TYPE>();
     let page = 1;
     const per_page = 25;
     let attempt = 0;
     progress(0);
-    pagination: while (
-      aggregator.size < max &&
-      fixedSearchRef == searchRef.current
-    ) {
+    pagination: while (aggregator.size < max && fixedSearchRef == searchRef.current) {
       progress(aggregator.size);
       await sleep(1000);
       debug(`Fetching page ${page} with ${aggregator.size} found already`);
@@ -948,21 +731,14 @@ export class GithubClient {
         },
       });
       trace('Received response: ' + asString(response));
-      const status: ResponseStatus = await this.retryOnThrottle(
-        attempt,
-        response
-      );
+      const status: ResponseStatus = await this.retryOnThrottle(attempt, response);
       switch (status) {
         case 'retryable':
           attempt++;
           info('Resume after throttle');
           continue;
         case 'failed':
-          warn(
-            `Failed paginating request in a way that was not recoverable with throttling: ${
-              response.status
-            }::${JSON.stringify(response.data)}`
-          );
+          warn(`Failed paginating request in a way that was not recoverable with throttling: ${response.status}::${JSON.stringify(response.data)}`);
           break pagination;
         case 'ok': {
           const data: GithubPage<GITHUB_TYPE> = response.data;
@@ -985,10 +761,7 @@ export class GithubClient {
     return Array.from(aggregator);
   }
 
-  private async retryOnThrottle(
-    attempt: number,
-    response: AxiosResponse<any>
-  ): Promise<ResponseStatus> {
+  private async retryOnThrottle(attempt: number, response: AxiosResponse<any>): Promise<ResponseStatus> {
     if (response.status < 300) {
       return 'ok';
     }
@@ -1013,10 +786,7 @@ export class GithubClient {
           }
         }
       }
-      if (
-        response.data?.message ===
-        'You have exceeded a secondary rate limit. Please wait a few minutes before you try again.'
-      ) {
+      if (response.data?.message === 'You have exceeded a secondary rate limit. Please wait a few minutes before you try again.') {
         warn(`Secondary rate limit hit ⚠️💥!!!`);
         await sleep(10_000);
         return 'retryable';

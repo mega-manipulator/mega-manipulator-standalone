@@ -7,11 +7,10 @@ import { SearchHit } from '../../ui/search/types';
 import { WorkMeta } from '../types';
 import { runCommand } from '../work/workLog';
 import { requireZeroStatus } from './simpleActionWithResult';
+import { GithubClient } from '../../hooks/github.com';
+import { getPassword } from '../../hooks/usePassword';
 
-export async function listRepos(
-  basePath: string,
-  depth?: number
-): Promise<string[]> {
+export async function listRepos(basePath: string, depth?: number): Promise<string[]> {
   if (!basePath) {
     warn('listRepos bailed, one or more GitDir not defined in settings');
     return [];
@@ -24,10 +23,7 @@ export async function listRepos(
   }
 }
 
-export async function pathToSearchHit(
-  searchHost: string | null,
-  repoPath: string
-): Promise<SearchHit> {
+export async function pathToSearchHit(searchHost: string | null, repoPath: string): Promise<SearchHit> {
   const repo = await path.basename(repoPath);
   const ownerPath = await path.dirname(repoPath);
   const owner = await path.basename(ownerPath);
@@ -52,9 +48,7 @@ async function cloneAddress(repoPath: string): Promise<string> {
       cwd: repoPath,
     }).execute();
     if (remoteListing.code === 0) {
-      const originLine = remoteListing.stdout
-        .split('\n')
-        .find((line) => line.startsWith('origin') && line.endsWith('(push)'));
+      const originLine = remoteListing.stdout.split('\n').find((line) => line.startsWith('origin') && line.endsWith('(push)'));
       if (originLine) {
         return originLine.split(/ */g)[1];
       }
@@ -65,10 +59,7 @@ async function cloneAddress(repoPath: string): Promise<string> {
   return 'unknown';
 }
 
-async function listClonesRecursive(
-  depth: number,
-  path: string
-): Promise<string[]> {
+async function listClonesRecursive(depth: number, path: string): Promise<string[]> {
   const dir = await fs.readDir(path);
   if (depth === 0) {
     if (dir.some((f) => f.name === '.git')) {
@@ -103,6 +94,7 @@ export class RepoBadStatesReport {
   readonly onDefaultBranch: Report = { state: 'loading' };
   readonly noDiffWithOriginHead: Report = { state: 'loading' };
   readonly noCodeHostConfig: Report = { state: 'loading' };
+  readonly hasPullRequest: Report = { state: 'loading' };
 
   constructor(repoPathLong: string, repoPathShort: string) {
     this.repoPathShort = repoPathShort;
@@ -110,20 +102,9 @@ export class RepoBadStatesReport {
   }
 }
 
-export async function analyzeRepoForBadStates(
-  settings: MegaSettingsType,
-  repoPath: string
-): Promise<RepoBadStatesReport> {
-  const trimmedRepoPath = repoPath.substring(
-    (settings.clonePath?.length ?? -1) + 1
-  );
+export async function analyzeRepoForBadStates(settings: MegaSettingsType, repoPath: string): Promise<RepoBadStatesReport> {
+  const trimmedRepoPath = repoPath.substring((settings.clonePath?.length ?? -1) + 1);
   try {
-    const [uncommittedChanges, onDefaultBranch, noDiffWithOriginHead] =
-      await Promise.all([
-        hasUncommittedChanges(repoPath),
-        hasOnDefaultBranch(repoPath),
-        hasNoDiffWithOriginHead(repoPath),
-      ]);
     const codeHostPath = await path.resolve(repoPath, '..', '..');
     const codeHostDirName = await path.basename(codeHostPath);
 
@@ -135,11 +116,9 @@ export async function analyzeRepoForBadStates(
             error: `No code host config for '${codeHostDirName}'`,
           };
     if (noCodeHostConfig.state === 'bad') {
-      debug(
-        'codeHostDirName does not have matching codeHostConfig: ' +
-          codeHostDirName
-      );
+      debug('codeHostDirName does not have matching codeHostConfig: ' + codeHostDirName);
     }
+    const [uncommittedChanges, onDefaultBranch, noDiffWithOriginHead, hasPullRequest] = await Promise.all([hasUncommittedChanges(repoPath), hasOnDefaultBranch(repoPath), hasNoDiffWithOriginHead(repoPath), hasOpenPullRequest(repoPath, settings)]);
 
     return {
       repoPathLong: repoPath,
@@ -148,6 +127,7 @@ export async function analyzeRepoForBadStates(
       onDefaultBranch,
       noDiffWithOriginHead,
       noCodeHostConfig,
+      hasPullRequest,
     };
   } catch (e) {
     error('Failed to execute: ' + asString(e));
@@ -158,7 +138,34 @@ export async function analyzeRepoForBadStates(
       onDefaultBranch: { state: 'failed to execute', error: asString(e) },
       noDiffWithOriginHead: { state: 'failed to execute', error: asString(e) },
       noCodeHostConfig: { state: 'failed to execute', error: asString(e) },
+      hasPullRequest: { state: 'failed to execute', error: asString(e) },
     };
+  }
+}
+
+async function hasOpenPullRequest(repoPath: string, settings: MegaSettingsType): Promise<Report> {
+  const searchHostPath = await path.resolve(repoPath, '..', '..', '..');
+  const searchHostDirName = await path.basename(searchHostPath);
+  const codeHostPath = await path.resolve(repoPath, '..', '..');
+  const codeHostDirName = await path.basename(codeHostPath);
+  const ownerPath = await path.resolve(repoPath, '..');
+  const ownerDirName = await path.basename(ownerPath);
+  const repoDirName = await path.basename(repoPath);
+  const codeHostSettings = settings.codeHosts[codeHostDirName]?.github;
+  if (codeHostSettings === undefined) {
+    return { state: 'bad', error: 'No code host settings' };
+  }
+  const token = await getPassword(codeHostSettings.username, codeHostSettings.baseUrl);
+  if (!token) {
+    return { state: 'bad', error: 'Password/Token not set' };
+  }
+  const client = new GithubClient(codeHostSettings.baseUrl, codeHostSettings.username, token, searchHostDirName, codeHostDirName, settings);
+  const current = await getCurrentBranchName(repoPath);
+  const found = await client.searchPulls(`is:pr state:open author:${codeHostSettings.username} repo:${ownerDirName}/${repoDirName} is:unmerged head:${current}`, false, 1, () => null, undefined);
+  if (found.length > 0) {
+    return { state: 'good' };
+  } else {
+    return { state: 'bad', error: 'No open pull request for repo' };
   }
 }
 
@@ -166,24 +173,15 @@ async function hasUncommittedChanges(repoPath: string): Promise<Report> {
   const result = await new Command('git', ['diff', '--name-only', 'HEAD'], {
     cwd: repoPath,
   }).execute();
-  debug(
-    `Ran 'git diff --name-only HEAD' in ${repoPath} with result: ${asString(
-      result
-    )}`
-  );
-  if (result.code !== 0)
-    return { state: 'failed to execute', error: asString(result) };
-  else if (result.stdout.length === 0 && result.stderr.length === 0)
-    return { state: 'good' };
+  debug(`Ran 'git diff --name-only HEAD' in ${repoPath} with result: ${asString(result)}`);
+  if (result.code !== 0) return { state: 'failed to execute', error: asString(result) };
+  else if (result.stdout.length === 0 && result.stderr.length === 0) return { state: 'good' };
   else return { state: 'bad', error: asString(result) };
 }
 
 async function hasOnDefaultBranch(repoPath: string): Promise<Report> {
   try {
-    const [current, main] = await Promise.all([
-      getCurrentBranchName(repoPath),
-      getMainBranchName(repoPath),
-    ]);
+    const [current, main] = await Promise.all([getCurrentBranchName(repoPath), getMainBranchName(repoPath)]);
     return current === main
       ? {
           state: 'bad',
@@ -199,17 +197,11 @@ async function hasOnDefaultBranch(repoPath: string): Promise<Report> {
 async function hasNoDiffWithOriginHead(repoPath: string): Promise<Report> {
   try {
     const main = await getMainBranchName(repoPath);
-    const diffResult = await new Command('git', [
-      'diff',
-      'HEAD',
-      `origin/${main}`,
-      '--',
-    ]).execute();
+    const diffResult = await new Command('git', ['diff', 'HEAD', `origin/${main}`, '--']).execute();
     if (diffResult.code !== 0) {
       debug(`Failed #hasNoDiffWithOriginHead ${asString(diffResult)}`);
       return { state: 'failed to execute', error: asString(diffResult) };
-    } else if (diffResult.stdout.length === 0)
-      return { state: 'bad', error: 'No diff' };
+    } else if (diffResult.stdout.length === 0) return { state: 'bad', error: 'No diff' };
     else return { state: 'good' };
   } catch (e) {
     return { state: 'failed to execute', error: asString(e) };
@@ -220,47 +212,22 @@ export async function getCurrentBranchName(repoDir: string): Promise<string> {
   const result: ChildProcess = await new Command('git', ['branch'], {
     cwd: repoDir,
   }).execute();
-  if (result.code !== 0)
-    throw new Error(
-      `Unable to determine current branch name of ${repoDir} due to ${asString(
-        result
-      )}`
-    );
-  const currentBranchLine: string | undefined = result.stdout
-    .split('\n')
-    .find((line) => line.startsWith('* '));
-  if (!currentBranchLine)
-    throw new Error(
-      `Unable to determine current branch name of ${repoDir}, unintelligible output`
-    );
+  if (result.code !== 0) throw new Error(`Unable to determine current branch name of ${repoDir} due to ${asString(result)}`);
+  const currentBranchLine: string | undefined = result.stdout.split('\n').find((line) => line.startsWith('* '));
+  if (!currentBranchLine) throw new Error(`Unable to determine current branch name of ${repoDir}, unintelligible output`);
   return currentBranchLine.substring(2);
 }
 
-export async function getMainBranchName(
-  repoDir: string,
-  meta?: WorkMeta
-): Promise<string> {
+export async function getMainBranchName(repoDir: string, meta?: WorkMeta): Promise<string> {
   /** Local lookup up remotes head branch 💩 Because it's 100~ times faster */
-  const headBranchFile = await path.join(
-    repoDir,
-    '.git',
-    'refs',
-    'remotes',
-    'origin',
-    'HEAD'
-  );
+  const headBranchFile = await path.join(repoDir, '.git', 'refs', 'remotes', 'origin', 'HEAD');
   const headBranchFileContent = await fs.readTextFile(headBranchFile);
   if (headBranchFileContent.startsWith('ref: refs/remotes/origin/')) {
     return headBranchFileContent.split('\n')[0].substring(25);
   }
 
-  const result: ChildProcess = requireZeroStatus(
-    await runCommand('git', ['remote', 'show', 'origin'], repoDir, meta),
-    'Fetch remote branches'
-  );
-  const headBranchRow: string | undefined = result.stdout
-    .split('\n')
-    .find((e) => e.startsWith('  HEAD branch: '));
+  const result: ChildProcess = requireZeroStatus(await runCommand('git', ['remote', 'show', 'origin'], repoDir, meta), 'Fetch remote branches');
+  const headBranchRow: string | undefined = result.stdout.split('\n').find((e) => e.startsWith('  HEAD branch: '));
   if (!headBranchRow) throw new Error(`Unable to head branch of ${repoDir}`);
   const rowParts: string[] = headBranchRow.split(' ');
   return rowParts[rowParts.length - 1];

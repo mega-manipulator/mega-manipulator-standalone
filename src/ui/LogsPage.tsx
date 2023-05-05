@@ -42,11 +42,7 @@ export const LogsPage: React.FC = () => {
       <Typography variant={'h4'}>Logs</Typography>
       {logDirStr && logDirStr !== '' && (
         <Tooltip title={logDirStr}>
-          <Button
-            variant={'outlined'}
-            color={'secondary'}
-            onClick={() => openDirs(os, settings, [logDirStr])}
-          >
+          <Button variant={'outlined'} color={'secondary'} onClick={() => openDirs(os, settings, [logDirStr])}>
             Open log dir
             <FileOpenIcon />
           </Button>
@@ -54,9 +50,8 @@ export const LogsPage: React.FC = () => {
       )}
       <DataGridPro
         autoHeight
-        autoPageSize
         checkboxSelection={false}
-        rowsPerPageOptions={[10, 50, 100]}
+        pagination
         columns={[
           { field: 'id', hideable: true, resizable: true },
           { field: 'name', width: 400 },
@@ -75,13 +70,7 @@ export const LogsPage: React.FC = () => {
             field: 'delete',
             headerName: 'Delete',
             renderCell: ({ row }) => (
-              <Tooltip
-                title={`${
-                  row.name === 'mega-manipulator.log'
-                    ? 'THIS IS THE CURRENT LOG FILE, DELETION WILL TRIGGER A RESTART!! '
-                    : ''
-                }Delete log forever, no prompts, just BOOOOOM 🧨😅`}
-              >
+              <Tooltip title={`${row.name === 'mega-manipulator.log' ? 'THIS IS THE CURRENT LOG FILE, DELETION WILL TRIGGER A RESTART!! ' : ''}Delete log forever, no prompts, just BOOOOOM 🧨😅`}>
                 <IconButton
                   onClick={() =>
                     fs
@@ -92,20 +81,10 @@ export const LogsPage: React.FC = () => {
                           process
                             .relaunch()
                             .then(() => warn('Will now restart application'))
-                            .catch((e) =>
-                              error(
-                                `Failed restarting application: ${asString(e)}`
-                              )
-                            );
+                            .catch((e) => error(`Failed restarting application: ${asString(e)}`));
                         }
                       })
-                      .catch((e) =>
-                        error(
-                          `Failed deleting log file '${row.path}' ${asString(
-                            e
-                          )}`
-                        )
-                      )
+                      .catch((e) => error(`Failed deleting log file '${row.path}' ${asString(e)}`))
                       .finally(() => setReload(reload + 1))
                   }
                 >

@@ -158,6 +158,8 @@ export type GithubPrCheck = {
 };
 
 export interface GitHubPull {
+  login?: string;
+  avatarUrl?: string;
   codeHostKey: string;
   prId: string;
   prNumber: number;

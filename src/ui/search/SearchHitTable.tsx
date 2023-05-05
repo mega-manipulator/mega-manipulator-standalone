@@ -56,9 +56,7 @@ export const SearchHitTable: React.FC = () => {
             editable: false,
           },
         ]}
-        autoPageSize
-        pageSize={15}
-        rowsPerPageOptions={[5, 15, 100]}
+        pagination
         checkboxSelection
         disableSelectionOnClick
       />

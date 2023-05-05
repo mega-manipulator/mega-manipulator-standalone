@@ -1,10 +1,5 @@
 import { Alert, Box, IconButton, Tooltip, Typography } from '@mui/material';
-import {
-  DataGridPro,
-  GridColDef,
-  GridRenderCellParams,
-  GridRowId,
-} from '@mui/x-data-grid-pro';
+import { DataGridPro, GridColDef, GridRenderCellParams, GridRowId } from '@mui/x-data-grid-pro';
 import React, { useContext } from 'react';
 import { MegaContext } from '../../hooks/MegaContext';
 import { GithubPrCheck, GitHubPull, GithubUser } from '../../hooks/github.com';
@@ -15,9 +10,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-const GithubUserColumn: React.FC<
-  GridRenderCellParams<GithubUser, GitHubPull, unknown>
-> = ({ value }) => {
+const GithubUserColumn: React.FC<GridRenderCellParams<GithubUser, GitHubPull, unknown>> = ({ value }) => {
   return (
     <>
       <Box
@@ -33,9 +26,7 @@ const GithubUserColumn: React.FC<
     </>
   );
 };
-const OpenableUrlColum: React.FC<
-  GridRenderCellParams<string, GitHubPull, unknown>
-> = ({ value }) => {
+const OpenableUrlColum: React.FC<GridRenderCellParams<string, GitHubPull, unknown>> = ({ value }) => {
   return (
     <Tooltip title={`Open in browser: ${value}`}>
       <IconButton color={'primary'} onClick={() => value && open(value)}>
@@ -44,9 +35,7 @@ const OpenableUrlColum: React.FC<
     </Tooltip>
   );
 };
-const ReviewDecisionColum: React.FC<
-  GridRenderCellParams<string, GitHubPull, unknown>
-> = ({ value }) => {
+const ReviewDecisionColum: React.FC<GridRenderCellParams<string, GitHubPull, unknown>> = ({ value }) => {
   switch (value) {
     case 'APPROVED':
       return (
@@ -80,9 +69,7 @@ const ReviewDecisionColum: React.FC<
       );
   }
 };
-const StatusCheckRollupColum: React.FC<
-  GridRenderCellParams<string, GitHubPull, unknown>
-> = ({ value, row: { checks } }) => {
+const StatusCheckRollupColum: React.FC<GridRenderCellParams<string, GitHubPull, unknown>> = ({ value, row: { checks } }) => {
   const checkToAlert = (check: GithubPrCheck) => (
     <Alert color={check.conclusion === 'SUCCESS' ? 'success' : 'warning'}>
       {check.name} {check.status} {check.conclusion}
@@ -243,9 +230,7 @@ export const PullRequestsTable: React.FC = () => {
         onSelectionModelChange={(model: GridRowId[]) => {
           setSelected(model.map((id) => +id));
         }}
-        autoPageSize
-        pageSize={15}
-        rowsPerPageOptions={[5, 15, 100]}
+        pagination
         checkboxSelection
       />
     </Box>

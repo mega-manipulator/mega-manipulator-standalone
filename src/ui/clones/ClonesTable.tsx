@@ -82,13 +82,12 @@ export const ClonesTable: React.FC<ClonesTableProps> = ({ repoStates }) => {
             ...d,
           };
         })}
-        rowSelectionModel={selectedModel}
-        onRowSelectionModelChange={(model: GridRowId[]) => {
+        selectionModel={selectedModel}
+        onSelectionModelChange={(model: GridRowId[]) => {
           setSelected(model.map((r) => +r));
         }}
         columns={columns}
-        autoPageSize
-        pageSizeOptions={[5, 15, 100]}
+        pagination
         checkboxSelection
       />
     </Box>

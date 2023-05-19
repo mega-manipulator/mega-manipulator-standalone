@@ -15,7 +15,7 @@ jobs:
       #group: ${{ github.workflow }}-${{ matrix.platform }}-${{ github.head_ref || github.ref }}
     steps:
       - uses: mega-manipulator/tauri-setup-action@main
-      - uses: tauri-apps/tauri-action@v0.2.0
+      - uses: tauri-apps/tauri-action@v0.4.2
         env:
           VITE_MUI_PRO_LICENCE: ${{ secrets.VITE_MUI_PRO_LICENCE }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
